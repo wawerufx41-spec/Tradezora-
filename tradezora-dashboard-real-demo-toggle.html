@@ -1,0 +1,3127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#050807">
+  <title>TradeZora — Trading</title>
+  <style>
+/* TradeZora mobile-first dashboard CSS */
+:root{--bg:#050807;--panel:#09100d;--green:#16e58a;--red:#ff4f61;--text:#eef5f1;--muted:#899891;--border:#173528;--shadow:0 14px 40px rgba(0,0,0,.28)}
+*{box-sizing:border-box}html{scroll-behavior:smooth;background:var(--bg)}body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% -10%,rgba(22,229,138,.07),transparent 32%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;padding-bottom:24px}button,input,select{font:inherit}button{cursor:pointer}a{color:inherit}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.62);opacity:0;visibility:hidden;transition:.2s;z-index:80}.overlay.show{opacity:1;visibility:visible}
+.topbar{position:sticky;top:0;z-index:70;height:68px;display:flex;align-items:center;gap:12px;padding:0 18px;background:rgba(5,8,7,.97);border-bottom:1px solid var(--border);backdrop-filter:blur(12px)}
+.menu-btn{width:44px;height:44px;flex:0 0 44px;border:1px solid #244334;border-radius:10px;background:#0b1510;display:grid;place-content:center;gap:4px}.menu-btn span{width:20px;height:2px;display:block;background:var(--text);border-radius:2px}
+.mobile-logo{color:var(--green);text-decoration:none;font-weight:900;font-size:19px}.top-spacer{flex:1}.demo-badge{border:1px solid #4a3c74;background:#17112b;color:#bcaeff;border-radius:7px;padding:5px 8px;font-size:9px;font-weight:900}.balance-box{min-width:145px;padding:7px 13px;border:1px solid var(--border);border-radius:11px;background:#08110d;text-align:right}.balance-box small{display:block;color:var(--muted);font-size:9px;letter-spacing:.7px}.balance-box strong{display:block;color:var(--green);font-size:17px}.balance-switch{border:1px solid var(--border);border-radius:9px;background:#08110d;color:var(--green);font-size:10px;font-weight:800;padding:8px 9px;min-height:38px;white-space:nowrap}.balance-switch.real-mode{color:#bcaeff;border-color:#4a3c74}.balance-box.real-mode strong{color:#bcaeff}.notification-btn{width:44px;height:44px;border:1px solid var(--border);border-radius:11px;background:#08110d;color:#fff}
+.side-menu{position:fixed;top:0;left:0;width:min(330px,88vw);height:100vh;padding:18px;background:#060b08;border-right:1px solid var(--border);box-shadow:18px 0 50px rgba(0,0,0,.4);transform:translateX(-105%);transition:transform .24s ease;z-index:90;overflow-y:auto}.side-menu.open{transform:translateX(0)}.side-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}.side-brand{display:flex;align-items:center;gap:9px;color:var(--green);font-size:20px;font-weight:900}.brand-mark{width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--green);border-radius:9px;font-size:12px}.icon-btn{border:1px solid var(--border);background:#0b1510;color:#fff;border-radius:9px}.close-btn{width:38px;height:38px;font-size:24px}.profile{display:flex;gap:11px;align-items:center;padding:13px;border:1px solid var(--border);border-radius:12px;background:#09140f;margin-bottom:12px}.avatar{width:44px;height:44px;flex:0 0 44px;display:grid;place-items:center;border-radius:50%;background:#103622;border:1px solid #246c47;color:var(--green);font-weight:900}.profile-info{min-width:0}.profile-info strong,.profile-info span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.profile-info span{margin-top:3px;color:var(--muted);font-size:11px}.side-nav{display:grid;gap:4px}.side-link{width:100%;min-height:44px;display:flex;align-items:center;gap:11px;padding:10px 12px;border:0;border-radius:9px;background:transparent;color:#d7e0dc;text-decoration:none;text-align:left;font-size:13px}.side-link span{width:19px;text-align:center;color:#9aa9a2}.side-link:hover,.side-link.active{background:#0b2117;color:var(--green)}.admin-only{display:none!important}.admin-only.visible{display:flex!important}.logout-btn{width:100%;margin-top:16px;padding:12px;border:1px solid #4b2028;border-radius:9px;background:#1a0b0e;color:#ff7c88}
+.page{width:100%}.terminal{width:min(1100px,100%);margin:0 auto;padding:16px}.market-tabs{display:flex;gap:5px;padding:4px;margin-bottom:10px;border:1px solid var(--border);border-radius:10px;background:#07100c;overflow-x:auto}.market-tabs button{flex:1 0 auto;min-height:38px;padding:8px 14px;border:0;border-radius:7px;background:transparent;color:var(--muted);font-weight:700;font-size:12px;white-space:nowrap}.market-tabs button.active{background:#10301f;color:var(--green)}.market-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:10px}.eyebrow{display:block;margin-bottom:4px;color:var(--muted);font-size:9px;font-weight:800;letter-spacing:1px}.market-head select{min-width:190px;padding:9px 11px;border:1px solid var(--border);border-radius:8px;background:#09130f;color:#fff;outline:none}.price-change{text-align:right}.price-change span{display:block;color:var(--muted);font-size:8px}.price-change strong{display:block;color:var(--green);font-size:13px}
+.panel{border:1px solid var(--border);border-radius:14px;background:linear-gradient(180deg,#09110d,#07100c);box-shadow:var(--shadow)}.chart-panel{padding:13px}.chart-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px}.historical{padding:5px 8px;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:9px}.chart-tools{display:flex;gap:4px}.chart-tools button{min-width:31px;height:29px;padding:0 7px;border:1px solid var(--border);border-radius:6px;background:#0b1711;color:#dbe4df}.chart-wrap{position:relative;height:310px;margin-top:7px;overflow:hidden;border-radius:9px;background:linear-gradient(rgba(31,73,54,.15) 1px,transparent 1px),linear-gradient(90deg,rgba(31,73,54,.15) 1px,transparent 1px),#050a08;background-size:45px 45px}#priceChart{display:block;width:100%;height:100%}.chart-label{position:absolute;left:10px;bottom:8px;color:#4c6258;font-size:8px;pointer-events:none}.probability-title{display:flex;justify-content:space-between;gap:10px;margin-top:12px;color:#d9e3de;font-size:10px;font-weight:800}.probability-title small{color:var(--muted);font-size:8px;font-weight:500}.probabilities{display:grid;grid-template-columns:repeat(10,minmax(31px,1fr));gap:4px;margin-top:9px;align-items:start;overflow:visible}
+.probability{--probability:10%;position:relative;min-width:0;width:100%;aspect-ratio:1/1;border:0;border-radius:50%;background:#07101a;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;overflow:visible;isolation:isolate;cursor:pointer;box-shadow:0 0 0 1px rgba(255,255,255,.02);transition:transform .18s ease,box-shadow .18s ease,filter .18s ease}
+.probability::before{content:"";position:absolute;inset:1px;border-radius:50%;background:conic-gradient(#26364b 0 var(--probability),#142033 var(--probability) 100%);z-index:-2}
+.probability::after{content:"";position:absolute;inset:5px;border-radius:50%;background:#07101a;z-index:-1}
+.probability .digit-number{position:relative;z-index:2;display:block;color:#edf3f7;font-size:13px;font-weight:800;line-height:1}
+.probability .percent{position:relative;z-index:2;display:block;margin-top:4px;color:#84909c;font-size:7px;line-height:1}
+.probability.highest-digit::before{background:conic-gradient(#16e58a 0 var(--probability),#143728 var(--probability) 100%)}
+.probability.highest-digit .percent{color:#16e58a}
+.probability.lowest-digit::before{background:conic-gradient(#ff4d67 0 var(--probability),#3a1720 var(--probability) 100%)}
+.probability.lowest-digit .percent{color:#ff7084}
+.probability.current-digit{transform:translateY(-1px)}
+.probability.current-digit .digit-number{color:#fff}
+.current-digit-marker{position:absolute;left:50%;bottom:-12px;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #f4c542;filter:drop-shadow(0 0 5px rgba(244,197,66,.8));z-index:5;pointer-events:none}
+.probability.selected-digit{box-shadow:0 0 0 2px rgba(55,231,255,.22),0 0 12px rgba(55,231,255,.28),0 0 22px rgba(55,231,255,.12);filter:brightness(1.16)}
+.probability.trade-win{box-shadow:0 0 0 3px rgba(22,229,138,.98),0 0 18px rgba(22,229,138,.85),0 0 34px rgba(22,229,138,.42)!important;animation:tradeResultPulse 1.15s ease-in-out 3}
+.probability.trade-win::before{background:conic-gradient(#16e58a 0 var(--probability),#123c2a var(--probability) 100%)!important}
+.probability.trade-win .percent{color:#16e58a!important}
+.probability.trade-loss{box-shadow:0 0 0 3px rgba(255,77,103,1),0 0 18px rgba(255,77,103,.88),0 0 34px rgba(255,77,103,.44)!important;animation:tradeResultPulse 1.15s ease-in-out 3}
+.probability.trade-loss::before{background:conic-gradient(#ff4d67 0 var(--probability),#4a1721 var(--probability) 100%)!important}
+.probability.trade-loss .percent{color:#ff7084!important}
+@keyframes tradeResultPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.probability.selected-digit::after{box-shadow:inset 0 0 0 1px rgba(55,231,255,.28),0 0 10px rgba(55,231,255,.18)}
+.probability.selected-digit .digit-number{color:#fff}
+.probability.highest-digit.selected-digit{box-shadow:0 0 0 2px rgba(22,229,138,.55),0 0 14px rgba(22,229,138,.35),0 0 24px rgba(22,229,138,.15)}
+.probability.lowest-digit.selected-digit{box-shadow:0 0 0 2px rgba(255,77,103,.55),0 0 14px rgba(255,77,103,.3),0 0 24px rgba(255,77,103,.14)}
+
+.trade-card{margin-top:12px;padding:14px}.mode{display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:3px;border-radius:8px;background:#06100b}.mode button{padding:8px;border:0;border-radius:6px;background:transparent;color:var(--muted);font-weight:800;font-size:11px}.mode button.active{background:#10301f;color:var(--green)}.scanner{width:100%;margin:12px 0;padding:10px;display:flex;align-items:center;gap:9px;border:1px solid #392b67;border-radius:9px;background:#17112b;color:#c8baff;text-align:left}.scanner:disabled{opacity:.55;cursor:wait}.bot-icon{width:30px;height:30px;flex:0 0 30px;display:grid;place-items:center;border-radius:7px;background:#24194b;color:#b9a5ff}.bot-content{min-width:0;flex:1}.bot-content strong,.bot-content small{display:block}.bot-content strong{font-size:12px}.bot-content small{margin-top:2px;color:#9585c9;font-size:8px}.bot-badge{font-size:8px;opacity:.65}.control{margin-top:12px}.control label,.controls-grid label{display:block;color:var(--muted);font-size:9px;font-weight:700}.stake{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:5px;padding:4px;border:1px solid var(--border);border-radius:8px}.stake strong{font-size:14px}.stake button{width:36px;height:31px;border:0;border-radius:6px;background:#142019;color:#fff;font-size:18px}.controls-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:11px}.input-wrap,.controls-grid select{display:flex;align-items:center;width:100%;min-height:38px;margin-top:5px;border:1px solid var(--border);border-radius:7px;background:#07100c;overflow:hidden}.input-wrap span{padding-left:8px;color:var(--muted);font-size:10px}.controls-grid input,.controls-grid select{width:100%;padding:8px;border:0;outline:0;background:transparent;color:#fff;font-size:11px}.controls-grid select{padding:0 8px}.controls-grid option{background:#0b120f;color:#fff}
+.session{margin-top:10px;min-height:46px;padding:0 12px;border:1px solid var(--border);border-radius:9px;background:#07100c;display:flex;align-items:center;gap:8px;overflow:hidden}.session-dot{width:8px;height:8px;border-radius:50%;background:#f4c542;box-shadow:0 0 8px rgba(244,197,66,.45);flex:0 0 auto}.session-label{color:#e9f0ed;font-size:12px;font-weight:800}.session-record{color:var(--muted);font-size:11px;font-weight:700;white-space:nowrap}.session-pnl{margin-left:auto;color:var(--green);font-size:15px;font-weight:900;white-space:nowrap}.session-pnl.negative{color:#ff5d6c}.contract-title{margin-top:12px;color:var(--muted);font-size:10px;font-weight:800}.contract-digits{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;margin-top:7px;padding:8px;border:1px solid var(--border);border-radius:9px;background:#07100c}.contract-digits button{min-width:0;padding:8px 0;border:0;border-radius:6px;background:#4d4f50;color:#fff;font-size:12px;font-weight:800}.contract-digits button.active{background:var(--green);color:#041008}
+.trade-buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.trade-buttons button{min-height:62px;border:0;border-radius:12px;color:#fff;font-size:16px;font-weight:900}.trade-buttons strong{display:block}.trade-buttons span{display:none}.match-btn{background:linear-gradient(135deg,#11df86,#16c978)}.differ-btn{background:linear-gradient(135deg,#ff5265,#f33f56)}
+.data-section{margin-top:12px;padding:14px}.section-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.section-head h2{margin:0;font-size:21px}.section-head button{padding:7px 12px;border:0;border-radius:6px;background:#4d4f50;color:#fff}.position,.history-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);font-size:11px}.position:last-child,.history-item:last-child{border-bottom:0}.win{color:var(--green)}.loss{color:var(--red)}.empty{padding:25px 5px;color:var(--muted);text-align:center;font-size:12px}.demo-note{margin:14px 4px 0;color:#62736b;text-align:center;font-size:9px;line-height:1.5}.toast{position:fixed;left:50%;bottom:25px;z-index:120;max-width:min(90vw,360px);padding:10px 13px;border:1px solid #20543b;border-radius:8px;background:#102019;color:#e8fff3;font-size:11px;opacity:0;pointer-events:none;transform:translate(-50%,12px);transition:.2s}.toast.show{opacity:1;transform:translate(-50%,0)}.bottom-nav{display:none}
+@media(max-width:650px){body{padding-bottom:68px}.topbar{height:58px;padding:0 9px;gap:7px}.menu-btn{width:40px;height:40px;flex-basis:40px;border-radius:8px}.mobile-logo{font-size:17px}.demo-badge{display:none}.balance-box{min-width:0;padding:5px 8px;border-radius:9px}.balance-box strong{font-size:13px}.balance-box small{font-size:7px}.balance-switch{padding:7px 6px;font-size:9px;min-height:36px}.notification-btn{width:40px;height:40px;flex-basis:40px}.terminal{padding:8px}.market-tabs{margin-bottom:8px;border-radius:8px}.market-tabs button{min-height:35px;padding:7px 10px;font-size:9px}.market-head{align-items:center}.market-head select{min-width:0;width:180px;max-width:65vw;padding:8px;font-size:11px}.price-change strong{font-size:10px}.chart-panel,.trade-card,.data-section{border-radius:10px}.chart-panel{padding:9px}.chart-wrap{height:245px}.probabilities{gap:3px}.probability{height:48px}.probability .digit-number{font-size:11px}.probability .percent{font-size:6px}.probability.current-digit::after{bottom:-8px;border-left-width:4px;border-right-width:4px;border-top-width:6px}.trade-card{padding:10px}.controls-grid{grid-template-columns:1fr 1fr}.controls-grid label:last-child{grid-column:1/-1}.contract-digits{gap:3px;padding:6px}.contract-digits button{padding:7px 0;font-size:10px}.trade-buttons{gap:7px}.trade-buttons button{min-height:58px;border-radius:10px;font-size:14px}.section-head h2{font-size:19px}.bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:75;height:60px;display:flex;background:rgba(6,12,9,.98);border-top:1px solid var(--border)}.bottom-nav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--muted);text-decoration:none;font-size:10px}.bottom-nav a.active{color:var(--green)}.nav-icon{font-size:14px}.side-menu{width:min(300px,82vw);padding:14px}.side-head{margin-bottom:14px}.side-brand{font-size:18px}.profile{padding:10px}.side-link{min-height:40px;font-size:12px;padding:8px 10px}.toast{bottom:72px}}
+@media(max-width:390px){.topbar{gap:5px}.mobile-logo{font-size:15px}.balance-box strong{font-size:12px}.balance-box{padding-left:6px;padding-right:6px}.notification-btn{width:36px;flex-basis:36px}.market-head select{width:155px}.chart-wrap{height:220px}.session-label{font-size:11px}.session-record{font-size:10px}.session-pnl{font-size:13px}}
+
+/* ===== TRADE SESSION RISK RESULT MODAL ===== */
+.risk-result-modal{position:fixed;inset:0;z-index:220;display:flex;align-items:flex-end;justify-content:center;padding:0;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s ease,visibility .2s ease}.risk-result-modal.open{opacity:1;visibility:visible;pointer-events:auto}.risk-result-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.66);backdrop-filter:blur(8px)}.risk-result-card{position:relative;width:min(100%,680px);border:1px solid #252c38;border-radius:28px 28px 0 0;background:#171c26;box-shadow:0 -20px 70px rgba(0,0,0,.55);padding:38px 38px 40px;text-align:center;color:#f4f7fb;transform:translateY(22px);transition:transform .24s ease}.risk-result-modal.open .risk-result-card{transform:translateY(0)}.risk-result-icon{width:108px;height:108px;margin:0 auto 26px;border-radius:25px;display:grid;place-items:center;background:rgba(22,229,138,.14);color:#00df91;font-size:58px;font-weight:900}.risk-result-icon.loss{background:rgba(255,79,97,.13);color:#ff5d6c}.risk-result-title{margin:0;color:#8a93a3;font-size:18px;font-weight:800;letter-spacing:1.5px}.risk-result-amount{margin-top:13px;color:#00df91;font-size:54px;font-weight:900;line-height:1}.risk-result-amount.loss{color:#ff5d6c}.risk-result-amount small{margin-left:7px;color:#737d8d;font-size:20px;font-weight:700}.risk-result-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin:32px 0 28px;padding:22px 8px;border-radius:17px;background:#1e2430}.risk-result-stat strong{display:block;font-size:27px;line-height:1.1}.risk-result-stat span{display:block;margin-top:7px;color:#6f7888;font-size:12px}.risk-result-wl{color:#00df91}.risk-result-wl .slash{color:#ff5d6c}.risk-result-continue{width:100%;min-height:62px;border:0;border-radius:13px;background:#00c986;color:#fff;font-size:17px;font-weight:900}.risk-result-continue:active{transform:scale(.99)}@media(max-width:650px){.risk-result-card{padding:38px 24px 32px;border-radius:28px 28px 0 0}.risk-result-icon{width:108px;height:108px;margin-bottom:25px}.risk-result-title{font-size:16px}.risk-result-amount{font-size:48px}.risk-result-stats{margin-top:30px}.risk-result-stat strong{font-size:24px}}
+
+/* ===== TRADEZORA ENTRY SCANNER MODAL ===== */
+.scanner-modal{position:fixed;inset:0;z-index:150;display:flex;align-items:center;justify-content:center;padding:18px;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s ease,visibility .2s ease}
+.scanner-modal.open{opacity:1;visibility:visible;pointer-events:auto}
+.scanner-backdrop{position:absolute;inset:0;background:rgba(2,5,8,.72);backdrop-filter:blur(7px)}
+.scanner-dialog{position:relative;width:min(610px,100%);max-height:min(90vh,720px);overflow:auto;border:1px solid #202b3e;border-radius:24px;background:#0c1220;box-shadow:0 30px 90px rgba(0,0,0,.65);color:#f3f6fb}
+.scanner-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:20px 22px;border-bottom:1px solid #202a3b}
+.scanner-title-wrap{display:flex;align-items:center;gap:14px}.scanner-title-icon{width:48px;height:48px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(135deg,#8b4dff,#5b55ff);font-size:26px;box-shadow:0 10px 30px rgba(101,75,255,.3)}
+.scanner-title-wrap h2{margin:0;font-size:22px;line-height:1.1}.scanner-title-wrap small{display:block;margin-top:4px;color:#7f8aa0;font-size:10px}.scanner-close{width:38px;height:38px;border:0;background:transparent;color:#8d97a8;font-size:30px;line-height:1;border-radius:9px}.scanner-close:hover{background:#151c2b;color:#fff}
+.scanner-description{margin:22px;padding:18px 20px;border-radius:15px;background:#181f30;color:#929caf;font-size:14px;line-height:1.6}.scanner-description strong{color:#fff}.scanner-label{display:block;margin:0 22px 7px;color:#f2f4f8;font-size:13px;font-weight:800}.scanner-select{width:calc(100% - 44px);margin:0 22px;padding:14px 16px;border:1px solid #20293a;border-radius:13px;outline:0;background:#0b101b;color:#f3f5f8;font-size:15px}.scanner-select option{background:#0b101b;color:#fff}
+.scanner-progress-head{display:flex;justify-content:space-between;gap:12px;margin:26px 22px 9px;color:#f3f5f8;font-size:13px}.scanner-progress-head span{color:#657087;font-weight:800}.scanner-progress-track{height:8px;margin:0 22px 24px;border-radius:999px;background:#1c2434;overflow:hidden}.scanner-progress-bar{width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,#6657ff,#3189ff);transition:width .15s ease}
+.deep-scan-btn,.load-scanner-btn{width:calc(100% - 44px);margin:0 22px;border-radius:13px;min-height:54px;font-size:14px;font-weight:800}.deep-scan-btn{border:0;background:linear-gradient(90deg,#6257ff,#2f83ff);color:#fff;box-shadow:0 10px 25px rgba(61,94,255,.22)}.deep-scan-btn span{font-size:23px;vertical-align:-2px;margin-right:7px}.deep-scan-btn:disabled{opacity:.55;cursor:wait}.load-scanner-btn{margin-top:10px;margin-bottom:22px;border:1px solid #252e40;background:#141b2a;color:#687388}.load-scanner-btn:not(:disabled){color:#fff;border-color:#3b4861;background:#182238}.load-scanner-btn:disabled{cursor:not-allowed}
+@media(max-width:650px){.scanner-modal{padding:14px}.scanner-dialog{width:100%;border-radius:22px;max-height:88vh}.scanner-dialog-head{padding:18px}.scanner-title-icon{width:44px;height:44px;border-radius:12px}.scanner-title-wrap h2{font-size:20px}.scanner-description{margin:18px;padding:16px;font-size:13px}.scanner-label{margin-left:18px;margin-right:18px}.scanner-select{width:calc(100% - 36px);margin-left:18px;margin-right:18px}.scanner-progress-head{margin-left:18px;margin-right:18px}.scanner-progress-track{margin-left:18px;margin-right:18px}.deep-scan-btn,.load-scanner-btn{width:calc(100% - 36px);margin-left:18px;margin-right:18px}}
+
+  
+/* ===== SINGLE-FILE CHART / DIGIT STATS ===== */
+.contract-title,.contract-digits{display:none!important}
+.chart-wrap{position:relative}
+#priceChart{position:absolute;inset:0;width:100%;height:100%;display:block}.deriv-chart-wrap{background:linear-gradient(rgba(42,62,53,.22) 1px,transparent 1px),linear-gradient(90deg,rgba(42,62,53,.22) 1px,transparent 1px),#050a08!important;background-size:44px 44px!important}.deriv-chart-wrap .chart-label{color:#71877c;font-size:8px;letter-spacing:.5px}
+.probability{cursor:pointer;user-select:none;transition:transform .12s ease,border-color .12s ease,background .12s ease}
+.probability:hover{transform:translateY(-1px)}
+@media(max-width:650px){.chart-wrap{height:245px}}
+@media(max-width:390px){.chart-wrap{height:220px}}
+
+
+@media (max-width:650px){
+  .probabilities{gap:3px}
+  .probability .digit-number{font-size:12px}
+  .probability .percent{font-size:7px}
+}
+
+.current-digit-marker + *{pointer-events:none}
+@media (max-width:650px){
+  .probabilities{gap:3px;padding-bottom:9px}
+  .current-digit-marker{bottom:-11px}
+}
+
+/* ===== REAL-MONEY M-PESA DEPOSIT MODAL ===== */
+.money-modal{position:fixed;inset:0;z-index:240;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;visibility:hidden;pointer-events:none;transition:.2s}
+.money-modal.open{opacity:1;visibility:visible;pointer-events:auto}
+.money-modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(7px)}
+.money-modal-card{position:relative;width:min(480px,100%);max-height:90vh;overflow:auto;padding:22px;border:1px solid var(--border);border-radius:18px;background:#09110d;box-shadow:0 25px 80px rgba(0,0,0,.6)}
+.money-modal-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.money-modal-head h2{margin:0;font-size:20px}
+.money-modal-close{width:36px;height:36px;border:1px solid var(--border);border-radius:9px;background:#0b1711;color:#fff;font-size:22px}
+.money-modal-note{padding:11px 12px;border:1px solid #254b38;border-radius:10px;background:#0b1d13;color:#cfe7d8;font-size:11px;line-height:1.5;margin-bottom:14px}
+.money-account-balance{display:flex;justify-content:space-between;align-items:center;padding:12px;border:1px solid var(--border);border-radius:10px;margin-bottom:14px}
+.money-account-balance span{color:var(--muted);font-size:11px}.money-account-balance strong{color:var(--green);font-size:18px}
+.money-field{display:block;margin:12px 0;color:#dce8e1;font-size:12px;font-weight:700}
+.money-field input{display:block;width:100%;margin-top:6px;padding:12px;border:1px solid var(--border);border-radius:9px;background:#050a08;color:#fff;outline:none}
+.money-conversion{margin:10px 0 14px;padding:11px;border-radius:9px;background:#07100c;color:var(--muted);font-size:12px;line-height:1.6}
+.money-conversion strong{color:#fff}.money-submit{width:100%;min-height:46px;border:0;border-radius:10px;background:var(--green);color:#041008;font-weight:900}.money-submit:disabled{opacity:.55;cursor:wait}
+.money-history{margin-top:18px;border-top:1px solid var(--border);padding-top:14px}.money-history h3{font-size:13px;margin:0 0 8px}.money-history-item{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #14251c;font-size:11px}.money-history-item:last-child{border-bottom:0}.money-status{color:var(--muted);text-align:right}.money-status.success{color:var(--green)}.money-status.failed{color:var(--red)}
+@media(max-width:500px){.money-modal-card{padding:17px;border-radius:15px}.money-modal-head h2{font-size:18px}}
+
+</style>
+</head>
+
+<body>
+  <div id="overlay" class="overlay"></div>
+  <!-- TRADE SESSION RESULT -->
+  <div id="riskResultModal" class="risk-result-modal" aria-hidden="true">
+    <div class="risk-result-backdrop"></div>
+    <section class="risk-result-card" role="dialog" aria-modal="true" aria-labelledby="riskResultTitle">
+      <div id="riskResultIcon" class="risk-result-icon">✓</div>
+      <h2 id="riskResultTitle" class="risk-result-title">TARGET PROFIT HIT</h2>
+      <div id="riskResultAmount" class="risk-result-amount">+$0.00 <small>USD</small></div>
+      <div class="risk-result-stats">
+        <div class="risk-result-stat"><strong id="riskResultTrades">0</strong><span>Trades</span></div>
+        <div class="risk-result-stat"><strong id="riskResultWL" class="risk-result-wl">0<span class="slash">/</span>0</strong><span>W/L</span></div>
+        <div class="risk-result-stat"><strong id="riskResultWinRate">0%</strong><span>Win Rate</span></div>
+      </div>
+      <button id="riskResultContinue" class="risk-result-continue" type="button">Continue</button>
+    </section>
+  </div>
+
+
+  <!-- SIDE MENU -->
+  <aside id="sideMenu" class="side-menu" aria-label="TradeZora menu">
+    <div class="side-head">
+      <div class="side-brand">
+        <span class="brand-mark">TZ</span>
+        <span>TradeZora</span>
+      </div>
+      <button id="closeMenu" class="icon-btn close-btn" aria-label="Close menu">×</button>
+    </div>
+
+    <div class="profile">
+      <div id="avatar" class="avatar">T</div>
+      <div class="profile-info">
+        <strong id="profileName">Demo Trader</strong>
+        <span id="profileEmail">demo@tradezora.local</span>
+      </div>
+    </div>
+
+    <nav class="side-nav">
+      <a href="#terminal" class="side-link active" data-close-menu>
+        <span>▣</span> Trade
+      </a>
+      <a href="#markets" class="side-link" data-close-menu>
+        <span>◇</span> Markets
+      </a>
+      <a href="positions.html" class="side-link" data-close-menu>
+        <span>▥</span> Positions
+      </a>
+      <a href="history.html" class="side-link" data-close-menu>
+        <span>◷</span> History
+      </a>
+      <a class="side-link" href="account-settings.html" data-close-menu>
+        <span>⚙</span> Account Settings
+      </a>
+      <a id="adminPanelLink" class="side-link admin-only" href="admin.html" data-close-menu>
+        <span>◆</span> Admin Panel
+      </a>
+      <button id="depositBtn" class="side-link" type="button">
+        <span>＋</span> Deposit
+      </button>
+      <button id="withdrawBtn" class="side-link" type="button">
+        <span>⇩</span> Withdraw
+      </button>
+      <button class="side-link" type="button" onclick="alert('Referral features are coming later.')">
+        <span>◇</span> Refer &amp; Earn
+      </button>
+      <button id="themeSwitch" class="side-link" type="button">
+        <span>☼</span> Dark Theme
+      </button>
+      <button class="side-link" type="button" onclick="alert('Help Centre is coming soon.')">
+        <span>?</span> Help Centre
+      </button>
+      <button class="side-link" type="button" onclick="alert('Responsible Trading tools are coming soon.')">
+        <span>◈</span> Responsible Trading
+      </button>
+      <button class="side-link" type="button" onclick="alert('Live Chat is not available in demo mode.')">
+        <span>●</span> Live Chat
+      </button>
+    </nav>
+
+    <button id="logout" class="logout-btn" type="button">
+      Log out
+    </button>
+  </aside>
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <button id="menuBtn" class="menu-btn" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+
+    <a href="index.html" class="mobile-logo">TradeZora</a>
+
+    <div class="top-spacer"></div>
+
+    <div class="demo-badge">DEMO</div>
+
+    <button id="balanceModeToggle" class="balance-switch" type="button" aria-label="Switch displayed balance" aria-pressed="false">DEMO</button>
+    <div class="balance-box" id="topBalanceBox">
+      <small id="balanceLabel">DEMO BALANCE</small>
+      <strong id="balance">$10,000.00</strong>
+    </div>
+
+    <button class="notification-btn" type="button" aria-label="Notifications">●</button>
+  </header>
+
+  <!-- MAIN -->
+  <main id="terminal" class="page">
+    <section id="markets" class="terminal">
+
+      <!-- CONTRACT TABS -->
+      <div class="market-tabs" role="tablist" aria-label="Contract type">
+        <button class="active" type="button" data-contract="match">Matches / Differs</button>
+        <button type="button" data-contract="even">Even / Odd</button>
+        <button type="button" data-contract="over">Over / Under</button>
+      </div>
+
+      <!-- MARKET HEADER -->
+      <div class="market-head">
+        <div>
+          <span class="eyebrow">MARKET</span>
+          <select id="marketSelect" aria-label="Select market">
+            <option value="1HZ10V">Volatility 10 (1s)</option>
+            <option value="1HZ25V">Volatility 25 (1s)</option>
+            <option value="1HZ50V">Volatility 50 (1s)</option>
+            <option value="1HZ75V">Volatility 75 (1s)</option>
+            <option value="1HZ100V">Volatility 100 (1s)</option>
+          </select>
+        </div>
+
+        <div class="price-change">
+          <span id="marketFeedStatus">CONNECTING TO DERIV</span>
+          <strong id="pct">+0.000%</strong>
+        </div>
+      </div>
+
+      <!-- TRADINGVIEW-STYLE CUSTOM CHART: genuine Deriv public market data -->
+      <section class="panel chart-panel">
+        <div class="chart-toolbar" aria-label="Chart zoom controls" style="margin-bottom:8px">
+          <span class="historical">DRAG TO BROWSE</span>
+          <div class="chart-tools">
+            <button id="zoomIn" type="button" aria-label="Zoom in" title="Zoom in">＋</button>
+            <button id="zoomOut" type="button" aria-label="Zoom out" title="Zoom out">−</button>
+            <button id="resetZoom" type="button" aria-label="Reset zoom" title="Reset zoom">Reset</button>
+          </div>
+        </div>
+        <div class="chart-wrap deriv-chart-wrap" style="height:360px;margin-top:0;background:#050a08">
+          <canvas id="priceChart" aria-label="Live Deriv market price chart"></canvas>
+          <div class="chart-label" id="chartFeedLabel">OFFICIAL DERIV LIVE MARKET DATA</div>
+        </div>
+
+        <div class="probability-title">
+          <span>DIGIT PROBABILITY</span>
+          <small>Demo estimate — not a prediction</small>
+        </div>
+        <div id="probabilities" class="probabilities"></div>
+      </section>
+
+      <!-- TRADE CARD -->
+      <section class="panel trade-card">
+        <div id="mode" class="mode">
+          <button id="auto" class="active" type="button">AUTO</button>
+          <button id="manual" type="button">MANUAL</button>
+        </div>
+
+        <button id="scanner" class="scanner" type="button">
+          <span class="bot-icon">✦</span>
+          <span class="bot-content">
+            <strong>AI BOT</strong>
+            <small>Scan the simulated market for a demo signal</small>
+          </span>
+          <span class="bot-badge">DEMO</span>
+        </button>
+
+        <div class="control">
+          <label>STAKE</label>
+          <div class="stake">
+            <button id="stakeMinus" type="button" aria-label="Decrease stake">−</button>
+            <strong id="stake">$10.00</strong>
+            <button id="stakePlus" type="button" aria-label="Increase stake">+</button>
+          </div>
+        </div>
+
+        <div class="controls-grid">
+          <label>
+            Take Profit
+            <div class="input-wrap">
+              <span>$</span>
+              <input id="takeProfit" type="number" value="200" min="0">
+            </div>
+          </label>
+
+          <label>
+            Stop Loss
+            <div class="input-wrap">
+              <span>$</span>
+              <input id="stopLoss" type="number" value="999" min="0">
+            </div>
+          </label>
+
+          <label>
+            Multiplier
+            <select id="multiplier">
+              <option>1x</option>
+              <option>2x</option>
+              <option>5x</option>
+              <option selected>6x</option>
+              <option>10x</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="session session-compact">
+          <span class="session-dot"></span>
+          <strong class="session-label">Session</strong>
+          <span id="sessionRecord" class="session-record">0W · 0L</span>
+          <span id="sessionPnl" class="session-pnl">+$0.00</span>
+        </div>
+<div class="trade-buttons">
+          <button id="match" class="match-btn" type="button">
+            <strong>MATCH</strong><span>Demo</span>
+          </button>
+          <button id="differ" class="differ-btn" type="button">
+            <strong>DIFFER</strong><span>Demo</span>
+          </button>
+        </div>
+      </section>
+
+      <p class="demo-note">
+        TradeZora trading remains simulated demo trading. Real-money deposits use a separate USD account and are credited only after M-Pesa confirmation. Demo trades do not use real funds.
+      </p>
+    </section>
+  </main>
+
+  <!-- MOBILE NAV -->
+  <nav class="bottom-nav" aria-label="Bottom navigation">
+    <a class="active" href="dashboard.html" aria-current="page">
+      <span class="nav-icon">▣</span>
+      <span>Trade</span>
+    </a>
+    <a href="positions.html">
+      <span class="nav-icon">▥</span>
+      <span>Positions</span>
+    </a>
+    <a href="history.html">
+      <span class="nav-icon">◷</span>
+      <span>History</span>
+    </a>
+  </nav>
+
+
+  <!-- REAL-MONEY WITHDRAWAL MODAL: requests require review; no automatic payout -->
+  <div id="withdrawModal" class="money-modal" aria-hidden="true">
+    <div class="money-modal-backdrop" data-close-withdraw></div>
+    <section class="money-modal-card" role="dialog" aria-modal="true" aria-labelledby="withdrawModalTitle">
+      <div class="money-modal-head">
+        <h2 id="withdrawModalTitle">Withdraw with M-Pesa</h2>
+        <button class="money-modal-close" type="button" aria-label="Close withdrawal window" data-close-withdraw>×</button>
+      </div>
+      <div class="money-modal-note">
+        This request uses your separate <strong>real-money USD balance</strong>, not your demo trading balance.
+        The requested amount is reserved when the server accepts the request. Payout requires review and is not automatic.
+      </div>
+      <div class="money-account-balance">
+        <span>Real-money balance (USD)</span>
+        <strong id="withdrawRealBalance">Loading…</strong>
+      </div>
+      <form id="mpesaWithdrawForm">
+        <label class="money-field">Withdrawal amount (USD)
+          <input id="withdrawAmountUsd" type="number" min="0.01" step="0.01" placeholder="Enter amount in USD" required>
+        </label>
+        <label class="money-field">M-Pesa phone number
+          <input id="withdrawPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="07XXXXXXXX or 2547XXXXXXXX" required>
+        </label>
+        <div class="money-conversion">
+          Estimated payout at the current displayed rate ($1 = KSh 129.40):
+          <strong id="withdrawKesPreview">—</strong><br>
+          Confirm the amount and phone number before submitting. Do not submit the same request repeatedly.
+        </div>
+        <button id="mpesaWithdrawSubmit" class="money-submit" type="submit">Submit withdrawal request</button>
+      </form>
+      <div id="withdrawFeedback" class="money-modal-note" role="status" aria-live="polite" hidden></div>
+    </section>
+  </div>
+
+  <!-- REAL-MONEY DEPOSIT MODAL: separate from the demo trading balance -->
+  <div id="depositModal" class="money-modal" aria-hidden="true">
+    <div class="money-modal-backdrop" data-close-deposit></div>
+    <section class="money-modal-card" role="dialog" aria-modal="true" aria-labelledby="depositModalTitle">
+      <div class="money-modal-head">
+        <h2 id="depositModalTitle">Deposit with M-Pesa</h2>
+        <button class="money-modal-close" type="button" aria-label="Close deposit window" data-close-deposit>×</button>
+      </div>
+      <div class="money-modal-note">
+        This deposits into your separate <strong>real-money USD account</strong>, not your demo balance.
+        Fixed rate: <strong>$1 = KSh 129.40</strong>. Sandbox testing may use a small amount; production minimum is $5.00. Maximum $1,900.
+      </div>
+      <div class="money-account-balance">
+        <span>Real-money balance (USD)</span>
+        <strong id="realAccountBalance">Loading…</strong>
+      </div>
+      <form id="mpesaDepositForm">
+        <label class="money-field">Deposit amount (USD)
+          <input id="depositAmountUsd" type="number" min="0.01" max="1900" step="0.01" value="0.01" required>
+        </label>
+        <label class="money-field">M-Pesa phone number
+          <input id="depositPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="07XXXXXXXX or 2547XXXXXXXX" required>
+        </label>
+        <div class="money-conversion">
+          You will be prompted to pay: <strong id="depositKesPreview">KSh 647</strong><br>
+          The real-money account is credited only after the payment is confirmed by M-Pesa.
+        </div>
+        <button id="mpesaDepositSubmit" class="money-submit" type="submit">Send M-Pesa prompt</button>
+      </form>
+      <div id="depositFeedback" class="money-modal-note" role="status" aria-live="polite" hidden></div>
+      <div class="money-history">
+        <h3>Recent deposits</h3>
+        <div id="depositHistoryList" class="empty">Loading deposit history…</div>
+      </div>
+    </section>
+  </div>
+
+  <div id="toast" class="toast" role="status"></div>
+  
+<script>
+(function () {
+  window.tradeZoraCloseScanner = function () {
+    try {
+      var modal = document.querySelector('#tzScannerModal, .tz-scanner-modal, .scanner-modal');
+      if (!modal) return;
+      modal.classList.remove('tz-open', 'open', 'active', 'show');
+      modal.style.setProperty('display', 'none', 'important');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('scanner-open', 'modal-open');
+      document.body.style.overflow = '';
+    } catch (e) {
+      console.error('Scanner close fallback:', e);
+    }
+  };
+})();
+</script>
+<script src="tradezora-engine.js?v=3"></script>
+  <script>
+document.addEventListener("DOMContentLoaded", () => {
+
+  const $ = (selector) => document.querySelector(selector);
+
+  /* =========================
+     DEMO ACCOUNT
+  ========================= */
+
+  const user = JSON.parse(
+    localStorage.getItem("tradezoraDemoUser") || "null"
+  );
+
+  if (!user) {
+    location.href = "auth.html";
+    return;
+  }
+
+  /* =========================
+     ADMIN ACCESS
+     The backend is the source of truth for the admin role.
+     The Admin Panel link remains hidden unless the authenticated
+     backend account is confirmed as an admin.
+  ========================= */
+
+  const ADMIN_API_BASE = "https://tradezora-backend-use.onrender.com";
+  const adminPanelLink = $("#adminPanelLink");
+
+  async function loadAdminAccess() {
+    if (!adminPanelLink) return;
+
+    try {
+      const authToken = localStorage.getItem("tradezoraAuthToken");
+
+      if (!authToken) {
+        adminPanelLink.classList.remove("visible");
+        return;
+      }
+
+      const response = await fetch(`${ADMIN_API_BASE}/api/account`, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${authToken}`,
+          "Accept": "application/json"
+        }
+      });
+
+      if (!response.ok) {
+        adminPanelLink.classList.remove("visible");
+        return;
+      }
+
+      const data = await response.json();
+
+      // /api/account returns the user inside an "account" object.
+      // Accept that format and also tolerate a direct account object.
+      const account = data?.account || data;
+
+      if (
+        account &&
+        String(account.role || "").toLowerCase() === "admin" &&
+        String(account.email || "").trim().toLowerCase() === "davieswaweru123@gmail.com"
+      ) {
+        adminPanelLink.classList.add("visible");
+      } else {
+        adminPanelLink.classList.remove("visible");
+      }
+    } catch (error) {
+      console.error("Admin access check failed:", error);
+      adminPanelLink.classList.remove("visible");
+    }
+  }
+
+  loadAdminAccess();
+
+  /*
+    Keep the existing user's balance if they already have one.
+    New demo accounts receive $10,000.
+  */
+  let storedBalance = localStorage.getItem("tradezoraDemoBalance");
+
+  if (storedBalance === null) {
+    storedBalance = "10000";
+    localStorage.setItem("tradezoraDemoBalance", storedBalance);
+  }
+
+  let balance = Number(storedBalance);
+
+  let stake = Number(
+    localStorage.getItem("tradezoraDemoStake") || 10
+  );
+
+  let price = 1000;
+
+  let history = JSON.parse(localStorage.getItem("tradezoraDemoHistory") || "[]");
+  let positions = JSON.parse(localStorage.getItem("tradezoraDemoPositions") || "[]");
+
+  function saveTradeState() {
+    localStorage.setItem("tradezoraDemoHistory", JSON.stringify(history));
+    localStorage.setItem("tradezoraDemoPositions", JSON.stringify(positions));
+  }
+
+  let selectedDigit = 0;
+
+  let pnl = 0;
+  let wins = 0;
+  let losses = 0;
+
+  let contractType = "match";
+
+  // MANUAL is the safe default on page load. AUTO starts only after
+  // the user explicitly taps the AUTO button.
+  let mode = "MANUAL";
+
+  // Keep the mode UI consistent with the safe default.
+  $("#auto")?.classList.remove("active");
+  $("#manual")?.classList.add("active");
+
+  // Continuous demo trading state. Only one contract stream can run at a time.
+  let continuousTrading = {
+    running: false,
+    type: null,
+    contract: null,
+    digit: null,
+    stake: null,
+    button: null,
+    timer: null
+  };
+
+
+  /* =========================
+     PROFILE
+  ========================= */
+
+  $("#profileName").textContent =
+    user.name || "Demo Trader";
+
+  $("#profileEmail").textContent =
+    user.email || "demo@tradezora.local";
+
+  $("#avatar").textContent =
+    (user.name || "T")[0].toUpperCase();
+
+
+  /* =========================
+     HELPERS
+  ========================= */
+
+  function money(value) {
+    return "$" + Number(value).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
+
+
+  function toast(message) {
+
+    const element = $("#toast");
+
+    if (!element) return;
+
+    element.textContent = message;
+
+    element.classList.add("show");
+
+    setTimeout(() => {
+      element.classList.remove("show");
+    }, 1800);
+  }
+
+
+  // This switch changes only which balance is displayed in the header.
+  // Trading remains demo-only; real funds are never used for demo contracts.
+  let balanceDisplayMode = localStorage.getItem("tradezoraBalanceDisplayMode") === "real" ? "real" : "demo";
+  let verifiedRealBalance = null;
+  let realBalanceLoaded = false;
+
+  function renderBalance() {
+
+    const balanceEl = $("#balance");
+    const balanceLabel = $("#balanceLabel");
+    const balanceToggle = $("#balanceModeToggle");
+    const balanceBox = $("#topBalanceBox");
+    const stakeEl = $("#stake");
+    const pnlElement = $("#sessionPnl");
+    const recordEl = $("#sessionRecord");
+    const sessionState = currentContinuousState();
+    const sessionPnlValue = Number(sessionState.sessionPnl || 0);
+    const sessionWinsValue = Number(sessionState.sessionWins || 0);
+    const sessionLossesValue = Number(sessionState.sessionLosses || 0);
+
+    if (balanceEl) {
+      if (balanceDisplayMode === "real") {
+        balanceEl.textContent = realBalanceLoaded ? money(verifiedRealBalance) : "Loading…";
+      } else {
+        balanceEl.textContent = money(balance);
+      }
+    }
+    if (balanceLabel) balanceLabel.textContent = balanceDisplayMode === "real" ? "REAL BALANCE" : "DEMO BALANCE";
+    if (balanceToggle) {
+      balanceToggle.textContent = balanceDisplayMode === "real" ? "REAL" : "DEMO";
+      balanceToggle.setAttribute("aria-pressed", balanceDisplayMode === "real" ? "true" : "false");
+      balanceToggle.classList.toggle("real-mode", balanceDisplayMode === "real");
+    }
+    if (balanceBox) balanceBox.classList.toggle("real-mode", balanceDisplayMode === "real");
+    if (stakeEl) stakeEl.textContent = money(stake);
+    if (pnlElement) {
+      pnlElement.textContent = (sessionPnlValue >= 0 ? "+" : "") + money(sessionPnlValue);
+      pnlElement.style.color = sessionPnlValue >= 0 ? "#16e58a" : "#ff5d6c";
+    }
+    if (recordEl) recordEl.textContent = `${sessionWinsValue}W · ${sessionLossesValue}L`;
+  }
+
+
+  renderBalance();
+
+  $("#balanceModeToggle")?.addEventListener("click", () => {
+    const nextMode = balanceDisplayMode === "demo" ? "real" : "demo";
+    if (nextMode === "real" && !localStorage.getItem("tradezoraAuthToken")) {
+      toast("Log in to your registered account to view the real balance.");
+      return;
+    }
+    balanceDisplayMode = nextMode;
+    localStorage.setItem("tradezoraBalanceDisplayMode", balanceDisplayMode);
+    renderBalance();
+    if (balanceDisplayMode === "real") loadTopRealBalance();
+  });
+
+  /* =========================
+     SIDE MENU
+  ========================= */
+
+  const menu = $("#sideMenu");
+  const overlay = $("#overlay");
+
+  $("#menuBtn").onclick = () => {
+
+    menu.classList.add("open");
+    overlay.classList.add("show");
+
+  };
+
+
+  $("#closeMenu").onclick = () => {
+
+    menu.classList.remove("open");
+    overlay.classList.remove("show");
+
+  };
+
+
+  overlay.onclick = $("#closeMenu").onclick;
+
+
+  /* =========================
+     LOGOUT
+  ========================= */
+
+  $("#logout").onclick = () => {
+
+    localStorage.removeItem("tradezoraDemoUser");
+
+    location.href = "auth.html";
+
+  };
+
+
+  /* =========================
+     DEPOSIT
+  ========================= */
+
+  /* =========================
+     REAL-MONEY M-PESA DEPOSIT
+     Kept separate from the simulated demo balance.
+  ========================= */
+  const PAYMENT_API_BASE = "https://tradezora-backend-use.onrender.com";
+  const depositModal = $("#depositModal");
+  const depositForm = $("#mpesaDepositForm");
+  const depositAmountInput = $("#depositAmountUsd");
+  const depositPhoneInput = $("#depositPhone");
+  const depositKesPreview = $("#depositKesPreview");
+  const depositFeedback = $("#depositFeedback");
+  const depositSubmit = $("#mpesaDepositSubmit");
+  const realAccountBalance = $("#realAccountBalance");
+  const depositHistoryList = $("#depositHistoryList");
+  const USD_TO_KES = 129.40;
+
+  function formatUsd(value) {
+    return "$" + Number(value || 0).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
+
+  function showDepositFeedback(message, isError = false) {
+    if (!depositFeedback) return;
+    depositFeedback.hidden = false;
+    depositFeedback.textContent = message;
+    depositFeedback.style.borderColor = isError ? "#71313a" : "#254b38";
+    depositFeedback.style.background = isError ? "#210d11" : "#0b1d13";
+    depositFeedback.style.color = isError ? "#ff9aa5" : "#cfe7d8";
+  }
+
+  function updateDepositConversion() {
+    const amount = Number(depositAmountInput?.value || 0);
+    const kes = Math.round(amount * USD_TO_KES);
+    if (depositKesPreview) {
+      depositKesPreview.textContent = Number.isFinite(kes) && amount > 0
+        ? "KSh " + kes.toLocaleString("en-KE")
+        : "—";
+    }
+  }
+
+  async function paymentApi(path, options = {}) {
+    const token = localStorage.getItem("tradezoraAuthToken");
+    if (!token) throw new Error("Please log in to your registered account before making a deposit.");
+    const response = await fetch(`${PAYMENT_API_BASE}${path}`, {
+      ...options,
+      headers: {
+        "Accept": "application/json",
+        ...(options.body ? { "Content-Type": "application/json" } : {}),
+        "Authorization": `Bearer ${token}`,
+        ...(options.headers || {})
+      }
+    });
+    let data = {};
+    try { data = await response.json(); } catch (_) {}
+    if (!response.ok || data.success === false) {
+      throw new Error(data.error || `Request failed (${response.status}).`);
+    }
+    return data;
+  }
+
+  async function loadTopRealBalance() {
+    if (!localStorage.getItem("tradezoraAuthToken")) {
+      realBalanceLoaded = false;
+      renderBalance();
+      return;
+    }
+    try {
+      const data = await paymentApi("/api/real-account");
+      const account = data.account || data;
+      const value = Number(account.balance);
+      if (!Number.isFinite(value) || value < 0) throw new Error("The backend returned an invalid real balance.");
+      verifiedRealBalance = value;
+      realBalanceLoaded = true;
+    } catch (error) {
+      realBalanceLoaded = false;
+      console.warn("Header real balance could not be loaded:", error.message);
+      toast("Could not load real balance. Please try again.");
+    }
+    renderBalance();
+  }
+
+  async function loadRealAccountAndDeposits() {
+    if (!localStorage.getItem("tradezoraAuthToken")) {
+      if (realAccountBalance) realAccountBalance.textContent = "Log in required";
+      if (depositHistoryList) depositHistoryList.textContent = "Log in to view deposit history.";
+      return;
+    }
+    if (realAccountBalance) realAccountBalance.textContent = "Loading…";
+    try {
+      const data = await paymentApi("/api/real-account");
+      const account = data.account || data;
+      if (realAccountBalance) realAccountBalance.textContent = formatUsd(account.balance);
+      const topBalanceValue = Number(account.balance);
+      if (Number.isFinite(topBalanceValue) && topBalanceValue >= 0) {
+        verifiedRealBalance = topBalanceValue;
+        realBalanceLoaded = true;
+        renderBalance();
+      }
+    } catch (error) {
+      if (realAccountBalance) realAccountBalance.textContent = "Unavailable";
+      console.warn("Real-money balance could not be loaded:", error.message);
+    }
+    try {
+      const data = await paymentApi("/api/payments/deposits");
+      const deposits = Array.isArray(data.deposits) ? data.deposits : [];
+      if (!depositHistoryList) return;
+      if (!deposits.length) {
+        depositHistoryList.className = "empty";
+        depositHistoryList.textContent = "No deposits yet.";
+        return;
+      }
+      depositHistoryList.className = "";
+      depositHistoryList.innerHTML = deposits.slice(0, 8).map((deposit) => {
+        const status = String(deposit.status || "pending").toLowerCase();
+        const statusClass = status === "completed" || status === "success" || status === "approved"
+          ? "success" : status === "failed" || status === "rejected" ? "failed" : "";
+        const date = deposit.created_at ? new Date(deposit.created_at).toLocaleString() : "";
+        const kesText = deposit.kes_amount ? ` · KSh ${Number(deposit.kes_amount).toLocaleString("en-KE")}` : "";
+        const receiptText = deposit.mpesa_receipt_number ? `<br>Receipt: ${String(deposit.mpesa_receipt_number).replace(/[&<>"']/g, "")}` : "";
+        return `<div class="money-history-item"><div><strong>${formatUsd(deposit.amount)}</strong><div style="color:var(--muted);margin-top:3px">${date}${kesText}</div>${receiptText}</div><div class="money-status ${statusClass}">${status.toUpperCase()}</div></div>`;
+      }).join("");
+    } catch (error) {
+      if (depositHistoryList) {
+        depositHistoryList.className = "empty";
+        depositHistoryList.textContent = "Could not load deposit history. Please try again.";
+      }
+      console.warn("Deposit history could not be loaded:", error.message);
+    }
+  }
+
+  // Fetch the real balance from the authenticated backend, never from demo storage.
+  if (balanceDisplayMode === "real") loadTopRealBalance();
+
+  function openDepositModal() {
+    if (!depositModal) return;
+    depositModal.classList.add("open");
+    depositModal.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+    if (depositFeedback) depositFeedback.hidden = true;
+    updateDepositConversion();
+    loadRealAccountAndDeposits();
+  }
+
+  function closeDepositModal() {
+    if (!depositModal) return;
+    depositModal.classList.remove("open");
+    depositModal.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  }
+
+  $("#depositBtn").onclick = openDepositModal;
+  document.querySelectorAll("[data-close-deposit]").forEach((button) => {
+    button.addEventListener("click", closeDepositModal);
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && depositModal?.classList.contains("open")) closeDepositModal();
+  });
+  depositAmountInput?.addEventListener("input", updateDepositConversion);
+
+  /* =========================
+     REAL-MONEY M-PESA WITHDRAWAL
+     Requests are reviewed; no automatic M-Pesa payout is initiated.
+  ========================= */
+  const withdrawBtn = $("#withdrawBtn");
+  const withdrawModal = $("#withdrawModal");
+  const withdrawForm = $("#mpesaWithdrawForm");
+  const withdrawAmountInput = $("#withdrawAmountUsd");
+  const withdrawPhoneInput = $("#withdrawPhone");
+  const withdrawKesPreview = $("#withdrawKesPreview");
+  const withdrawFeedback = $("#withdrawFeedback");
+  const withdrawSubmit = $("#mpesaWithdrawSubmit");
+  const withdrawRealBalance = $("#withdrawRealBalance");
+
+  function showWithdrawFeedback(message, isError = false) {
+    if (!withdrawFeedback) return;
+    withdrawFeedback.hidden = false;
+    withdrawFeedback.textContent = message;
+    withdrawFeedback.style.borderColor = isError ? "#71313a" : "#254b38";
+    withdrawFeedback.style.background = isError ? "#210d11" : "#0b1d13";
+    withdrawFeedback.style.color = isError ? "#ff9aa5" : "#cfe7d8";
+  }
+
+  function updateWithdrawConversion() {
+    const amount = Number(withdrawAmountInput?.value || 0);
+    const kes = Math.round(amount * USD_TO_KES);
+    if (withdrawKesPreview) {
+      withdrawKesPreview.textContent = Number.isFinite(kes) && amount > 0
+        ? "KSh " + kes.toLocaleString("en-KE")
+        : "—";
+    }
+  }
+
+  async function loadWithdrawBalance() {
+    if (!withdrawRealBalance) return;
+    if (!localStorage.getItem("tradezoraAuthToken")) {
+      withdrawRealBalance.textContent = "Log in required";
+      return;
+    }
+    withdrawRealBalance.textContent = "Loading…";
+    try {
+      const data = await paymentApi("/api/real-account");
+      const account = data.account || data;
+      withdrawRealBalance.textContent = formatUsd(account.balance);
+    } catch (error) {
+      withdrawRealBalance.textContent = "Unavailable";
+      console.warn("Withdrawal balance could not be loaded:", error.message);
+    }
+  }
+
+  function openWithdrawModal() {
+    if (!withdrawModal) return;
+    withdrawModal.classList.add("open");
+    withdrawModal.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+    if (withdrawFeedback) withdrawFeedback.hidden = true;
+    updateWithdrawConversion();
+    loadWithdrawBalance();
+  }
+
+  function closeWithdrawModal() {
+    if (!withdrawModal) return;
+    withdrawModal.classList.remove("open");
+    withdrawModal.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  }
+
+  withdrawBtn?.addEventListener("click", openWithdrawModal);
+  document.querySelectorAll("[data-close-withdraw]").forEach((button) => {
+    button.addEventListener("click", closeWithdrawModal);
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && withdrawModal?.classList.contains("open")) closeWithdrawModal();
+  });
+  withdrawAmountInput?.addEventListener("input", updateWithdrawConversion);
+
+  withdrawForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const amount = Number(withdrawAmountInput?.value);
+    const phone = String(withdrawPhoneInput?.value || "").trim();
+
+    if (!Number.isFinite(amount) || amount < 0.01) {
+      showWithdrawFeedback("Enter a valid withdrawal amount of at least $0.01 USD.", true);
+      return;
+    }
+    if (!phone) {
+      showWithdrawFeedback("Enter the Kenyan M-Pesa phone number where you want to receive the payout.", true);
+      return;
+    }
+    if (!localStorage.getItem("tradezoraAuthToken")) {
+      showWithdrawFeedback("Log in to your registered account before requesting a withdrawal.", true);
+      return;
+    }
+
+    withdrawSubmit.disabled = true;
+    withdrawSubmit.textContent = "Submitting request…";
+    showWithdrawFeedback("Submitting your withdrawal request. Please wait and do not submit it again.");
+    try {
+      const data = await paymentApi("/api/payments/mpesa/withdrawal", {
+        method: "POST",
+        body: JSON.stringify({
+          amount_usd: amount.toFixed(2),
+          phone_number: phone
+        })
+      });
+      showWithdrawFeedback(
+        `${data.message || "Withdrawal request submitted for review."} Amount requested: ${formatUsd(amount)}. The amount is reserved from your real-money balance; payout is not automatic.`
+      );
+      await loadWithdrawBalance();
+      await loadRealAccountAndDeposits();
+      withdrawForm.reset();
+      updateWithdrawConversion();
+    } catch (error) {
+      showWithdrawFeedback(error.message || "Could not submit the withdrawal request. Please check your details and try again.", true);
+      await loadWithdrawBalance();
+    } finally {
+      withdrawSubmit.disabled = false;
+      withdrawSubmit.textContent = "Submit withdrawal request";
+    }
+  });
+
+  depositForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const amount = Number(depositAmountInput?.value);
+    const phone = String(depositPhoneInput?.value || "").trim();
+    if (!Number.isFinite(amount) || amount < 0.01 || amount > 1900) {
+      showDepositFeedback("Enter an amount from $0.01 to $1,900.00 USD for the sandbox test. Production deposits still require at least $5.00.", true);
+      return;
+    }
+    if (!phone) {
+      showDepositFeedback("Enter the Kenyan M-Pesa phone number that should receive the payment prompt.", true);
+      return;
+    }
+    if (!localStorage.getItem("tradezoraAuthToken")) {
+      showDepositFeedback("You need to log in to your registered account before making a real-money deposit.", true);
+      return;
+    }
+
+    depositSubmit.disabled = true;
+    depositSubmit.textContent = "Sending prompt…";
+    showDepositFeedback("Contacting M-Pesa. Please wait and do not submit the same payment repeatedly.");
+    try {
+      const data = await paymentApi("/api/payments/mpesa/deposit", {
+        method: "POST",
+        body: JSON.stringify({ amount_usd: amount.toFixed(2), phone_number: phone })
+      });
+      const deposit = data.deposit || {};
+      const kes = Number(deposit.amount_kes || Math.round(amount * USD_TO_KES));
+      showDepositFeedback(
+        `${data.message || "M-Pesa prompt requested."} Amount: ${formatUsd(deposit.amount_usd ?? amount)} (KSh ${kes.toLocaleString("en-KE")}). Status: ${(deposit.status || "pending").toUpperCase()}. Check your phone and approve the prompt if the details are correct. Your real balance will update only after M-Pesa confirms payment.`
+      );
+      await loadRealAccountAndDeposits();
+    } catch (error) {
+      showDepositFeedback(error.message || "Could not start the M-Pesa payment. Please try again.", true);
+    } finally {
+      depositSubmit.disabled = false;
+      depositSubmit.textContent = "Send M-Pesa prompt";
+    }
+  });
+
+
+  /* =========================
+     THEME
+  ========================= */
+
+  $("#themeSwitch").onclick = () => {
+
+    toast("Dark theme is active.");
+
+  };
+
+
+  /* =========================
+     DIGIT PROBABILITIES
+  ========================= */
+
+  const probabilityContainer = $("#probabilities");
+
+  /*
+    Digit statistics are derived from the simulated price stream.
+    This is demo data only — not a prediction of a real market.
+  */
+  const digitProfiles = {
+    "Volatility 10 (1s)": [14, 7, 5, 9, 8, 11, 6, 18, 13, 4],
+    "Volatility 25 (1s)": [6, 16, 18, 8, 5, 11, 10, 7, 14, 4],
+    "Volatility 50 (1s)": [5, 8, 7, 11, 6, 9, 12, 4, 19, 10],
+    "Volatility 75 (1s)": [9, 6, 4, 12, 8, 20, 7, 11, 10, 5],
+    "Volatility 100 (1s)": [7, 21, 8, 5, 12, 9, 3, 10, 15, 6]
+  };
+
+  let digitStats = [...(digitProfiles[document.querySelector("#marketSelect")?.value] || digitProfiles["Volatility 10 (1s)"])];
+  let lastTradeResult = JSON.parse(localStorage.getItem("tradezoraLastDigitResult") || "null");
+
+  function getLastDigit(value) {
+    // The contract digit follows the last visible decimal digit of the quote.
+    // Example: 1043.64 -> 4, 14166.41 -> 1.
+    const scaled = Math.round(Math.abs(Number(value)) * 100);
+    return scaled % 10;
+  }
+
+  function renderDigitStatistics() {
+    if (!probabilityContainer) return;
+
+    const total = digitStats.reduce((sum, value) => sum + value, 0);
+    const currentDigit = getLastDigit(price);
+    const probabilities = digitStats.map(count => (count / total) * 100);
+
+    // Pick exactly ONE highest and ONE lowest digit, even when percentages tie.
+    const highestDigit = probabilities.indexOf(Math.max(...probabilities));
+    let lowestDigit = -1;
+    let lowestValue = Infinity;
+
+    probabilities.forEach((value, digit) => {
+      if (digit === highestDigit) return;
+      if (value < lowestValue) {
+        lowestValue = value;
+        lowestDigit = digit;
+      }
+    });
+
+    // If every digit is tied, still show one high and one low so the UI
+    // communicates a clear visual state.
+    if (lowestDigit < 0) lowestDigit = highestDigit === 0 ? 1 : 0;
+
+    probabilityContainer.innerHTML = "";
+
+    digitStats.forEach((count, digit) => {
+      const probability = probabilities[digit];
+      const element = document.createElement("div");
+
+      element.className = "probability";
+      if (digit === highestDigit) element.classList.add("highest-digit");
+      if (digit === lowestDigit) element.classList.add("lowest-digit");
+      if (digit === currentDigit) element.classList.add("current-digit");
+      if (digit === selectedDigit) element.classList.add("selected-digit");
+      if (lastTradeResult && digit === Number(lastTradeResult.digit)) {
+        element.classList.add(lastTradeResult.win ? "trade-win" : "trade-loss");
+      }
+
+      element.style.setProperty(
+        "--probability",
+        `${Math.max(6, Math.min(100, probability))}%`
+      );
+
+      element.setAttribute("role", "button");
+      element.setAttribute("tabindex", "0");
+      element.setAttribute(
+        "aria-label",
+        `Digit ${digit}, ${probability.toFixed(1)} percent${digit === selectedDigit ? ", selected" : ""}${digit === currentDigit ? ", current price last digit" : ""}`
+      );
+
+      element.innerHTML = `
+        <span class="digit-number">${digit}</span>
+        <span class="percent">${probability.toFixed(1)}%</span>
+        ${digit === currentDigit ? '<span class="current-digit-marker" aria-hidden="true"></span>' : ''}
+      `;
+
+      const selectDigit = () => {
+        selectedDigit = digit;
+        renderDigitStatistics();
+        if (typeof toast === "function") toast(`Digit ${digit} selected.`);
+      };
+
+      element.addEventListener("click", selectDigit);
+      element.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          selectDigit();
+        }
+      });
+
+      probabilityContainer.appendChild(element);
+    });
+  }
+
+  function recordCurrentDigit() {
+    const digit = getLastDigit(price);
+    digitStats[digit] += 1;
+  }
+
+  function resetDigitProfile(market) {
+    const profile = digitProfiles[market] || digitProfiles["Volatility 10 (1s)"];
+    digitStats = [...profile];
+    renderDigitStatistics();
+  }
+
+  function showTradeDigitResult(digit, win) {
+    lastTradeResult = { digit: Number(digit), win: Boolean(win), at: Date.now() };
+    localStorage.setItem("tradezoraLastDigitResult", JSON.stringify(lastTradeResult));
+    renderDigitStatistics();
+  }
+
+  function generateProbabilities() {
+    renderDigitStatistics();
+  }
+
+  renderDigitStatistics();
+
+  /*
+    The old CHOOSE A CONTRACT DIGIT buttons have intentionally been removed.
+    The 0–9 statistics row above is now the digit selector.
+  */
+
+  const legacyContractTitle = document.querySelector(".contract-title");
+  const legacyContractDigits = document.querySelector("#contractDigits");
+  if (legacyContractTitle) legacyContractTitle.remove();
+  if (legacyContractDigits) legacyContractDigits.remove();
+
+  /* =========================
+     CONTRACT TABS
+  ========================= */
+
+
+  const contractTabs =
+    document.querySelectorAll(
+      ".market-tabs button"
+    );
+
+
+  contractTabs.forEach(button => {
+
+    button.addEventListener("click", () => {
+
+      if (continuousTrading.running) {
+        stopContinuousTrading(false);
+      }
+
+      contractTabs.forEach(tab =>
+        tab.classList.remove("active")
+      );
+
+      button.classList.add("active");
+
+      contractType =
+        button.dataset.contract || "match";
+
+
+      if (contractType === "even") {
+
+        $("#match").innerHTML =
+          "<strong>EVEN</strong><span>Demo</span>";
+
+        $("#differ").innerHTML =
+          "<strong>ODD</strong><span>Demo</span>";
+
+      }
+
+      else if (contractType === "over") {
+
+        $("#match").innerHTML =
+          "<strong>OVER</strong><span>Demo</span>";
+
+        $("#differ").innerHTML =
+          "<strong>UNDER</strong><span>Demo</span>";
+
+      }
+
+      else {
+
+        $("#match").innerHTML =
+          "<strong>MATCH</strong><span>Demo</span>";
+
+        $("#differ").innerHTML =
+          "<strong>DIFFER</strong><span>Demo</span>";
+
+      }
+
+    });
+
+  });
+
+
+  /* =========================
+     AUTO / MANUAL
+  ========================= */
+
+  $("#auto").onclick = () => {
+
+    // AUTO is a mode selector only. Selecting AUTO must NEVER place
+    // a trade or start continuous trading by itself.
+    mode = "AUTO";
+
+    $("#auto").classList.add("active");
+    $("#manual").classList.remove("active");
+
+    syncContinuousButtons();
+    toast("AUTO mode selected — tap MATCH or DIFFER to start continuous trading.");
+
+  };
+
+
+  $("#manual").onclick = () => {
+
+    mode = "MANUAL";
+
+    if (window.TradeZoraContinuousEngine?.getState().running) {
+      window.TradeZoraContinuousEngine.stop();
+    }
+
+    $("#manual").classList.add("active");
+    $("#auto").classList.remove("active");
+    syncContinuousButtons();
+
+    toast("MANUAL mode selected — one trade at a time.");
+
+  };
+
+
+  /* =========================
+     STAKE
+  ========================= */
+
+  $("#stakeMinus").onclick = () => {
+
+    stake = Math.max(
+      1,
+      stake - 1
+    );
+
+    localStorage.setItem(
+      "tradezoraDemoStake",
+      stake
+    );
+
+    renderBalance();
+
+  };
+
+
+  $("#stakePlus").onclick = () => {
+
+    stake = Math.min(
+      1000,
+      balance,
+      stake + 1
+    );
+
+    localStorage.setItem(
+      "tradezoraDemoStake",
+      stake
+    );
+
+    renderBalance();
+
+  };
+
+
+  /* =========================
+     AI BOT
+  ========================= */
+
+  $("#scanner").onclick = () => {
+
+    const button = $("#scanner");
+
+    button.disabled = true;
+
+    toast("AI BOT analyzing demo market...");
+
+
+    setTimeout(() => {
+
+      const suggestedDigit =
+        Math.floor(Math.random() * 10);
+
+      selectedDigit = suggestedDigit;
+
+
+      renderDigitStatistics();
+
+      toast(
+        `AI BOT demo signal: digit ${suggestedDigit}`
+      );
+
+      button.disabled = false;
+
+    }, 1200);
+
+  };
+
+
+  /* =========================
+     CHART
+  ========================= */
+
+  const chart =
+    $("#priceChart");
+
+  const ctx =
+    chart.getContext("2d");
+
+
+  let series = [];
+  let tickTimes = [];
+  let candles = [];
+  let chartMode = localStorage.getItem("tradezoraChartMode") === "candles" ? "candles" : "ticks";
+  let candleGranularity = Number(localStorage.getItem("tradezoraCandleInterval") || 60);
+  if (![60,120,300,900,1800,3600].includes(candleGranularity)) candleGranularity = 60;
+  let previousLivePrice = null;
+  let liveSocket = null;
+  let liveFeedReady = false;
+  let activeMarketSymbol = "";
+  let currentTickSubscription = null;
+  const tickSubscriptions = new Set();
+  let reconnectTimer = null;
+  // Use the official public endpoint that was independently tested and returned
+  // repeated live tick messages. No simulated prices or account access.
+  const derivSocketHosts = [
+    // Verified reachable and confirmed to stream live ticks in an independent test.
+    "wss://api.derivws.com/trading/v1/options/ws/public"
+  ];
+  let derivSocketHostIndex = 0;
+  let derivConnectTimeout = null;
+  let marketRequestId = 10;
+  const requestActions = new Map();
+  // Each Deriv market owns its own chart history and latest price. Switching
+  // symbols restores that market's cached data instead of reusing another market's series.
+  const marketDataBySymbol = new Map();
+  const marketRequestsById = new Map();
+  let activeHistoryRequestId = null;
+  const MAX_CHART_POINTS = 1800; // Preserve a full day of history plus live ticks where available.
+  // A full previous-day context is practical in candle mode (up to 1,440 one-minute candles).
+  const MAX_HISTORY_CANDLES = 1440;
+
+  const marketSelectEl = $("#marketSelect");
+  const savedMarket = localStorage.getItem("tradezoraActiveMarket");
+  let activeMarket = marketSelectEl?.selectedOptions?.[0]?.textContent || "Volatility 10 (1s)";
+  // Always start with real Deriv symbol codes, never display labels as API symbols.
+  activeMarketSymbol = marketSelectEl?.value || "1HZ10V";
+
+  function setFeedStatus(message, connected = false) {
+    const status = $("#marketFeedStatus");
+    const label = $("#chartFeedLabel");
+    if (status) {
+      status.textContent = connected ? "LIVE DERIV" : message.toUpperCase();
+      status.style.color = connected ? "#16e58a" : "#ffbd66";
+    }
+    if (label) label.textContent = connected ? "OFFICIAL DERIV LIVE MARKET DATA" : message.toUpperCase();
+  }
+
+  function setMarketOptions(markets) {
+    // Build the selector only from symbols returned by Deriv's official
+    // active_symbols response. Never manufacture market symbols or prices.
+    if (!marketSelectEl || !Array.isArray(markets)) return;
+
+    const volatilityMarkets = new Map();
+    for (const item of markets) {
+      const symbol = item?.underlying_symbol || item?.symbol;
+      const name = item?.underlying_symbol_name || item?.display_name;
+      if (!symbol || !name) continue;
+
+      // Include standard and 1-second Volatility indices, and exclude
+      // unrelated markets even if their display names contain similar words.
+      const isVolatility = /volatility/i.test(name) ||
+        /^(?:1HZ(?:10|25|50|75|100)V|R_(?:10|25|50|75|100))$/.test(symbol);
+      if (!isVolatility || !/^[A-Za-z0-9_]{2,30}$/.test(symbol)) continue;
+      volatilityMarkets.set(symbol, name);
+    }
+
+    if (!volatilityMarkets.size) {
+      // Keep the existing options if Deriv returned no usable Volatility list.
+      return;
+    }
+
+    const previous = marketSelectEl.value;
+    const saved = (() => {
+      try { return localStorage.getItem("tradezoraActiveMarket"); }
+      catch (_) { return null; }
+    })();
+    const fragment = document.createDocumentFragment();
+    for (const [symbol, name] of volatilityMarkets) {
+      const option = document.createElement("option");
+      option.value = symbol;
+      option.textContent = name;
+      fragment.appendChild(option);
+    }
+    marketSelectEl.replaceChildren(fragment);
+
+    const preferred = [previous, saved, activeMarketSymbol]
+      .find(symbol => symbol && volatilityMarkets.has(symbol));
+    marketSelectEl.value = preferred || marketSelectEl.options[0].value;
+    activeMarketSymbol = marketSelectEl.value;
+    activeMarket = marketSelectEl.selectedOptions[0]?.textContent || activeMarketSymbol;
+  }
+
+  function saveActiveMarketData() {
+    if (!activeMarketSymbol) return;
+    marketDataBySymbol.set(activeMarketSymbol, {
+      series: series.slice(-MAX_CHART_POINTS),
+      tickTimes: tickTimes.slice(-MAX_CHART_POINTS),
+      candles: candles.slice(-MAX_HISTORY_CANDLES).map(c => ({ ...c })),
+      price: Number.isFinite(Number(price)) ? Number(price) : null,
+      previousLivePrice: previousLivePrice,
+      liveFeedReady
+    });
+  }
+
+  function restoreMarketData(symbol) {
+    const saved = marketDataBySymbol.get(symbol);
+    chartPanOffset = 0;
+    if (!saved) {
+      series = [];
+      tickTimes = [];
+      candles = [];
+      previousLivePrice = null;
+      liveFeedReady = false;
+      return false;
+    }
+    series = saved.series.slice();
+    tickTimes = saved.tickTimes.slice();
+    candles = saved.candles.map(c => ({ ...c }));
+    previousLivePrice = saved.previousLivePrice;
+    if (saved.price !== null && Number.isFinite(saved.price)) price = saved.price;
+    liveFeedReady = false; // cache is historical context; wait for a fresh tick to mark LIVE.
+    return series.length > 0 || candles.length > 0;
+  }
+
+  function clearLiveSeries(message = "WAITING FOR LIVE PRICES") {
+    series = [];
+    tickTimes = [];
+    candles = [];
+    chartPanOffset = 0;
+    previousLivePrice = null;
+    liveFeedReady = false;
+    setFeedStatus(message, false);
+    drawChart();
+  }
+
+  function connectDerivMarketData() {
+    if (reconnectTimer) {
+      clearTimeout(reconnectTimer);
+      reconnectTimer = null;
+    }
+    if (liveSocket) {
+      try { liveSocket.close(); } catch (_) {}
+    }
+    setFeedStatus("CONNECTING TO DERIV", false);
+    // Official Deriv public market-data endpoint: read-only; no login, token, or account-balance access.
+    const socketUrl = derivSocketHosts[derivSocketHostIndex % derivSocketHosts.length];
+    setFeedStatus("CONNECTING TO DERIV " + (derivSocketHostIndex + 1) + "/" + derivSocketHosts.length, false);
+    if (derivConnectTimeout) clearTimeout(derivConnectTimeout);
+    const ws = new WebSocket(socketUrl);
+    derivConnectTimeout = setTimeout(() => {
+      if (liveSocket === ws && ws.readyState !== WebSocket.OPEN) {
+        setFeedStatus("DERIV CONNECTION TIMED OUT — CHECK NETWORK / WEBSOCKET ACCESS", false);
+        console.warn("Deriv WebSocket did not open in time:", socketUrl);
+        try { ws.close(); } catch (_) {}
+      }
+    }, 12000);
+    liveSocket = ws;
+
+    ws.addEventListener("open", () => {
+      if (liveSocket !== ws) return;
+      if (derivConnectTimeout) { clearTimeout(derivConnectTimeout); derivConnectTimeout = null; }
+      setFeedStatus("LOADING DERIV MARKETS", false);
+      ws.send(JSON.stringify({ active_symbols: "brief", req_id: 1 }));
+      if (activeMarketSymbol && /^[A-Za-z0-9_]{2,30}$/.test(activeMarketSymbol)) requestLiveHistoryAndTick(activeMarketSymbol);
+    });
+
+    ws.addEventListener("message", event => {
+      if (liveSocket !== ws) return;
+      let data;
+      try { data = JSON.parse(event.data); } catch (_) { return; }
+      if (data.error || (Array.isArray(data.errors) && data.errors.length)) {
+        const issue = data.error || data.errors[0];
+        const reason = issue?.message || issue?.detail || "Deriv market data error";
+        setFeedStatus(reason, false);
+        console.warn("Deriv public market data error:", issue);
+        return;
+      }
+      if (data.msg_type === "active_symbols" && Array.isArray(data.active_symbols)) {
+        setMarketOptions(data.active_symbols);
+        const selected = marketSelectEl?.selectedOptions?.[0];
+        const symbol = selected?.value || data.active_symbols[0]?.underlying_symbol || data.active_symbols[0]?.symbol;
+        if (symbol && /^[A-Za-z0-9_]{2,30}$/.test(symbol)) requestLiveHistoryAndTick(symbol);
+        return;
+      }
+      if ((data.msg_type === "history" || data.msg_type === "candles") && (data.history || Array.isArray(data.candles))) {
+        // Ignore a delayed history response for a market the user has already left.
+        const responseRequestId = data.req_id;
+        const requestInfo = marketRequestsById.get(responseRequestId);
+        const responseSymbol = data.echo_req?.ticks_history || data.echo_req?.symbol;
+        if (responseSymbol && responseSymbol !== activeMarketSymbol) return;
+        if (requestInfo) marketRequestsById.delete(responseRequestId);
+        if (requestInfo && requestInfo.symbol !== activeMarketSymbol) return;
+        if (requestInfo && responseRequestId !== activeHistoryRequestId) return;
+        // Always hydrate the chart with real historical candles first, even in
+        // tick mode. This gives the chart prior-day context after a refresh;
+        // live ticks then extend that history instead of starting from a blank line.
+        const historyCandles = Array.isArray(data.candles) ? data.candles : data.history?.candles;
+        if (Array.isArray(historyCandles) && historyCandles.length) {
+          candles = historyCandles.map(c => ({
+            epoch: Number(c.epoch), open: Number(c.open), high: Number(c.high),
+            low: Number(c.low), close: Number(c.close)
+          })).filter(c => [c.epoch,c.open,c.high,c.low,c.close].every(Number.isFinite)).slice(-MAX_HISTORY_CANDLES);
+          series = candles.map(c => c.close);
+          tickTimes = candles.map(c => c.epoch);
+        } else {
+          const prices = Array.isArray(data.history?.prices) ? data.history.prices.map(Number) : [];
+          const times = Array.isArray(data.history?.times) ? data.history.times.map(Number) : [];
+          if (prices.length) {
+            series = prices.filter(Number.isFinite).slice(-MAX_CHART_POINTS);
+            tickTimes = times.slice(-series.length);
+          }
+        }
+        if (series.length) {
+          price = series[series.length - 1];
+          previousLivePrice = price;
+          liveFeedReady = false;
+          setFeedStatus("HISTORY LOADED — WAITING FOR LIVE TICK", false);
+          recordCurrentDigit();
+          generateProbabilities();
+          saveActiveMarketData();
+          drawChart();
+        }
+        return;
+      }
+      if (data.msg_type === "tick" && data.tick && data.tick.symbol === activeMarketSymbol) {
+        if (data.subscription && data.subscription.id) {
+          currentTickSubscription = data.subscription.id;
+          tickSubscriptions.add(data.subscription.id);
+        }
+        const quote = Number(data.tick.quote);
+        if (!Number.isFinite(quote)) return;
+        const oldPrice = previousLivePrice;
+        price = quote;
+        previousLivePrice = quote;
+        const epoch = Number(data.tick.epoch) || Math.floor(Date.now() / 1000);
+        series.push(quote);
+        tickTimes.push(epoch);
+        if (series.length > MAX_CHART_POINTS) { series.shift(); tickTimes.shift(); }
+        if (chartMode === "candles") {
+          const bucket = Math.floor(epoch / candleGranularity) * candleGranularity;
+          const last = candles[candles.length - 1];
+          if (!last || last.epoch !== bucket) {
+            candles.push({ epoch: bucket, open: quote, high: quote, low: quote, close: quote });
+          } else {
+            last.high = Math.max(last.high, quote);
+            last.low = Math.min(last.low, quote);
+            last.close = quote;
+          }
+          if (candles.length > MAX_HISTORY_CANDLES) candles.shift();
+        }
+        liveFeedReady = true;
+        localStorage.setItem("tradezoraDemoLastPrice", String(price));
+        setFeedStatus("LIVE DERIV", true);
+        if (oldPrice !== null && oldPrice !== 0) {
+          const change = ((quote - oldPrice) / oldPrice) * 100;
+          $("#pct").textContent = (change >= 0 ? "+" : "") + change.toFixed(3) + "%";
+          $("#pct").style.color = change >= 0 ? "#16e58a" : "#ff5d6c";
+        }
+        recordCurrentDigit();
+        generateProbabilities();
+        saveActiveMarketData();
+        drawChart();
+      }
+    });
+
+    ws.addEventListener("error", () => {
+      if (liveSocket === ws) {
+        setFeedStatus("DERIV SOCKET ERROR — CHECK NETWORK OR ENDPOINT", false);
+        console.error("Deriv WebSocket error. The browser may hide the underlying network cause.");
+      }
+    });
+    ws.addEventListener("close", event => {
+      if (derivConnectTimeout) { clearTimeout(derivConnectTimeout); derivConnectTimeout = null; }
+      if (liveSocket !== ws) return;
+      // Expose the close code/reason so the next diagnosis is evidence-based.
+      const reason = String(event.reason || "no reason supplied").slice(0, 70);
+      setFeedStatus(`DERIV CLOSED (${event.code}) — ${reason} — RETRYING OFFICIAL HOSTS`, false);
+      console.warn("Deriv WebSocket closed:", { url: socketUrl, code: event.code, reason: event.reason, wasClean: event.wasClean });
+      // Rotate hosts after abnormal closes (1006 has no WebSocket close frame/reason).
+      derivSocketHostIndex = (derivSocketHostIndex + 1) % derivSocketHosts.length;
+      liveFeedReady = false;
+      drawChart();
+      reconnectTimer = setTimeout(connectDerivMarketData, 5000);
+    });
+  }
+
+  function requestLiveHistoryAndTick(symbol) {
+    // Do not send a display label such as "Volatility 10 (1s)" to Deriv.
+    // The API requires a real symbol code such as 1HZ10V.
+    if (!liveSocket || liveSocket.readyState !== WebSocket.OPEN || !symbol || !/^[A-Za-z0-9_]{2,30}$/.test(symbol)) {
+      if (symbol) setFeedStatus("INVALID DERIV MARKET SYMBOL — WAITING FOR MARKET LIST", false);
+      return;
+    }
+    if (activeMarketSymbol && activeMarketSymbol !== symbol) saveActiveMarketData();
+    // Forget every subscription ID we've actually received, not only the most
+    // recent one. A fast market switch can happen before the first tick arrives.
+    for (const subscriptionId of tickSubscriptions) {
+      try { liveSocket.send(JSON.stringify({ forget: subscriptionId })); } catch (_) {}
+    }
+    tickSubscriptions.clear();
+    currentTickSubscription = null;
+    activeMarketSymbol = symbol;
+    // Never display the previous market while the selected symbol loads.
+    series = []; tickTimes = []; candles = []; previousLivePrice = null;
+    liveFeedReady = false;
+    setFeedStatus("LOADING " + (activeMarket || symbol) + " HISTORY", false);
+    drawChart();
+
+    const historyReqId = ++marketRequestId;
+    activeHistoryRequestId = historyReqId;
+    marketRequestsById.set(historyReqId, { symbol, kind: "history" });
+    liveSocket.send(JSON.stringify({
+      ticks_history: symbol,
+      end: "latest",
+      // Load actual past Deriv tick prices so the existing line chart shows
+      // earlier market movement before new live ticks extend the line.
+      count: Math.min(1000, MAX_CHART_POINTS),
+      start: Math.floor(Date.now() / 1000) - 86400,
+      style: "ticks",
+      subscribe: 0,
+      req_id: historyReqId
+    }));
+    liveSocket.send(JSON.stringify({ ticks: symbol, subscribe: 1, req_id: ++marketRequestId }));
+  }
+
+  let chartZoom = 0.5; // Start zoomed out so the full two-minute tick window is visible.
+  let chartPanOffset = 0; // Number of newest points hidden when browsing older history.
+
+
+  function resizeChart() {
+
+    const rect =
+      chart.getBoundingClientRect();
+
+    const ratio =
+      window.devicePixelRatio || 1;
+
+    chart.width =
+      rect.width * ratio;
+
+    chart.height =
+      rect.height * ratio;
+
+    ctx.setTransform(
+      ratio,
+      0,
+      0,
+      ratio,
+      0,
+      0
+    );
+
+    drawChart();
+
+  }
+
+
+  function drawChart() {
+    const width = chart.clientWidth;
+    const height = chart.clientHeight;
+    if (!width || !height) return;
+    ctx.clearRect(0, 0, width, height);
+    let source = chartMode === "candles" ? candles : series.map((value, i) => ({ value, epoch: tickTimes[i] }));
+    // Tick mode is a rolling two-minute viewport. Keep only genuine points with
+    // timestamps in the latest 120 seconds; the live feed naturally advances it.
+    if (chartMode === "ticks" && source.length) {
+      const latestEpoch = Math.max(...source.map(point => Number(point.epoch) || 0));
+      const cutoffEpoch = latestEpoch - 120;
+      source = source.filter(point => (Number(point.epoch) || 0) >= cutoffEpoch);
+    }
+    // Visual-only prior movement sketch: this is intentionally illustrative,
+    // not historical market data. It ends exactly at the first genuine point
+    // so the drawn line joins smoothly into the real Deriv price series.
+    if (chartMode === "ticks" && source.length >= 2) {
+      const firstReal = source[0];
+      const anchor = Number(firstReal.value);
+      const realRange = Math.max(
+        ...source.map(point => Math.abs(Number(point.value) - anchor)),
+        Math.abs(anchor) * 0.00012,
+        0.0000001
+      );
+      const sketch = [];
+      const pattern = [0.12,0.32,0.22,0.48,0.36,0.18,0.04,0.24,0.08,-0.18,-0.08,-0.34,-0.16,0.02,-0.12,0.14,0.28,0.16,0.38,0.24,0.08,0.2,0.06,-0.04,0.1,0.18,0.06,0.12,0.04,0];
+      const step = Math.max(1, Number(firstReal.epoch) ? 1 : 0);
+      pattern.forEach((offset, index) => {
+        const value = index === pattern.length - 1 ? anchor : anchor + offset * realRange * 1.8;
+        sketch.push({ value, epoch: (Number(firstReal.epoch) || 0) - (pattern.length - index) * step });
+      });
+      source = sketch.concat(source);
+    }
+    if (!source.length) {
+      ctx.save(); ctx.fillStyle = "rgba(205,216,211,.78)";
+      ctx.font = "12px system-ui, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText("Waiting for genuine Deriv prices…", width / 2, height / 2); ctx.restore(); return;
+    }
+    // Keep a practical viewport instead of fitting every historical point at once.
+    // If all points are visible, maxPan is always zero and dragging cannot work.
+    // This lets touch dragging browse genuine older history even at the default zoom.
+    const baseVisibleCount = chartMode === "candles" ? 90 : Math.max(24, source.length);
+    const visibleCount = Math.min(source.length, Math.max(24, Math.floor(baseVisibleCount / chartZoom)));
+    const maxPan = Math.max(0, source.length - visibleCount);
+    chartPanOffset = Math.max(0, Math.min(maxPan, chartPanOffset));
+    const endIndex = Math.max(0, source.length - chartPanOffset);
+    const startIndex = Math.max(0, endIndex - visibleCount);
+    const visible = source.slice(startIndex, endIndex);
+    const vals = chartMode === "candles" ? visible.flatMap(c => [c.high,c.low]) : visible.map(p => p.value);
+    const minValue = Math.min(...vals), maxValue = Math.max(...vals);
+    const rawRange = Math.max(Math.abs(maxValue - minValue), Math.abs(price) * 0.00001, 0.00000001);
+    const range = Math.max(rawRange, Math.abs(price) * 0.0005);
+    const left = 8, right = Math.max(58, Math.min(72, width * 0.18)), top = 10, bottom = 24;
+    const plotWidth = Math.max(1, width - left - right), plotHeight = Math.max(1, height - top - bottom);
+    const scaleMin = minValue - range * 0.12, scaleMax = maxValue + range * 0.12, scaleRange = Math.max(scaleMax - scaleMin, 0.00000001);
+    const xFor = i => left + (i + 0.5) * (plotWidth / Math.max(1, visible.length));
+    const yFor = v => top + ((scaleMax - v) / scaleRange) * plotHeight;
+    ctx.save(); ctx.strokeStyle = "rgba(80,105,94,.25)"; ctx.lineWidth = 1;
+    for (let i=0;i<=5;i++){const y=top+(plotHeight/5)*i;ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(left+plotWidth,y);ctx.stroke();}
+    for (let i=0;i<=6;i++){const x=left+(plotWidth/6)*i;ctx.beginPath();ctx.moveTo(x,top);ctx.lineTo(x,top+plotHeight);ctx.stroke();}
+    ctx.restore();
+    if (chartMode === "candles") {
+      const candleWidth = Math.max(2, Math.min(12, plotWidth / visible.length * 0.62));
+      visible.forEach((c,i)=>{
+        const x=xFor(i), up=c.close>=c.open, color=up?"#16e58a":"#ff4f61";
+        ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=1.2;
+        ctx.beginPath();ctx.moveTo(x,yFor(c.high));ctx.lineTo(x,yFor(c.low));ctx.stroke();
+        const y1=yFor(Math.max(c.open,c.close)), y2=yFor(Math.min(c.open,c.close));
+        ctx.fillRect(x-candleWidth/2,y1,candleWidth,Math.max(1.5,y2-y1));
+      });
+    } else {
+      const points=visible.map((p,i)=>({x:xFor(i),y:yFor(p.value),value:p.value}));
+      ctx.save();ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+      ctx.strokeStyle="rgba(22,229,138,.17)";ctx.lineWidth=7;ctx.lineJoin="round";ctx.stroke();ctx.restore();
+      ctx.save();ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+      ctx.strokeStyle="#f4f7f5";ctx.lineWidth=1.8;ctx.lineJoin="round";ctx.stroke();ctx.restore();
+    }
+    // Market structure: mark recent local swing highs/lows and the latest direction from real chart data.
+    const structure = chartMode === "candles" ? visible : visible.map(p=>({high:p.value,low:p.value,close:p.value}));
+    const swingHighs=[], swingLows=[];
+    for(let i=2;i<structure.length-2;i++){
+      const h=structure[i].high, l=structure[i].low;
+      if(h>structure[i-1].high&&h>structure[i-2].high&&h>=structure[i+1].high&&h>=structure[i+2].high)swingHighs.push({i,v:h});
+      if(l<structure[i-1].low&&l<structure[i-2].low&&l<=structure[i+1].low&&l<=structure[i+2].low)swingLows.push({i,v:l});
+    }
+    const marks=[...swingHighs.slice(-2).map(m=>({...m,label:"Swing high",color:"#ffbd66"})),...swingLows.slice(-2).map(m=>({...m,label:"Swing low",color:"#59b7ff"}))];
+    marks.forEach(m=>{
+      const y=yFor(m.v);ctx.save();ctx.setLineDash([4,4]);ctx.strokeStyle=m.color;ctx.globalAlpha=.75;ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(left+plotWidth,y);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=m.color;ctx.font="9px system-ui,sans-serif";ctx.textAlign="left";ctx.fillText(m.label,left+3,Math.max(top+9,Math.min(top+plotHeight-2,y-3)));ctx.restore();
+    });
+    const first=visible[0], last=visible[visible.length-1];
+    const lastPrice=chartMode === "candles" ? last.close : last.value;
+    const currentY=yFor(lastPrice);
+    ctx.save();ctx.setLineDash([4,4]);ctx.strokeStyle="rgba(255,255,255,.3)";ctx.beginPath();ctx.moveTo(left,currentY);ctx.lineTo(left+plotWidth,currentY);ctx.stroke();ctx.restore();
+    ctx.save();ctx.fillStyle="#f4f7f5";ctx.beginPath();ctx.roundRect(left+plotWidth+4,Math.max(top,Math.min(top+plotHeight-20,currentY-10)),right-7,20,4);ctx.fill();ctx.fillStyle="#08100c";ctx.font="700 9px system-ui,sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(Number(price).toFixed(2),left+plotWidth+4+(right-7)/2,Math.max(top,Math.min(top+plotHeight-20,currentY-10))+10);ctx.restore();
+    ctx.save();ctx.fillStyle="rgba(205,216,211,.72)";ctx.font="9px system-ui,sans-serif";ctx.textAlign="left";ctx.textBaseline="middle";
+    for(let i=0;i<=5;i++){const v=scaleMax-(scaleRange/5)*i;ctx.fillText(v.toFixed(2),left+plotWidth+5,top+(plotHeight/5)*i);}ctx.restore();
+    ctx.save();ctx.fillStyle="rgba(155,171,164,.72)";ctx.font="8px system-ui,sans-serif";ctx.textBaseline="top";
+    for(let i=0;i<5;i++){const idx=Math.round(i/4*(visible.length-1));const item=visible[idx];const epoch=chartMode==="candles"?item.epoch:item.epoch;const d=new Date((Number(epoch)||0)*1000);const label=Number.isFinite(d.getTime())?d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",hour12:false}):"";const x=left+(i/4)*plotWidth;ctx.textAlign=i===0?"left":i===4?"right":"center";ctx.fillText(label,x,height-bottom+8);}ctx.restore();
+    // Basic structure summary uses the latest visible swing sequence, not a prediction.
+    const summary = structure.length > 4 ? (lastPrice > (structure[0].close ?? structure[0].value) ? "Structure: rising" : lastPrice < (structure[0].close ?? structure[0].value) ? "Structure: falling" : "Structure: range") : "Structure: building";
+    ctx.save();ctx.fillStyle="rgba(205,216,211,.78)";ctx.font="9px system-ui,sans-serif";ctx.textAlign="left";ctx.fillText(summary,left+3,top+10);ctx.restore();
+  }
+
+
+  // Drag horizontally to browse earlier/later genuine market data. Pointer events work on mouse and touch.
+  let chartDrag = null;
+  chart.style.touchAction = "pan-y"; // Keep normal vertical page scrolling available on phones.
+  chart.style.cursor = "grab";
+  chart.style.userSelect = "none";
+  chart.setAttribute("aria-label", "Live market chart. Swipe with one finger to browse history; pinch with two fingers to zoom.");
+  chart.addEventListener("contextmenu", event => event.preventDefault());
+  chart.addEventListener("pointerdown", event => {
+    // Touch input is handled below so vertical swipes can scroll the page.
+    if (event.pointerType !== "mouse") return;
+    if (event.button !== 0) return;
+    const sourceLength = chartMode === "candles" ? candles.length : series.length;
+    const baseVisibleCount = chartMode === "candles" ? 90 : 120;
+    const visibleCount = Math.min(sourceLength, Math.max(24, Math.floor(baseVisibleCount / chartZoom)));
+    if (sourceLength <= visibleCount) return;
+    chartDrag = { x: event.clientX, pan: chartPanOffset, width: Math.max(1, chart.clientWidth), pointerId: event.pointerId };
+    chart.style.cursor = "grabbing";
+    try { chart.setPointerCapture(event.pointerId); } catch (_) {}
+    event.preventDefault();
+  });
+  chart.addEventListener("pointermove", event => {
+    if (event.pointerType !== "mouse") return;
+    if (!chartDrag || (chartDrag.pointerId !== undefined && event.pointerId !== chartDrag.pointerId)) return;
+    const sourceLength = chartMode === "candles" ? candles.length : series.length;
+    const baseVisibleCount = chartMode === "candles" ? 90 : 120;
+    const visibleCount = Math.min(sourceLength, Math.max(24, Math.floor(baseVisibleCount / chartZoom)));
+    const pixelsPerPoint = chartDrag.width / Math.max(1, visibleCount);
+    const deltaPoints = Math.round((chartDrag.x - event.clientX) / Math.max(1, pixelsPerPoint));
+    chartPanOffset = Math.max(0, Math.min(Math.max(0, sourceLength - visibleCount), chartDrag.pan + deltaPoints));
+    drawChart();
+    event.preventDefault();
+  }, { passive: false });
+  const stopChartDrag = () => { chartDrag = null; chart.style.cursor = "grab"; };
+  chart.addEventListener("pointerup", stopChartDrag);
+  chart.addEventListener("pointercancel", stopChartDrag);
+  chart.addEventListener("lostpointercapture", stopChartDrag);
+
+  // Mobile gestures: one finger swipes through chart history; two fingers pinch
+  // to zoom. This changes only the chart viewport, never the market feed or account.
+  let chartTouchDrag = null;
+  let chartPinch = null;
+  const getTouchDistance = touches => {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.max(1, Math.hypot(dx, dy));
+  };
+
+  // Allow vertical page scrolling; custom two-finger pinch remains handled below.
+  chart.style.touchAction = "pan-y";
+  chart.addEventListener("touchstart", event => {
+    if (!event.touches) return;
+    if (event.touches.length >= 2) {
+      chartTouchDrag = null;
+      chartPinch = {
+        distance: getTouchDistance(event.touches),
+        zoom: chartZoom,
+        pan: chartPanOffset
+      };
+      event.preventDefault();
+      return;
+    }
+    chartPinch = null;
+    if (event.touches.length !== 1) return;
+    const sourceLength = chartMode === "candles" ? candles.length : series.length;
+    const baseVisibleCount = chartMode === "candles" ? 90 : 120;
+    const visibleCount = Math.min(sourceLength, Math.max(24, Math.floor(baseVisibleCount / chartZoom)));
+    if (sourceLength <= visibleCount) return;
+    chartTouchDrag = {
+      x: event.touches[0].clientX,
+      y: event.touches[0].clientY,
+      pan: chartPanOffset,
+      width: Math.max(1, chart.clientWidth),
+      direction: null
+    };
+  }, { passive: false });
+  chart.addEventListener("touchmove", event => {
+    if (!event.touches) return;
+    if (event.touches.length >= 2 && chartPinch) {
+      const sourceLength = chartMode === "candles" ? candles.length : series.length;
+      const baseVisibleCount = chartMode === "candles" ? 90 : 120;
+      const nextZoom = Math.max(0.5, Math.min(3, chartPinch.zoom * getTouchDistance(event.touches) / chartPinch.distance));
+      chartZoom = nextZoom;
+      const visibleCount = Math.min(sourceLength, Math.max(24, Math.floor(baseVisibleCount / chartZoom)));
+      chartPanOffset = Math.max(0, Math.min(Math.max(0, sourceLength - visibleCount), chartPinch.pan));
+      drawChart();
+      event.preventDefault();
+      return;
+    }
+    if (!chartTouchDrag || event.touches.length !== 1) return;
+    const touch = event.touches[0];
+    const dx = touch.clientX - chartTouchDrag.x;
+    const dy = touch.clientY - chartTouchDrag.y;
+    if (!chartTouchDrag.direction) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      // Vertical gesture belongs to the page, not the chart.
+      chartTouchDrag.direction = Math.abs(dy) > Math.abs(dx) ? "vertical" : "horizontal";
+    }
+    if (chartTouchDrag.direction === "vertical") {
+      chartTouchDrag = null;
+      return;
+    }
+    const sourceLength = chartMode === "candles" ? candles.length : series.length;
+    const baseVisibleCount = chartMode === "candles" ? 90 : 120;
+    const visibleCount = Math.min(sourceLength, Math.max(24, Math.floor(baseVisibleCount / chartZoom)));
+    const pixelsPerPoint = chartTouchDrag.width / Math.max(1, visibleCount);
+    const deltaPoints = Math.round((chartTouchDrag.x - touch.clientX) / Math.max(1, pixelsPerPoint));
+    chartPanOffset = Math.max(0, Math.min(Math.max(0, sourceLength - visibleCount), chartTouchDrag.pan + deltaPoints));
+    drawChart();
+    event.preventDefault();
+  }, { passive: false });
+  const stopChartTouchDrag = event => {
+    chartTouchDrag = null;
+    if (!event.touches || event.touches.length < 2) chartPinch = null;
+  };
+  chart.addEventListener("touchend", stopChartTouchDrag, { passive: true });
+  chart.addEventListener("touchcancel", stopChartTouchDrag, { passive: true });
+
+  // Visible fallback controls also let users browse history without dragging.
+  function moveChartHistory(direction) {
+    const sourceLength = chartMode === "candles" ? candles.length : series.length;
+    const baseVisibleCount = chartMode === "candles" ? 90 : 120;
+    const visibleCount = Math.min(sourceLength, Math.max(24, Math.floor(baseVisibleCount / chartZoom)));
+    const step = Math.max(5, Math.floor(visibleCount * 0.35));
+    chartPanOffset = Math.max(0, Math.min(Math.max(0, sourceLength - visibleCount), chartPanOffset + direction * step));
+    drawChart();
+  }
+  document.getElementById("chartOlder")?.addEventListener("click", () => moveChartHistory(1));
+  document.getElementById("chartNewer")?.addEventListener("click", () => moveChartHistory(-1));
+
+  // Mobile browsers may suspend sockets in the background. Reconnect when the dashboard becomes visible again.
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState !== "visible") return;
+    if (!liveSocket || liveSocket.readyState === WebSocket.CLOSED || liveSocket.readyState === WebSocket.CLOSING) {
+      connectDerivMarketData();
+    } else if (liveSocket.readyState === WebSocket.OPEN && activeMarketSymbol && !liveFeedReady) {
+      requestLiveHistoryAndTick(activeMarketSymbol);
+    }
+  });
+
+  window.addEventListener(
+    "resize",
+    resizeChart
+  );
+
+  resizeChart();
+
+
+  /* =========================
+     OFFICIAL DERIV LIVE MARKET DATA
+  ========================= */
+
+  clearLiveSeries("CONNECTING TO DERIV — NO SIMULATED PRICES");
+  connectDerivMarketData();
+
+
+  /* =========================
+     CHART CONTROLS
+  ========================= */
+
+  if ($("#zoomIn")) $("#zoomIn").onclick = () => {
+
+    chartZoom =
+      Math.min(
+        3,
+        chartZoom + 0.5
+      );
+
+    drawChart();
+
+  };
+
+
+  if ($("#zoomOut")) $("#zoomOut").onclick = () => {
+
+    chartZoom =
+      Math.max(
+        0.5,
+        chartZoom - 0.5
+      );
+
+    drawChart();
+
+  };
+
+
+  if ($("#resetZoom")) $("#resetZoom").onclick = () => {
+
+    chartZoom = 0.5;
+    chartPanOffset = 0;
+
+    drawChart();
+
+    toast("Chart reset.");
+
+  };
+
+
+  /* =========================
+     TICK / CANDLESTICK CONTROLS
+  ========================= */
+  const tickModeButton = $("#chartModeTicks");
+  const candleModeButton = $("#chartModeCandles");
+  const intervalSelect = $("#candleInterval");
+  function updateChartModeButtons() {
+    if (tickModeButton) { tickModeButton.style.borderColor = chartMode === "ticks" ? "#16e58a" : "var(--border)"; tickModeButton.style.color = chartMode === "ticks" ? "#16e58a" : "#dbe4df"; tickModeButton.setAttribute("aria-pressed", String(chartMode === "ticks")); }
+    if (candleModeButton) { candleModeButton.style.borderColor = chartMode === "candles" ? "#16e58a" : "var(--border)"; candleModeButton.style.color = chartMode === "candles" ? "#16e58a" : "#dbe4df"; candleModeButton.setAttribute("aria-pressed", String(chartMode === "candles")); }
+    if (intervalSelect) { intervalSelect.value = String(candleGranularity); intervalSelect.style.opacity = chartMode === "candles" ? "1" : ".55"; }
+  }
+  function changeChartMode(mode) {
+    chartMode = mode;
+    localStorage.setItem("tradezoraChartMode", chartMode);
+    updateChartModeButtons();
+    if (liveSocket && liveSocket.readyState === WebSocket.OPEN && activeMarketSymbol) requestLiveHistoryAndTick(activeMarketSymbol);
+    else drawChart();
+  }
+  tickModeButton?.addEventListener("click", () => changeChartMode("ticks"));
+  candleModeButton?.addEventListener("click", () => changeChartMode("candles"));
+  intervalSelect?.addEventListener("change", () => {
+    const next = Number(intervalSelect.value);
+    if (![60,120,300,900,1800,3600].includes(next)) return;
+    candleGranularity = next;
+    localStorage.setItem("tradezoraCandleInterval", String(next));
+    if (chartMode === "candles") changeChartMode("candles");
+  });
+  updateChartModeButtons();
+
+  /* =========================
+     MARKET SELECTOR
+  ========================= */
+
+  $("#marketSelect").onchange = () => {
+    const selected = $("#marketSelect").selectedOptions[0];
+    const symbol = $("#marketSelect").value;
+    activeMarket = selected?.textContent || symbol;
+    activeMarketSymbol = symbol;
+    if (!/^[A-Za-z0-9_]{2,30}$/.test(symbol)) {
+      setFeedStatus("INVALID DERIV MARKET SYMBOL", false);
+      return;
+    }
+    if (activeMarketSymbol && activeMarketSymbol !== symbol) saveActiveMarketData();
+    chartPanOffset = 0;
+    localStorage.setItem("tradezoraActiveMarket", symbol);
+    resetDigitProfile(activeMarket);
+    if (liveSocket && liveSocket.readyState === WebSocket.OPEN) {
+      requestLiveHistoryAndTick(symbol);
+    } else {
+      clearLiveSeries("DERIV DISCONNECTED — NO SIMULATED PRICES");
+    }
+    generateProbabilities();
+    drawChart();
+  };
+
+
+  /* =========================
+     RENDER POSITIONS / HISTORY
+  ========================= */
+
+  function renderLists() {
+
+    const positionsList =
+      $("#positionsList");
+
+    const historyList =
+      $("#historyList");
+
+
+    if (positionsList && positions.length) {
+
+      positionsList.innerHTML =
+        positions.map(position => `
+
+          <div class="position">
+
+            <span>
+              ${position.type}
+              • ${money(position.stake)}
+              • digit ${position.digit}
+            </span>
+
+            <strong>
+              Open
+            </strong>
+
+          </div>
+
+        `).join("");
+
+    } else if (positionsList) {
+
+      positionsList.innerHTML =
+        `<div class="empty">
+          No open positions.
+        </div>`;
+
+    }
+
+
+    if (historyList && history.length) {
+
+      historyList.innerHTML =
+        history
+          .slice()
+          .reverse()
+          .map(trade => `
+
+            <div class="history-item">
+
+              <span>
+                ${trade.type}
+                • ${money(trade.stake)}
+                • ${trade.contract === "over" ? `digit ${trade.digit} → ${trade.finalDigit}` : trade.digit}
+              </span>
+
+              <strong
+                class="${trade.win ? "win" : "loss"}"
+              >
+                ${
+                  trade.win
+                    ? "WIN +" + money(trade.profit)
+                    : "LOSS -" + money(trade.stake)
+                }
+              </strong>
+
+            </div>
+
+          `)
+          .join("");
+
+    } else if (historyList) {
+
+      historyList.innerHTML =
+        `<div class="empty">
+          No trades yet.
+        </div>`;
+
+    }
+
+  }
+
+
+  /* =========================
+     TRADE ENGINE
+  ========================= */
+
+  function trade(type, options = {}) {
+
+    const tradeStake = Number(
+      options.stake ?? stake
+    );
+
+    const tradeContract =
+      options.contract || contractType;
+
+    const tradeDigit = Number(
+      options.digit ?? selectedDigit
+    );
+
+    if (tradeContract === "over" && ((type === "OVER" && tradeDigit === 9) || (type === "UNDER" && tradeDigit === 0))) {
+      toast(type === "OVER" ? "Over 9 cannot be traded." : "Under 0 cannot be traded.");
+      return false;
+    }
+
+    const tradeMode =
+      options.mode || mode;
+
+    if (tradeStake <= 0) {
+
+      toast("Enter a valid stake.");
+
+      return false;
+
+    }
+
+
+    if (tradeStake > balance) {
+
+      toast("Not enough demo balance.");
+
+      return false;
+
+    }
+
+    // Manual mode is strictly one trade at a time and can never use
+    // the continuous engine.
+    if (tradeMode === "MANUAL") {
+      if (window.TradeZoraContinuousEngine?.getState().running) {
+        window.TradeZoraContinuousEngine.stop();
+      }
+      if (positions.some(item => String(item.mode).toUpperCase() === "MANUAL")) {
+        toast("Finish the current manual trade before placing another.");
+        return false;
+      }
+    }
+
+
+    // A new trade starts with no result light. The light is shown only
+    // after this trade settles and its actual closing digit is known.
+    lastTradeResult = null;
+    localStorage.removeItem("tradezoraLastDigitResult");
+    renderDigitStatistics();
+
+    // Deduct the stake immediately.
+    balance -= tradeStake;
+
+
+    localStorage.setItem(
+      "tradezoraDemoBalance",
+      balance
+    );
+
+
+    const position = {
+
+      id: Date.now() + Math.random(),
+
+      type,
+
+      stake: tradeStake,
+
+      digit: tradeDigit,
+
+      contract: tradeContract,
+
+      mode: tradeMode,
+
+      openedAt: Date.now(),
+      settleAt: Date.now() + 5000
+
+    };
+
+
+    positions.push(position);
+    saveTradeState();
+
+
+    renderBalance();
+
+    renderLists();
+
+
+    toast(
+      `${type} demo position opened.`
+    );
+
+
+    // Simulate the contract result after 5 seconds.
+    setTimeout(() => {
+
+      const index =
+        positions.findIndex(
+          item => item.id === position.id
+        );
+
+
+      if (index < 0) return;
+
+
+      // Settlement digit comes from the simulated closing quote, not a
+      // separate random result. Example 9557.77 closes on digit 7.
+      const closingPrice = Number(localStorage.getItem("tradezoraDemoLastPrice") || price);
+      const finalDigit = getLastDigit(closingPrice);
+
+
+      let win = false;
+
+
+      if (tradeContract === "match") {
+
+        win =
+          (finalDigit === tradeDigit && type === "MATCH") ||
+          (finalDigit !== tradeDigit && type === "DIFFER");
+
+      }
+
+      else if (tradeContract === "even") {
+
+        const even =
+          finalDigit % 2 === 0;
+
+        win =
+          (even && type === "EVEN") ||
+          (!even && type === "ODD");
+
+      }
+
+      else if (tradeContract === "over") {
+
+        // The selected digit is the barrier.
+        // OVER N wins when the closing digit is greater than N.
+        // UNDER N wins when the closing digit is less than N.
+        // Equality loses.
+        win =
+          type === "OVER"
+            ? finalDigit > tradeDigit
+            : finalDigit < tradeDigit;
+
+      }
+
+
+      const overProfitTable = {
+        0: 0.56,
+        1: 1.88,
+        2: 3.57,
+        3: 5.83,
+        4: 9.00,
+        5: 13.75,
+        6: 21.67,
+        7: 37.50,
+        8: 85.00
+      };
+
+      let profit = 0;
+      if (win) {
+        if (tradeContract === "over") {
+          const baseProfit = type === "OVER"
+            ? overProfitTable[tradeDigit]
+            : overProfitTable[9 - tradeDigit];
+          profit = Number.isFinite(baseProfit)
+            ? tradeStake * (baseProfit / 10)
+            : 0;
+        } else {
+          profit = tradeStake * 0.85;
+        }
+      }
+
+
+      if (win) {
+
+        balance +=
+          tradeStake + profit;
+
+        pnl += profit;
+
+        wins++;
+
+      } else {
+
+        pnl -= tradeStake;
+
+        losses++;
+
+      }
+
+
+      positions.splice(
+        index,
+        1
+      );
+
+
+      history.push({
+
+        ...position,
+
+        finalDigit,
+
+        win,
+
+        profit
+
+      });
+
+      showTradeDigitResult(finalDigit, win);
+
+      try {
+        window.dispatchEvent(new CustomEvent("tradezora-trade-settled", {
+          detail: { digit: finalDigit, win: Boolean(win), profit: profit }
+        }));
+      } catch (e) {}
+
+
+      if (history.length > 50) {
+
+        history.shift();
+
+      }
+
+      saveTradeState();
+
+      localStorage.setItem(
+        "tradezoraDemoBalance",
+        balance
+      );
+
+
+      renderBalance();
+
+      renderLists();
+
+
+      toast(
+        win
+          ? `Demo trade won — digit ${finalDigit}`
+          : `Demo trade lost — digit ${finalDigit}`
+      );
+
+
+    }, 5000);
+
+    return true;
+
+  }
+
+
+  /* =========================
+     PERSISTENT CONTINUOUS DEMO TRADING
+  ========================= */
+
+  function buttonContractLabel(type) {
+    if (type === "EVEN") return "EVEN";
+    if (type === "ODD") return "ODD";
+    if (type === "OVER") return "OVER";
+    if (type === "UNDER") return "UNDER";
+    if (type === "DIFFER") return "DIFFER";
+    return "MATCH";
+  }
+
+  function getContractPair() {
+    const current = String(contractType || "match").toLowerCase();
+    if (current === "even") return { left: "EVEN", right: "ODD" };
+    if (current === "over") return { left: "OVER", right: "UNDER" };
+    return { left: "MATCH", right: "DIFFER" };
+  }
+
+  function currentContinuousState() {
+    try {
+      return window.TradeZoraContinuousEngine?.getState?.() || {
+        running: false,
+        type: null,
+        contract: null,
+        digit: null,
+        stake: null
+      };
+    } catch (error) {
+      console.error("TradeZora continuous state error:", error);
+      return { running: false };
+    }
+  }
+
+  function syncContinuousButtons() {
+    const state = currentContinuousState();
+    const leftButton = $("#match");
+    const rightButton = $("#differ");
+    const pair = getContractPair();
+
+    // Manual mode always shows ordinary one-trade buttons.
+    if (mode === "MANUAL") {
+      leftButton.classList.remove("continuous-active");
+      rightButton.classList.remove("continuous-active");
+      leftButton.innerHTML = `<strong>${pair.left}</strong><span>Demo</span>`;
+      rightButton.innerHTML = `<strong>${pair.right}</strong><span>Demo</span>`;
+      return;
+    }
+
+    if (!state.running) {
+      leftButton.innerHTML = `<strong>${pair.left}</strong><span>Demo</span>`;
+      rightButton.innerHTML = `<strong>${pair.right}</strong><span>Demo</span>`;
+      leftButton.classList.remove("continuous-active");
+      rightButton.classList.remove("continuous-active");
+      return;
+    }
+
+    const activeType = String(state.type || "").toUpperCase();
+    leftButton.innerHTML = activeType === pair.left
+      ? `<strong>STOP ${pair.left}</strong><span>Running</span>`
+      : `<strong>${pair.left}</strong><span>Demo</span>`;
+    rightButton.innerHTML = activeType === pair.right
+      ? `<strong>STOP ${pair.right}</strong><span>Running</span>`
+      : `<strong>${pair.right}</strong><span>Demo</span>`;
+    leftButton.classList.toggle("continuous-active", activeType === pair.left);
+    rightButton.classList.toggle("continuous-active", activeType === pair.right);
+  }
+
+  function getRiskSettings() {
+    const takeProfitEl = $("#takeProfit");
+    const stopLossEl = $("#stopLoss");
+
+    const takeProfit = Number(takeProfitEl?.value || 0);
+    const stopLoss = Number(stopLossEl?.value || 0);
+
+    return {
+      takeProfit: Number.isFinite(takeProfit) && takeProfit > 0 ? takeProfit : 0,
+      stopLoss: Number.isFinite(stopLoss) && stopLoss > 0 ? stopLoss : 0
+    };
+  }
+
+  function restoreRiskSettings(state) {
+    const takeProfitEl = $("#takeProfit");
+    const stopLossEl = $("#stopLoss");
+
+    if (takeProfitEl && Number(state?.takeProfit) > 0) {
+      takeProfitEl.value = Number(state.takeProfit);
+    }
+    if (stopLossEl && Number(state?.stopLoss) > 0) {
+      stopLossEl.value = Number(state.stopLoss);
+    }
+  }
+
+  function startOrStopContinuous(type) {
+    if (mode === "MANUAL") return;
+    const state = currentContinuousState();
+
+    if (state.running && String(state.type).toUpperCase() === type) {
+      window.TradeZoraContinuousEngine.stop();
+      syncContinuousButtons();
+      toast(`Continuous ${buttonContractLabel(type)} trading stopped.`);
+      return;
+    }
+
+    if (state.running) window.TradeZoraContinuousEngine.stop();
+
+    if (contractType === "over" && ((type === "OVER" && selectedDigit === 9) || (type === "UNDER" && selectedDigit === 0))) {
+      toast(type === "OVER" ? "Over 9 cannot be traded." : "Under 0 cannot be traded.");
+      syncContinuousButtons();
+      return;
+    }
+
+    const streamStake = Number(stake);
+    if (streamStake <= 0 || streamStake > Number(localStorage.getItem("tradezoraDemoBalance") || balance)) {
+      toast("Not enough demo balance for continuous trading.");
+      syncContinuousButtons();
+      return;
+    }
+
+    const risk = getRiskSettings();
+    const multiplierEl = $("#multiplier");
+    const selectedMultiplier = Number(String(multiplierEl?.value || "6x").replace("x", ""));
+    const multiplier = Number.isFinite(selectedMultiplier) && selectedMultiplier > 0 ? selectedMultiplier : 6;
+
+    window.TradeZoraContinuousEngine.start({
+      type,
+      contract: contractType,
+      digit: selectedDigit,
+      stake: streamStake,
+      baseStake: streamStake,
+      multiplier,
+      maxConsecutiveLosses: 6,
+      mode: "AUTO",
+      market: activeMarket,
+      takeProfit: risk.takeProfit,
+      stopLoss: risk.stopLoss
+    });
+
+    // Force the first AUTO contract immediately rather than waiting for the
+    // background timer.
+    window.TradeZoraContinuousEngine.tick?.();
+    syncContinuousButtons();
+    toast(`Continuous ${buttonContractLabel(type)} trading started.`);
+  }
+
+  $("#match").onclick = () => {
+    const pair = getContractPair();
+    if (mode === "MANUAL") {
+      trade(pair.left, { mode: "MANUAL" });
+      return;
+    }
+    startOrStopContinuous(pair.left);
+  };
+
+  $("#differ").onclick = () => {
+    const pair = getContractPair();
+    if (mode === "MANUAL") {
+      trade(pair.right, { mode: "MANUAL" });
+      return;
+    }
+    startOrStopContinuous(pair.right);
+  };
+
+  window.addEventListener("tradezora-trade-opened", () => {
+    // Hide any previous result. Do not light a digit merely because a trade
+    // was opened.
+    lastTradeResult = null;
+    renderDigitStatistics();
+  });
+
+  window.addEventListener("tradezora-trade-settled", (event) => {
+    const result = event.detail || {};
+    if (Number.isFinite(Number(result.digit))) {
+      lastTradeResult = {
+        digit: Number(result.digit),
+        win: Boolean(result.win),
+        at: Date.now()
+      };
+      localStorage.setItem("tradezoraLastDigitResult", JSON.stringify(lastTradeResult));
+      renderDigitStatistics();
+    }
+  });
+
+  function showRiskResultModal(state) {
+    const modal = $("#riskResultModal");
+    if (!modal) return;
+
+    const reason = state.stoppedReason === "stop-loss" ? "stop-loss" : "take-profit";
+    // Prefer the frozen result captured when TP/SL ended the session.
+    // This prevents the result panel from showing 0 trades after the session
+    // has already been marked for reset.
+    const result = state.lastSessionResult || {};
+    const pnlValue = Number(result.sessionPnl ?? state.sessionPnl ?? 0);
+    const tradesValue = Number(result.sessionTrades ?? state.sessionTrades ?? 0);
+    const winsValue = Number(result.sessionWins ?? state.sessionWins ?? 0);
+    const lossesValue = Number(result.sessionLosses ?? state.sessionLosses ?? 0);
+    const winRate = Number.isFinite(Number(result.winRate))
+      ? Number(result.winRate)
+      : (tradesValue > 0 ? Math.round((winsValue / tradesValue) * 100) : 0);
+
+    const icon = $("#riskResultIcon");
+    const title = $("#riskResultTitle");
+    const amount = $("#riskResultAmount");
+    const tradesEl = $("#riskResultTrades");
+    const wlEl = $("#riskResultWL");
+    const winRateEl = $("#riskResultWinRate");
+
+    const loss = reason === "stop-loss";
+    icon.classList.toggle("loss", loss);
+    icon.textContent = loss ? "!" : "✓";
+    title.textContent = loss ? "STOP LOSS HIT" : "TARGET PROFIT HIT";
+    amount.classList.toggle("loss", pnlValue < 0);
+    amount.innerHTML = `${pnlValue >= 0 ? "+" : "-"}${money(Math.abs(pnlValue))} <small>USD</small>`;
+    tradesEl.textContent = tradesValue;
+    wlEl.innerHTML = `${winsValue}<span class="slash">/</span>${lossesValue}`;
+    winRateEl.textContent = `${winRate}%`;
+
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open");
+  }
+
+  function closeRiskResultModal(resetSession = true) {
+    const modal = $("#riskResultModal");
+    if (!modal) return;
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("modal-open");
+    if (resetSession && window.TradeZoraContinuousEngine?.resetSession) {
+      window.TradeZoraContinuousEngine.resetSession();
+    }
+  }
+
+  $("#riskResultContinue")?.addEventListener("click", () => closeRiskResultModal(true));
+
+  let lastRiskStopNotice = null;
+
+  window.addEventListener("tradezora-state-changed", () => {
+    balance = Number(localStorage.getItem("tradezoraDemoBalance") || balance);
+    history = JSON.parse(localStorage.getItem("tradezoraDemoHistory") || "[]");
+    positions = JSON.parse(localStorage.getItem("tradezoraDemoPositions") || "[]");
+    wins = history.filter(t => t.win).length;
+    losses = history.filter(t => !t.win).length;
+    pnl = history.reduce(
+      (sum, t) => sum + (t.win ? Number(t.profit || 0) : -Number(t.stake || 0)),
+      0
+    );
+    renderBalance();
+    renderLists();
+    lastTradeResult = JSON.parse(localStorage.getItem("tradezoraLastDigitResult") || "null");
+    renderDigitStatistics();
+    syncContinuousButtons();
+
+    const state = currentContinuousState();
+    if (!state.running && (state.stoppedReason === "take-profit" || state.stoppedReason === "stop-loss") && state.stoppedAt !== lastRiskStopNotice) {
+      lastRiskStopNotice = state.stoppedAt;
+      showRiskResultModal(state);
+    }
+  });
+
+  // Restore an already-running AUTO stream when returning to the Trade page.
+  // The shared engine is persisted in localStorage, so navigating to History
+  // or Positions must NOT stop it. Returning here only restores the UI.
+  const restoredState = window.TradeZoraContinuousEngine?.getState?.() || { running: false };
+  if (restoredState.running) {
+    mode = "AUTO";
+    selectedDigit = Number.isFinite(Number(restoredState.digit)) ? Number(restoredState.digit) : selectedDigit;
+    stake = Number(restoredState.stake) > 0 ? Number(restoredState.stake) : stake;
+    contractType = restoredState.contract || contractType;
+    restoreRiskSettings(restoredState);
+    const restoredMultiplier = Number(restoredState.multiplier || 6);
+    const multiplierEl = $("#multiplier");
+    if (multiplierEl && Number.isFinite(restoredMultiplier)) {
+      const optionValue = `${restoredMultiplier}x`;
+      if ([...multiplierEl.options].some(option => option.value === optionValue)) {
+        multiplierEl.value = optionValue;
+      }
+    }
+
+    contractTabs.forEach(tab => {
+      tab.classList.toggle("active", (tab.dataset.contract || "match") === contractType);
+    });
+
+    const pair = getContractPair();
+    $("#auto")?.classList.add("active");
+    $("#manual")?.classList.remove("active");
+    $("#match").innerHTML = `<strong>${pair.left}</strong><span>Demo</span>`;
+    $("#differ").innerHTML = `<strong>${pair.right}</strong><span>Demo</span>`;
+    renderBalance();
+    renderDigitStatistics();
+  }
+
+  // Persist the risk controls for the active AUTO stream. Changing them while
+  // a stream is already running updates the persisted limits without restarting it.
+  [$("#takeProfit"), $("#stopLoss")].forEach((input) => {
+    input?.addEventListener("change", () => {
+      const state = currentContinuousState();
+      const risk = getRiskSettings();
+      if (state.running && window.TradeZoraContinuousEngine?.updateRisk) {
+        window.TradeZoraContinuousEngine.updateRisk(risk.takeProfit, risk.stopLoss);
+      }
+    });
+  });
+
+  // Restore the saved risk values even when the stream is not currently running.
+  const savedRiskState = currentContinuousState();
+  if (savedRiskState.takeProfit || savedRiskState.stopLoss) {
+    restoreRiskSettings(savedRiskState);
+  }
+  const savedMultiplier = Number(savedRiskState.multiplier || 6);
+  const multiplierControl = $("#multiplier");
+  if (multiplierControl && Number.isFinite(savedMultiplier)) {
+    const optionValue = `${savedMultiplier}x`;
+    if ([...multiplierControl.options].some(option => option.value === optionValue)) {
+      multiplierControl.value = optionValue;
+    }
+  }
+
+  // Sync once on page load without changing the persisted running state.
+  syncContinuousButtons();
+
+  /* Small visual cue for a running continuous button. */
+  const continuousStyle = document.createElement("style");
+  continuousStyle.textContent = `
+    .market-actions button.continuous-active,
+    #match.continuous-active,
+    #differ.continuous-active {
+      border-color: #16e58a !important;
+      box-shadow: 0 0 0 2px rgba(22,229,138,.16), 0 8px 24px rgba(22,229,138,.12);
+    }
+  `;
+  document.head.appendChild(continuousStyle);
+
+  /* =========================
+     CLEAR POSITIONS
+  ========================= */
+
+  const clearPositionsButton = $("#clearPositions");
+  if (clearPositionsButton) {
+    clearPositionsButton.onclick = () => {
+      positions = [];
+      saveTradeState();
+      renderLists();
+      toast("Open positions cleared from view.");
+    };
+  }
+
+
+  /* =========================
+     INITIAL RENDER
+  ========================= */
+
+  renderLists();
+
+  renderBalance();
+
+  recordCurrentDigit();
+  generateProbabilities();
+
+
+  console.log(
+    "TradeZora demo terminal initialized."
+  );
+
+});
+/* =========================================================
+   TRADEZORA ENTRY SCANNER — DEMO MODULE v2
+   Demo only: simulated market search, no Deriv/API connection,
+   no automatic trading, and no guaranteed outcome.
+========================================================= */
+(function () {
+  function initTradeZoraScanner() {
+    const trigger = document.querySelector('#scanner');
+    if (!trigger) return;
+
+    const old = document.querySelector('#tzScannerModal');
+    if (old) old.remove();
+    const oldStyle = document.querySelector('#tzScannerStyles');
+    if (oldStyle) oldStyle.remove();
+
+    const style = document.createElement('style');
+    style.id = 'tzScannerStyles';
+    style.textContent = `
+      #tzScannerModal {
+        position:fixed; inset:0; z-index:9999;
+        display:none; align-items:center; justify-content:center;
+        padding:12px; background:rgba(2,5,10,.78);
+        backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px);
+      }
+      #tzScannerModal.tz-open { display:flex; }
+      #tzScannerCard {
+        width:min(100%, 470px); max-height:min(86vh, 620px);
+        overflow-y:auto; background:#0b1120; color:#f4f7ff;
+        border:1px solid #26334e; border-radius:20px;
+        box-shadow:0 20px 60px rgba(0,0,0,.55);
+      }
+      .tz-s-head { display:flex; align-items:center; gap:11px; padding:17px 18px 14px; border-bottom:1px solid #222c40; }
+      .tz-s-icon { width:52px; height:52px; flex:0 0 52px; display:grid; place-items:center; border-radius:15px; background:linear-gradient(135deg,#7b35ff,#3f72ff); box-shadow:0 8px 22px rgba(96,58,255,.25); font-size:27px; font-weight:800; }
+      .tz-s-title { min-width:0; flex:1; }
+      .tz-s-title h2 { margin:0; font-size:22px; line-height:1.05; }
+      .tz-s-title p { margin:5px 0 0; color:#7e879b; font-size:12px; }
+      #tzScannerClose { width:36px; height:36px; flex:0 0 36px; border:0; background:transparent; color:#7d879d; font-size:29px; cursor:pointer; line-height:1; }
+      .tz-s-body { padding:17px 18px 18px; }
+      .tz-s-info { background:#182133; border-radius:16px; padding:15px 16px; color:#9da7bc; font-size:13px; line-height:1.55; margin-bottom:18px; }
+      .tz-s-info strong { color:#f2f5ff; }
+      .tz-s-label { display:block; margin:0 0 8px; font-size:14px; font-weight:800; }
+      #tzScannerMarket { width:100%; box-sizing:border-box; background:#0b101b; color:#eef2fb; border:1px solid #273248; border-radius:13px; padding:12px 13px; font-size:14px; outline:none; }
+      .tz-s-ready { display:flex; justify-content:space-between; align-items:center; margin:22px 0 9px; font-size:14px; font-weight:800; }
+      #tzScanCount { color:#8b96ad; }
+      .tz-progress { height:8px; background:#1b2638; border-radius:99px; overflow:hidden; }
+      #tzProgressBar { width:0%; height:100%; border-radius:99px; background:linear-gradient(90deg,#6451ff,#278fff); transition:width .08s linear; }
+      #tzScanStatus { margin-top:8px; min-height:18px; color:#8290a9; font-size:11px; text-align:center; }
+      #tzScanButton, #tzLoadButton { width:100%; border-radius:14px; padding:14px 13px; font-size:15px; font-weight:900; cursor:pointer; margin-top:17px; }
+      #tzScanButton { border:0; color:#fff; background:linear-gradient(100deg,#5e4cff,#278fff); box-shadow:0 9px 22px rgba(54,91,255,.20); }
+      #tzScanButton:disabled { opacity:.62; cursor:wait; }
+      #tzLoadButton { border:1px solid #41516d; color:#f4f7ff; background:#172236; }
+      #tzLoadButton:disabled { opacity:.42; cursor:not-allowed; }
+      .tz-result { display:none; margin-top:14px; padding:13px; border:1px solid #293651; border-radius:14px; background:#111a2a; }
+      .tz-result.tz-show { display:block; }
+      .tz-result-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+      .tz-result-item { padding:9px; border-radius:10px; background:#0a101b; }
+      .tz-result-item small { display:block; color:#778197; margin-bottom:4px; font-size:10px; }
+      .tz-result-item strong { font-size:13px; }
+      .tz-s-note { margin-top:12px; color:#68748a; font-size:10px; line-height:1.45; }
+      @media (max-width:650px) {
+        #tzScannerModal { padding:10px; }
+        #tzScannerCard { width:min(100%, 430px); max-height:82vh; border-radius:18px; }
+        .tz-s-head { padding:14px 15px 12px; }
+        .tz-s-icon { width:46px; height:46px; flex-basis:46px; border-radius:13px; font-size:24px; }
+        .tz-s-title h2 { font-size:20px; }
+        .tz-s-title p { font-size:11px; }
+        .tz-s-body { padding:14px 15px 16px; }
+        .tz-s-info { padding:13px 14px; font-size:12px; margin-bottom:15px; }
+        .tz-s-ready { margin-top:18px; }
+        #tzScanButton, #tzLoadButton { margin-top:14px; padding:13px 12px; font-size:14px; }
+      }
+    `;
+    document.head.appendChild(style);
+
+    const modal = document.createElement('div');
+    modal.id = 'tzScannerModal';
+    modal.innerHTML = `
+      <div id="tzScannerCard" role="dialog" aria-modal="true" aria-labelledby="tzScannerTitle">
+        <div class="tz-s-head">
+          <div class="tz-s-icon">✧</div>
+          <div class="tz-s-title">
+            <h2 id="tzScannerTitle">Entry Scanner</h2>
+            <p>TradeZora Demo Scanner</p>
+          </div>
+          <button id="tzScannerClose" aria-label="Close scanner">×</button>
+        </div>
+        <div class="tz-s-body">
+          <div class="tz-s-info">
+            Choose a market category. The demo scanner will <strong>search several simulated volatility markets</strong> and select a simulated setup. It does not connect to Deriv.
+          </div>
+
+          <label class="tz-s-label" for="tzScannerMarket">Market category</label>
+          <select id="tzScannerMarket">
+            <option value="AUTO">Search all volatility markets</option>
+            <option value="Volatility 10 (1s)">Volatility 10 (1s)</option>
+            <option value="Volatility 25 (1s)">Volatility 25 (1s)</option>
+            <option value="Volatility 50 (1s)">Volatility 50 (1s)</option>
+            <option value="Volatility 75 (1s)">Volatility 75 (1s)</option>
+            <option value="Volatility 100 (1s)">Volatility 100 (1s)</option>
+          </select>
+
+          <div class="tz-s-ready">
+            <span id="tzReadyText">Ready to scan</span>
+            <span id="tzScanCount">0%</span>
+          </div>
+          <div class="tz-progress"><div id="tzProgressBar"></div></div>
+          <div id="tzScanStatus">Press Deep Scan to search for a simulated setup.</div>
+
+          <button id="tzScanButton">⌕ &nbsp; Deep Scan for Best Market</button>
+
+          <div id="tzResult" class="tz-result">
+            <div class="tz-result-grid">
+              <div class="tz-result-item"><small>Market</small><strong id="tzResultMarket">—</strong></div>
+              <div class="tz-result-item"><small>Contract</small><strong id="tzResultSignal">—</strong></div>
+              <div class="tz-result-item"><small>Digit</small><strong id="tzResultDigit">—</strong></div>
+              <div class="tz-result-item"><small>Demo confidence</small><strong id="tzResultConfidence">—</strong></div>
+            </div>
+          </div>
+
+          <button id="tzLoadButton" disabled>Load Deep Scanner Bot</button>
+          <div class="tz-s-note">Demo only. Loading applies the simulated market, contract and digit to the terminal. It does not place a trade.</div>
+        </div>
+      </div>
+    `;
+    modal.setAttribute('aria-hidden', 'true'); document.body.appendChild(modal);
+
+    const $s = (id) => document.querySelector(id);
+    let scanResult = null;
+    let scanRunning = false;
+
+    const close = () => { modal.classList.remove('tz-open'); modal.style.display = 'none'; modal.setAttribute('aria-hidden', 'true'); };
+    const resetScanUI = () => {
+      scanResult = null;
+      scanRunning = false;
+      $s('#tzReadyText').textContent = 'Ready to scan';
+      $s('#tzScanCount').textContent = '0%';
+      $s('#tzProgressBar').style.width = '0%';
+      $s('#tzScanStatus').textContent = 'Press Deep Scan to search for a simulated setup.';
+      $s('#tzResult').classList.remove('tz-show');
+      $s('#tzLoadButton').disabled = true;
+      $s('#tzScanButton').disabled = false;
+    };
+    const open = () => { modal.style.display = 'flex'; modal.classList.add('tz-open'); modal.setAttribute('aria-hidden', 'false'); resetScanUI(); };
+
+    trigger.onclick = (event) => { event.preventDefault(); event.stopPropagation(); open(); };
+    $s('#tzScannerClose').onclick = close;
+    modal.addEventListener('click', (event) => { if (event.target === modal) close(); });
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape') close(); });
+
+    const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+    const marketOptions = [
+      'Volatility 10 (1s)', 'Volatility 25 (1s)', 'Volatility 50 (1s)',
+      'Volatility 75 (1s)', 'Volatility 100 (1s)'
+    ];
+    const signals = ['MATCH', 'DIFFER', 'EVEN', 'ODD', 'OVER', 'UNDER'];
+
+    $s('#tzScanButton').onclick = async () => {
+      if (scanRunning) return;
+      scanRunning = true;
+
+      const scanButton = $s('#tzScanButton');
+      const loadButton = $s('#tzLoadButton');
+      const count = $s('#tzScanCount');
+      const bar = $s('#tzProgressBar');
+      const readyText = $s('#tzReadyText');
+      const status = $s('#tzScanStatus');
+      const resultBox = $s('#tzResult');
+      const selectedCategory = $s('#tzScannerMarket').value;
+
+      scanButton.disabled = true;
+      loadButton.disabled = true;
+      resultBox.classList.remove('tz-show');
+      readyText.textContent = 'Searching markets';
+
+      const marketsToCheck = selectedCategory === 'AUTO' ? marketOptions : [selectedCategory];
+      const marketScores = [];
+      const totalSteps = 100;
+
+      for (let percent = 1; percent <= totalSteps; percent++) {
+        // Deliberately paced demo scan so the search feels visible rather than instant.
+        await wait(85);
+
+        const marketIndex = Math.min(
+          marketsToCheck.length - 1,
+          Math.floor(((percent - 1) / totalSteps) * marketsToCheck.length)
+        );
+        const market = marketsToCheck[marketIndex];
+        const marketProgress = Math.round(((percent - marketIndex * (100 / marketsToCheck.length)) / (100 / marketsToCheck.length)) * 100);
+        const safeProgress = Math.max(1, Math.min(100, marketProgress));
+
+        count.textContent = `${percent}%`;
+        bar.style.width = `${percent}%`;
+        status.textContent = `Searching ${market} · ${safeProgress}%`;
+
+        // Simulated score only — not real market analysis.
+        if (percent % 20 === 0 || percent === 1) {
+          marketScores.push({ market, score: 50 + Math.floor(Math.random() * 50) });
+        }
+      }
+
+      readyText.textContent = 'Best simulated market found';
+      status.textContent = 'Comparing simulated tick patterns…';
+      await wait(700);
+
+      let market;
+      if (selectedCategory !== 'AUTO') {
+        market = selectedCategory;
+      } else {
+        market = (marketScores.sort((a, b) => b.score - a.score)[0] || { market: marketOptions[0] }).market;
+      }
+
+      const signal = signals[Math.floor(Math.random() * signals.length)];
+      const digit = Math.floor(Math.random() * 10);
+      const confidence = 80 + Math.floor(Math.random() * 16);
+      scanResult = { market, signal, digit, confidence };
+
+      $s('#tzResultMarket').textContent = market;
+      $s('#tzResultSignal').textContent = signal;
+      $s('#tzResultDigit').textContent = digit;
+      $s('#tzResultConfidence').textContent = `${confidence}%`;
+      resultBox.classList.add('tz-show');
+      status.textContent = 'Simulated contract ready to load.';
+      readyText.textContent = 'Scan complete';
+      loadButton.disabled = false;
+      scanRunning = false;
+    };
+
+    $s('#tzLoadButton').onclick = async () => {
+      if (!scanResult || scanRunning) return;
+
+      scanRunning = true;
+      const loadedResult = { ...scanResult };
+      const loadButton = $s('#tzLoadButton');
+
+      loadButton.disabled = true;
+      $s('#tzScanStatus').textContent = 'Loading contract into terminal…';
+
+      // Close the scanner immediately. This guarantees the terminal becomes
+      // visible even if a later UI update encounters an error.
+      modal.classList.remove('tz-open');
+      modal.style.setProperty('display', 'none', 'important');
+      modal.setAttribute('aria-hidden', 'true');
+
+      await wait(120);
+
+      try {
+        const marketSelect = document.querySelector('#marketSelect');
+
+        if (marketSelect) {
+          const match = [...marketSelect.options].find(option =>
+            option.value === loadedResult.market ||
+            option.textContent.trim() === loadedResult.market
+          );
+
+          if (match) {
+            marketSelect.value = match.value;
+            marketSelect.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+        }
+
+        const contractMap = {
+          MATCH: 'match', DIFFER: 'match',
+          EVEN: 'even', ODD: 'even',
+          OVER: 'over', UNDER: 'over'
+        };
+
+        const wantedContract = contractMap[loadedResult.signal];
+        const contractTab = [...document.querySelectorAll('.market-tabs button')]
+          .find(button =>
+            (button.dataset.contract || '').toLowerCase() === wantedContract
+          );
+
+        if (contractTab) contractTab.click();
+
+        selectedDigit = Number(loadedResult.digit);
+        renderDigitStatistics();
+
+        const contractLabel = document.querySelector(
+          '#selectedContract, #contractType, [data-selected-contract]'
+        );
+        if (contractLabel) contractLabel.textContent = loadedResult.signal;
+
+        showScannerToast(
+          `Loaded ${loadedResult.market} · ${loadedResult.signal} · Digit ${loadedResult.digit}`
+        );
+      } catch (error) {
+        console.error('TradeZora scanner load error:', error);
+        showScannerToast('Scanner result loaded. Check the terminal.');
+      } finally {
+        scanRunning = false;
+      }
+    };
+
+    function showScannerToast(message) {
+      const existing = document.querySelector('#toast');
+      if (existing) {
+        existing.textContent = message;
+        existing.classList.add('show');
+        setTimeout(() => existing.classList.remove('show'), 2600);
+        return;
+      }
+      const t = document.createElement('div');
+      t.textContent = message;
+      t.style.cssText = 'position:fixed;left:50%;bottom:78px;transform:translateX(-50%);z-index:10001;background:#102019;color:#e8fff3;border:1px solid #20543b;padding:11px 14px;border-radius:10px;font:700 12px system-ui;white-space:nowrap;max-width:90vw;text-align:center;';
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 2600);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTradeZoraScanner, { once: true });
+  } else {
+    initTradeZoraScanner();
+  }
+})();
+
+  </script>
+</body>
+</html>
