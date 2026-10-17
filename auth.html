@@ -1,51 +1,161 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>TradeZora — Account</title>
-<link rel="stylesheet" href="styles.css">
-<style>
-body{min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at 50% 0,#0b2419 0,#050807 42%)}
-.auth{width:min(460px,calc(100% - 30px));background:#0c1210;border:1px solid #1c2923;border-radius:20px;padding:30px;box-shadow:0 25px 70px #0008}
-.auth .logo{display:block;text-align:center;margin-bottom:25px}.tabs{display:grid;grid-template-columns:1fr 1fr;background:#07100c;padding:4px;border-radius:10px;margin-bottom:24px}
-.tabs button{border:0;background:transparent;color:#8f9b96;padding:11px;border-radius:8px;font-weight:700;cursor:pointer}.tabs button.active{background:#16e58a;color:#031009}
-.form{display:grid;gap:14px}.form h1{font-size:28px;margin:0}.form p{color:#8f9b96;font-size:13px;margin:0 0 5px}.form label{font-size:12px;color:#c8d0cc}
-.form input{width:100%;margin-top:6px;padding:13px;border-radius:10px;border:1px solid #1c2923;background:#07100c;color:#fff;outline:0}.form input:focus{border-color:#16e58a}
-.form button{padding:13px;border:0;border-radius:10px;background:#16e58a;color:#031009;font-weight:800;cursor:pointer;margin-top:5px}.msg{min-height:20px;color:#16e58a;font-size:12px;text-align:center}
-.back{text-align:center;margin-top:20px}.back a{color:#8f9b96;text-decoration:none;font-size:12px}
-</style>
-</head>
-<body>
-<main class="auth">
-<a class="logo" href="index.html"><span>Trade</span>Zora</a>
-<div class="tabs"><button id="signupTab" class="active" type="button">Create Account</button><button id="loginTab" type="button">Log In</button></div>
-<form id="signup" class="form">
-<h1>Create your demo account</h1><p>Demo only. No real money or Deriv connection is used.</p>
-<label>Full Name<input id="signupName" type="text" required></label>
-<label>Email<input id="signupEmail" type="email" required></label>
-<label>Password<input id="signupPassword" type="password" minlength="6" required></label>
-<button type="submit">Create Demo Account</button><div id="signupMsg" class="msg"></div>
-</form>
-<form id="login" class="form" style="display:none">
-<h1>Welcome back</h1><p>Log in to your local TradeZora demo account.</p>
-<label>Email<input id="loginEmail" type="email" required></label>
-<label>Password<input id="loginPassword" type="password" required></label>
-<button type="submit">Log In</button><div id="loginMsg" class="msg"></div>
-</form>
-<div class="back"><a href="index.html">← Back to TradeZora</a></div>
-</main>
+
 <script>
-document.addEventListener("DOMContentLoaded",()=>{
-const signupTab=document.getElementById("signupTab"),loginTab=document.getElementById("loginTab");
-const signupForm=document.getElementById("signup"),loginForm=document.getElementById("login");
-const signupName=document.getElementById("signupName"),signupEmail=document.getElementById("signupEmail"),signupPassword=document.getElementById("signupPassword");
-const loginEmail=document.getElementById("loginEmail"),loginPassword=document.getElementById("loginPassword");
-const signupMsg=document.getElementById("signupMsg"),loginMsg=document.getElementById("loginMsg");
-function showTab(login){signupTab.classList.toggle("active",!login);loginTab.classList.toggle("active",login);signupForm.style.display=login?"none":"grid";loginForm.style.display=login?"grid":"none";signupMsg.textContent="";loginMsg.textContent=""}
-signupTab.onclick=()=>showTab(false);loginTab.onclick=()=>showTab(true);
-signupForm.onsubmit=e=>{e.preventDefault();const name=signupName.value.trim(),email=signupEmail.value.trim().toLowerCase(),password=signupPassword.value;if(!name||!email||password.length<6){signupMsg.style.color="#ff5d6c";signupMsg.textContent="Please complete all fields. Password must be 6+ characters.";return}localStorage.setItem("tradezoraDemoUser",JSON.stringify({name,email}));localStorage.setItem("tradezoraDemoBalance","10000");localStorage.setItem("tradezoraDemoStake","10");localStorage.setItem("tradezoraDemoBalanceVersion","10000");signupMsg.style.color="#16e58a";signupMsg.textContent="Account created with $10,000 demo balance. Opening dashboard…";setTimeout(()=>location.href="dashboard.html",500)};
-loginForm.onsubmit=e=>{e.preventDefault();const saved=JSON.parse(localStorage.getItem("tradezoraDemoUser")||"null"),email=loginEmail.value.trim().toLowerCase();if(saved&&saved.email===email){loginMsg.style.color="#16e58a";loginMsg.textContent="Login successful. Opening dashboard…";setTimeout(()=>location.href="dashboard.html",400)}else{loginMsg.style.color="#ff5d6c";loginMsg.textContent="No matching demo account found. Create an account first."}}});
+document.addEventListener("DOMContentLoaded", () => {
+  const API_BASE = "https://tradezora-backend-use.onrender.com";
+
+  const signupTab = document.getElementById("signupTab");
+  const loginTab = document.getElementById("loginTab");
+  const signupForm = document.getElementById("signup");
+  const loginForm = document.getElementById("login");
+
+  const signupName = document.getElementById("signupName");
+  const signupEmail = document.getElementById("signupEmail");
+  const signupPassword = document.getElementById("signupPassword");
+  const loginEmail = document.getElementById("loginEmail");
+  const loginPassword = document.getElementById("loginPassword");
+
+  const signupMsg = document.getElementById("signupMsg");
+  const loginMsg = document.getElementById("loginMsg");
+
+  function showTab(login) {
+    signupTab.classList.toggle("active", !login);
+    loginTab.classList.toggle("active", login);
+    signupForm.style.display = login ? "none" : "grid";
+    loginForm.style.display = login ? "grid" : "none";
+    signupMsg.textContent = "";
+    loginMsg.textContent = "";
+  }
+
+  signupTab.onclick = () => showTab(false);
+  loginTab.onclick = () => showTab(true);
+
+  async function sendRequest(path, payload) {
+    const response = await fetch(`${API_BASE}${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok || data.success !== true) {
+      throw new Error(
+        data.error ||
+        data.message ||
+        `Request failed (${response.status}).`
+      );
+    }
+
+    return data;
+  }
+
+  function saveSession(data) {
+    if (!data.session_token || !data.user) {
+      throw new Error("The server did not return a valid login session.");
+    }
+
+    const user = data.user;
+
+    localStorage.setItem("session_token", data.session_token);
+    localStorage.setItem("tradezoraDemoUser", JSON.stringify({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role
+    }));
+
+    // Keep demo display settings separate from real account funds.
+    if (localStorage.getItem("tradezoraDemoBalance") === null) {
+      localStorage.setItem("tradezoraDemoBalance", "10000");
+    }
+    if (localStorage.getItem("tradezoraDemoStake") === null) {
+      localStorage.setItem("tradezoraDemoStake", "10");
+    }
+    if (localStorage.getItem("tradezoraDemoBalanceVersion") === null) {
+      localStorage.setItem(
+        "tradezoraDemoBalanceVersion",
+        localStorage.getItem("tradezoraDemoBalance")
+      );
+    }
+  }
+
+  signupForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const name = signupName.value.trim();
+    const email = signupEmail.value.trim().toLowerCase();
+    const password = signupPassword.value;
+
+    if (!name || !email || password.length < 8) {
+      signupMsg.style.color = "#ff5d6c";
+      signupMsg.textContent =
+        "Enter your name and email. Password must be at least 8 characters.";
+      return;
+    }
+
+    const submitButton = signupForm.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    submitButton.textContent = "Creating account...";
+    signupMsg.style.color = "#16e58a";
+    signupMsg.textContent = "Connecting securely to TradeZora...";
+
+    try {
+      const data = await sendRequest("/api/auth/register", {
+        name,
+        email,
+        password
+      });
+
+      saveSession(data);
+      signupMsg.textContent = "Account created. Opening dashboard...";
+      window.location.href = "dashboard.html";
+    } catch (error) {
+      signupMsg.style.color = "#ff5d6c";
+      signupMsg.textContent =
+        error.message === "Failed to fetch"
+          ? "Could not reach the server. Check your connection and try again."
+          : error.message;
+      submitButton.disabled = false;
+      submitButton.textContent = "Create Demo Account";
+    }
+  });
+
+  loginForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const email = loginEmail.value.trim().toLowerCase();
+    const password = loginPassword.value;
+
+    if (!email || !password) {
+      loginMsg.style.color = "#ff5d6c";
+      loginMsg.textContent = "Enter your email and password.";
+      return;
+    }
+
+    const submitButton = loginForm.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    submitButton.textContent = "Logging in...";
+    loginMsg.style.color = "#16e58a";
+    loginMsg.textContent = "Verifying your account...";
+
+    try {
+      const data = await sendRequest("/api/auth/login", {
+        email,
+        password
+      });
+
+      saveSession(data);
+      loginMsg.textContent = "Login successful. Opening dashboard...";
+      window.location.href = "dashboard.html";
+    } catch (error) {
+      loginMsg.style.color = "#ff5d6c";
+      loginMsg.textContent =
+        error.message === "Failed to fetch"
+          ? "Could not reach the server. Check your connection and try again."
+          : error.message;
+      submitButton.disabled = false;
+      submitButton.textContent = "Log In";
+    }
+  });
+});
 </script>
-</body>
-</html>
