@@ -1316,16 +1316,25 @@ document.addEventListener("DOMContentLoaded", () => {
     const prior = marketSelectEl.value || activeMarketSymbol || savedMarket || activeMarket;
     // The current Deriv public API uses underlying_symbol and
     // underlying_symbol_name (the older API used symbol/display_name).
+    // This dashboard is intentionally limited to Deriv's 1-second Volatility
+    // Indices. Do not show forex, commodities, crypto, other synthetic indices,
+    // or non-1-second volatility markets in this selector.
     const options = markets
       .map(item => ({
         ...item,
         _symbol: item?.underlying_symbol || item?.symbol,
         _name: item?.underlying_symbol_name || item?.display_name || item?.underlying_symbol || item?.symbol
       }))
-      .filter(item => item._symbol && item._name)
-      .sort((a, b) => String(a._name).localeCompare(String(b._name)));
+      .filter(item => {
+        if (!item._symbol || !item._name) return false;
+        const name = String(item._name).trim();
+        const symbol = String(item._symbol).trim();
+        return /^Volatility\s+.+\(1s\)$/i.test(name) && /^1HZ[0-9]+V$/i.test(symbol);
+      })
+      .sort((a, b) => String(a._name).localeCompare(String(b._name), undefined, {numeric:true}));
     if (!options.length) {
-      setFeedStatus("DERIV RETURNED NO ACTIVE MARKETS", false);
+      setFeedStatus("NO ACTIVE 1-SECOND VOLATILITY MARKETS RETURNED", false);
+      console.warn("Deriv active_symbols response did not include any 1-second Volatility Indices.");
       return;
     }
     marketSelectEl.replaceChildren();
@@ -1536,6 +1545,8 @@ document.addEventListener("DOMContentLoaded", () => {
       try { liveSocket.send(JSON.stringify({ forget: currentTickSubscription })); } catch (_) {}
       currentTickSubscription = null;
     }
+    // Set the active symbol before requesting data so late ticks from the
+    // previous market are ignored by the message handler.
     activeMarketSymbol = symbol;
     restoreMarketData(symbol);
     setFeedStatus("LOADING " + (activeMarket || symbol) + " HISTORY", false);
@@ -1886,8 +1897,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const selected = $("#marketSelect").selectedOptions[0];
     const symbol = $("#marketSelect").value;
     activeMarket = selected?.textContent || symbol;
-    if (!/^[A-Za-z0-9_]{2,30}$/.test(symbol)) {
-      setFeedStatus("INVALID DERIV MARKET SYMBOL", false);
+    if (!/^1HZ[0-9]+V$/i.test(symbol) || !/^Volatility\s+.+\(1s\)$/i.test(activeMarket)) {
+      setFeedStatus("PLEASE SELECT A 1-SECOND VOLATILITY MARKET", false);
       return;
     }
     // Save the market being left before changing the active symbol.
@@ -1895,12 +1906,15 @@ document.addEventListener("DOMContentLoaded", () => {
     chartPanOffset = 0;
     localStorage.setItem("tradezoraActiveMarket", symbol);
     resetDigitProfile(activeMarket);
-    // Update immediately so late ticks from the previous market are ignored.
-    activeMarketSymbol = symbol;
-    clearLiveSeries("LOADING " + activeMarket + " — LIVE DERIV");
+    // On an open socket the request helper first saves the outgoing market,
+    // then changes symbol and requests fresh history + ticks. If disconnected,
+    // save before clearing and set the symbol before reconnecting.
     if (liveSocket && liveSocket.readyState === WebSocket.OPEN) {
       requestLiveHistoryAndTick(symbol);
     } else {
+      if (activeMarketSymbol && activeMarketSymbol !== symbol) saveActiveMarketData();
+      activeMarketSymbol = symbol;
+      clearLiveSeries("LOADING " + activeMarket + " — LIVE DERIV");
       setFeedStatus("DERIV DISCONNECTED — RECONNECTING", false);
       connectDerivMarketData();
     }
