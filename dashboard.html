@@ -68,7 +68,7 @@
 /* ===== SINGLE-FILE CHART / DIGIT STATS ===== */
 .contract-title,.contract-digits{display:none!important}
 .chart-wrap{position:relative}
-#priceChart{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:pan-y}.deriv-chart-wrap{background:linear-gradient(rgba(42,62,53,.22) 1px,transparent 1px),linear-gradient(90deg,rgba(42,62,53,.22) 1px,transparent 1px),#050a08!important;background-size:44px 44px!important}.deriv-chart-wrap .chart-label{color:#71877c;font-size:8px;letter-spacing:.5px}
+#priceChart{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}.deriv-chart-wrap{background:linear-gradient(rgba(42,62,53,.22) 1px,transparent 1px),linear-gradient(90deg,rgba(42,62,53,.22) 1px,transparent 1px),#050a08!important;background-size:44px 44px!important}.deriv-chart-wrap .chart-label{color:#71877c;font-size:8px;letter-spacing:.5px}
 .probability{cursor:pointer;user-select:none;transition:transform .12s ease,border-color .12s ease,background .12s ease}
 .probability:hover{transform:translateY(-1px)}
 @media(max-width:650px){.chart-wrap{height:245px}}
@@ -1707,12 +1707,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const fakeCount = illustrativePrior.values.length;
       if (fakeCount > 1) {
         const priorPoints = points.slice(0, fakeCount);
+        // Decorative prior path uses the same white/green visual treatment as the live line,
+        // regardless of bullish/bearish shape. It remains dashed to distinguish illustrative data.
         ctx.save();ctx.beginPath();priorPoints.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
-        ctx.strokeStyle=illustrativePrior.direction === "bullish" ? "rgba(22,229,138,.20)" : "rgba(255,79,97,.20)";ctx.lineWidth=7;ctx.lineJoin="round";ctx.stroke();ctx.restore();
+        ctx.strokeStyle="rgba(22,229,138,.17)";ctx.lineWidth=7;ctx.lineJoin="round";ctx.stroke();ctx.restore();
         ctx.save();ctx.beginPath();priorPoints.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
-        ctx.strokeStyle=illustrativePrior.direction === "bullish" ? "#16e58a" : "#ff4f61";ctx.lineWidth=1.8;ctx.lineJoin="round";ctx.setLineDash([5,4]);ctx.stroke();ctx.restore();
+        ctx.strokeStyle="#f4f7f5";ctx.lineWidth=1.8;ctx.lineJoin="round";ctx.setLineDash([5,4]);ctx.stroke();ctx.restore();
         ctx.save();ctx.strokeStyle="rgba(255,255,255,.34)";ctx.setLineDash([3,4]);ctx.beginPath();ctx.moveTo(priorPoints[priorPoints.length-1].x,top+3);ctx.lineTo(priorPoints[priorPoints.length-1].x,top+plotHeight);ctx.stroke();ctx.restore();
-        ctx.save();ctx.fillStyle=illustrativePrior.direction === "bullish" ? "#16e58a" : "#ff6a79";ctx.font="700 8px system-ui,sans-serif";ctx.textAlign="left";ctx.textBaseline="top";ctx.fillText("ILLUSTRATIVE PRIOR · " + illustrativePrior.direction.toUpperCase(),left+3,top+3);ctx.restore();
       }
       const livePoints = points.slice(Math.max(0, fakeCount - 1));
       ctx.save();ctx.beginPath();livePoints.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
@@ -1831,10 +1832,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const touch = event.touches[0];
     const dx = touch.clientX - chartTouchDrag.x;
     const dy = touch.clientY - chartTouchDrag.y;
-    // If the user is moving vertically, release the gesture to the browser so
-    // they can scroll down to the trading controls below the chart.
+    // Route vertical one-finger gestures to page scrolling while chart touch-action
+    // is disabled so the custom two-finger pinch gesture remains reliable.
+    if (chartTouchDrag.vertical) {
+      const deltaY = chartTouchDrag.lastY - touch.clientY;
+      window.scrollBy(0, deltaY);
+      chartTouchDrag.lastY = touch.clientY;
+      event.preventDefault();
+      return;
+    }
     if (!chartTouchDrag.horizontal && Math.abs(dy) > 7 && Math.abs(dy) > Math.abs(dx) * 1.15) {
-      chartTouchDrag = null;
+      chartTouchDrag.vertical = true;
+      chartTouchDrag.lastY = touch.clientY;
+      window.scrollBy(0, -dy);
+      event.preventDefault();
       return;
     }
     if (!chartTouchDrag.horizontal && Math.abs(dx) > 7 && Math.abs(dx) > Math.abs(dy) * 1.15) chartTouchDrag.horizontal = true;
