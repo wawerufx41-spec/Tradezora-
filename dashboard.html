@@ -1837,41 +1837,26 @@ document.addEventListener("DOMContentLoaded", () => {
      CHART CONTROLS
   ========================= */
 
-  $("#zoomIn").onclick = () => {
-
-    chartZoom =
-      Math.min(
-        3,
-        chartZoom + 0.5
-      );
-
+  const zoomInButton = $("#zoomIn");
+  if (zoomInButton) zoomInButton.onclick = () => {
+    chartZoom = Math.min(3, chartZoom + 0.5);
     drawChart();
-
   };
 
 
-  $("#zoomOut").onclick = () => {
-
-    chartZoom =
-      Math.max(
-        0.5,
-        chartZoom - 0.5
-      );
-
+  const zoomOutButton = $("#zoomOut");
+  if (zoomOutButton) zoomOutButton.onclick = () => {
+    chartZoom = Math.max(0.5, chartZoom - 0.5);
     drawChart();
-
   };
 
 
-  $("#resetZoom").onclick = () => {
-
+  const resetZoomButton = $("#resetZoom");
+  if (resetZoomButton) resetZoomButton.onclick = () => {
     chartZoom = 0.5;
     chartPanOffset = 0;
-
     drawChart();
-
     toast("Chart reset.");
-
   };
 
 
