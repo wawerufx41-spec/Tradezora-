@@ -182,7 +182,7 @@
   <script>
     const API_BASE = "https://tradezora-backend-use.onrender.com";
 
-    const token = localStorage.getItem("tradezoraAuthToken");
+    const token = localStorage.getItem("tradezoraAuthToken") ||               localStorage.getItem("session_token") ||               localStorage.getItem("sessionToken") ||               localStorage.getItem("tradezoraSession");
     const storedUser = JSON.parse(
       localStorage.getItem("tradezoraDemoUser") || "null"
     );
