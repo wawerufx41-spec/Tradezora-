@@ -1281,6 +1281,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let liveFeedReady = false;
   let activeMarketSymbol = "";
   let currentTickSubscription = null;
+  const tickSubscriptions = new Set();
   let reconnectTimer = null;
   let marketRequestId = 10;
   const requestActions = new Map();
@@ -1310,35 +1311,57 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function setMarketOptions(markets) {
-    // Keep this selector limited to the five genuine 1-second Volatility Indices.
-    // Never replace these options with the API's entire market list.
     if (!marketSelectEl) return;
-    const supported = [
+    const fallback = [
       { symbol: "1HZ10V", name: "Volatility 10 (1s)" },
       { symbol: "1HZ25V", name: "Volatility 25 (1s)" },
       { symbol: "1HZ50V", name: "Volatility 50 (1s)" },
       { symbol: "1HZ75V", name: "Volatility 75 (1s)" },
-      { symbol: "1HZ100V", name: "Volatility 100 (1s)" }
+      { symbol: "1HZ100V", name: "Volatility 100 (1s)" },
+      { symbol: "R_10", name: "Volatility 10" },
+      { symbol: "R_25", name: "Volatility 25" },
+      { symbol: "R_50", name: "Volatility 50" },
+      { symbol: "R_75", name: "Volatility 75" },
+      { symbol: "R_100", name: "Volatility 100" }
     ];
     const prior = marketSelectEl.value || activeMarketSymbol || savedMarket || "1HZ10V";
+    let available = [];
+    if (Array.isArray(markets)) {
+      const unique = new Map();
+      for (const item of markets) {
+        const symbol = String(item?.underlying_symbol || item?.symbol || "").trim();
+        const name = String(item?.underlying_symbol_name || item?.display_name || item?.name || "").trim();
+        if (!symbol || !/volatility/i.test(name) || /volatility indices/i.test(name)) continue;
+        // Only actual volatility instruments; do not show forex, crypto, or other markets.
+        if (!/^(?:1HZ[0-9]+V|R_[0-9]+)$/i.test(symbol)) continue;
+        if (!unique.has(symbol)) unique.set(symbol, { symbol, name: name.replace(/\s+Index$/i, "") });
+      }
+      available = [...unique.values()];
+    }
+    if (!available.length) available = fallback;
+    // Keep all 1-second indices even if this endpoint's active-symbol payload omits them.
+    for (const item of fallback.filter(m => /^1HZ/.test(m.symbol))) {
+      if (!available.some(m => m.symbol === item.symbol)) available.push(item);
+    }
+    available.sort((a,b) => {
+      const ai = /1s/i.test(a.name) ? 0 : 1;
+      const bi = /1s/i.test(b.name) ? 0 : 1;
+      if (ai !== bi) return ai - bi;
+      return a.name.localeCompare(b.name, undefined, { numeric: true });
+    });
     marketSelectEl.replaceChildren();
-    for (const market of supported) {
+    for (const market of available) {
       const option = document.createElement("option");
       option.value = market.symbol;
       option.textContent = market.name;
       option.dataset.symbol = market.symbol;
       marketSelectEl.appendChild(option);
     }
-    const selected = supported.find(m => m.symbol === prior) || supported[0];
+    const selected = available.find(m => m.symbol === prior) || available[0];
     marketSelectEl.value = selected.symbol;
     activeMarket = selected.name;
     activeMarketSymbol = selected.symbol;
     localStorage.setItem("tradezoraActiveMarket", selected.symbol);
-    if (Array.isArray(markets)) {
-      const available = new Set(markets.map(item => String(item?.underlying_symbol || item?.symbol || "")));
-      const missing = supported.filter(m => !available.has(m.symbol)).map(m => m.symbol);
-      if (missing.length) console.warn("Deriv active_symbols did not list these 1-second volatility symbols:", missing);
-    }
   }
 
   function saveActiveMarketData() {
@@ -1419,7 +1442,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (data.msg_type === "active_symbols" && Array.isArray(data.active_symbols)) {
         setMarketOptions(data.active_symbols);
         const symbol = marketSelectEl?.value || activeMarketSymbol || "1HZ10V";
-        if (/^1HZ(?:10|25|50|75|100)V$/i.test(symbol)) requestLiveHistoryAndTick(symbol);
+        if (symbol && /^[A-Za-z0-9_]{2,30}$/.test(symbol)) requestLiveHistoryAndTick(symbol);
         return;
       }
       if ((data.msg_type === "history" || data.msg_type === "candles") && (data.history || Array.isArray(data.candles))) {
@@ -1461,8 +1484,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         return;
       }
-      if (data.msg_type === "tick" && data.tick && data.tick.symbol === activeMarketSymbol) {
-        if (data.subscription && data.subscription.id) currentTickSubscription = data.subscription.id;
+      if (data.msg_type === "tick" && data.tick && data.subscription && data.subscription.id) {
+        tickSubscriptions.add(data.subscription.id);
+        if (data.tick.symbol !== activeMarketSymbol) return;
+        currentTickSubscription = data.subscription.id;
         const quote = Number(data.tick.quote);
         if (!Number.isFinite(quote)) return;
         const oldPrice = previousLivePrice;
@@ -1525,14 +1550,15 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     if (activeMarketSymbol && activeMarketSymbol !== symbol) saveActiveMarketData();
-    if (currentTickSubscription) {
-      try { liveSocket.send(JSON.stringify({ forget: currentTickSubscription })); } catch (_) {}
-      currentTickSubscription = null;
+    for (const subscriptionId of tickSubscriptions) {
+      try { liveSocket.send(JSON.stringify({ forget: subscriptionId })); } catch (_) {}
     }
-    // Set the active symbol before requesting data so late ticks from the
-    // previous market are ignored by the message handler.
+    tickSubscriptions.clear();
+    currentTickSubscription = null;
+    // Switch symbol before requesting data so delayed ticks from the old market are ignored.
     activeMarketSymbol = symbol;
-    restoreMarketData(symbol);
+    series = []; tickTimes = []; candles = []; previousLivePrice = null;
+    liveFeedReady = false;
     setFeedStatus("LOADING " + (activeMarket || symbol) + " HISTORY", false);
     drawChart();
 
@@ -1881,8 +1907,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const selected = $("#marketSelect").selectedOptions[0];
     const symbol = $("#marketSelect").value;
     activeMarket = selected?.textContent || symbol;
-    if (!/^1HZ[0-9]+V$/i.test(symbol) || !/^Volatility\s+.+\(1s\)$/i.test(activeMarket)) {
-      setFeedStatus("PLEASE SELECT A 1-SECOND VOLATILITY MARKET", false);
+    if (!/^(?:1HZ[0-9]+V|R_[0-9]+)$/i.test(symbol) || !/volatility/i.test(activeMarket)) {
+      setFeedStatus("PLEASE SELECT A VOLATILITY MARKET", false);
       return;
     }
     // Save the market being left before changing the active symbol.
