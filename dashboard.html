@@ -1311,7 +1311,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function setMarketOptions(markets) {
     if (!marketSelectEl || !Array.isArray(markets) || !markets.length) return;
-    const prior = savedMarket || activeMarket;
+    // Preserve the user's current selection on reconnect/market-list refresh.
+    // The initial localStorage value is only a fallback, not a permanent override.
+    const prior = marketSelectEl.value || activeMarketSymbol || savedMarket || activeMarket;
     // The current Deriv public API uses underlying_symbol and
     // underlying_symbol_name (the older API used symbol/display_name).
     const options = markets
@@ -1880,7 +1882,7 @@ document.addEventListener("DOMContentLoaded", () => {
      MARKET SELECTOR
   ========================= */
 
-  $("#marketSelect").onchange = () => {
+  $("#marketSelect").addEventListener("change", () => {
     const selected = $("#marketSelect").selectedOptions[0];
     const symbol = $("#marketSelect").value;
     activeMarket = selected?.textContent || symbol;
@@ -1888,18 +1890,23 @@ document.addEventListener("DOMContentLoaded", () => {
       setFeedStatus("INVALID DERIV MARKET SYMBOL", false);
       return;
     }
+    // Save the market being left before changing the active symbol.
     if (activeMarketSymbol && activeMarketSymbol !== symbol) saveActiveMarketData();
     chartPanOffset = 0;
     localStorage.setItem("tradezoraActiveMarket", symbol);
     resetDigitProfile(activeMarket);
+    // Update immediately so late ticks from the previous market are ignored.
+    activeMarketSymbol = symbol;
+    clearLiveSeries("LOADING " + activeMarket + " — LIVE DERIV");
     if (liveSocket && liveSocket.readyState === WebSocket.OPEN) {
       requestLiveHistoryAndTick(symbol);
     } else {
-      clearLiveSeries("DERIV DISCONNECTED — NO SIMULATED PRICES");
+      setFeedStatus("DERIV DISCONNECTED — RECONNECTING", false);
+      connectDerivMarketData();
     }
     generateProbabilities();
     drawChart();
-  };
+  });
 
 
   /* =========================
