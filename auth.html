@@ -1,161 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#050807">
+  <title>TradeZora — Sign in</title>
+  <style>
+    :root{color-scheme:dark;--bg:#050807;--panel:#0c1410;--line:#1c3026;--green:#16e58a;--muted:#9bb0a4;--red:#ff6474}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;background:radial-gradient(ellipse at top,#10251a 0,#050807 56%);color:#f4fff8;font-family:Arial,Helvetica,sans-serif;display:flex;align-items:center;justify-content:center;padding:22px}
+    .wrap{width:100%;max-width:440px}
+    .brand{text-align:center;margin-bottom:24px}.logo{display:inline-flex;align-items:center;justify-content:center;width:46px;height:46px;border-radius:14px;background:var(--green);color:#03140b;font-weight:900;font-size:24px;box-shadow:0 0 28px #16e58a2a}
+    .brand h1{font-size:27px;margin:12px 0 6px;letter-spacing:.2px}.brand p{color:var(--muted);font-size:14px;margin:0}
+    .card{background:#0b120fF2;border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:0 20px 70px #0008}
+    .tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:5px;background:#050907;border:1px solid #17271e;border-radius:12px;margin-bottom:22px}
+    .tab{border:0;border-radius:9px;padding:12px;background:transparent;color:var(--muted);font-weight:700;font-size:14px;cursor:pointer}.tab.active{background:var(--green);color:#04130a}
+    h2{font-size:21px;margin:0 0 7px}.sub{font-size:13px;color:var(--muted);margin:0 0 20px;line-height:1.5}
+    .field{margin:0 0 15px}.field label{display:block;font-size:13px;font-weight:700;margin-bottom:8px;color:#dce9e0}
+    input{width:100%;border:1px solid #263b2f;background:#060b08;color:#f5fff8;border-radius:10px;padding:13px 12px;font-size:15px;outline:none;min-height:46px}input:focus{border-color:var(--green);box-shadow:0 0 0 3px #16e58a19}input::placeholder{color:#64776b}
+    .password{display:flex;gap:8px}.password input{flex:1;min-width:0}.show{background:#17231b;color:#cfe4d5;border:1px solid #263b2f;border-radius:10px;padding:0 12px;cursor:pointer;font-size:12px;font-weight:700}
+    .primary{width:100%;border:0;border-radius:11px;background:var(--green);color:#04140b;font-weight:800;font-size:15px;padding:14px;min-height:48px;cursor:pointer;margin-top:5px}.primary:disabled{opacity:.6;cursor:wait}
+    .message{display:none;padding:11px 12px;border-radius:10px;font-size:13px;line-height:1.45;margin:0 0 15px;overflow-wrap:anywhere}.message.error{display:block;background:#341319;border:1px solid #6d2935;color:#ffc5cc}.message.ok{display:block;background:#10291c;border:1px solid #1e6340;color:#baffd6}
+    .links{display:flex;justify-content:flex-end;margin-top:13px}.link{background:none;border:0;padding:4px 0;color:var(--green);font-size:13px;cursor:pointer}.fine{color:#718579;text-align:center;font-size:11px;line-height:1.6;margin:17px 8px 0}.hidden{display:none!important}
+    @media(max-width:380px){body{padding:14px}.card{padding:17px}.brand h1{font-size:24px}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="brand"><div class="logo" aria-hidden="true">T</div><h1>TradeZora</h1><p>Sign in to continue to your trading dashboard</p></header>
+    <section class="card" aria-label="Account access">
+      <div class="tabs" role="tablist" aria-label="Account options">
+        <button class="tab active" id="loginTab" type="button" role="tab" aria-selected="true">Log in</button>
+        <button class="tab" id="signupTab" type="button" role="tab" aria-selected="false">Create account</button>
+      </div>
+      <div id="message" class="message" role="status" aria-live="polite"></div>
+      <form id="loginForm" novalidate>
+        <h2>Welcome back</h2><p class="sub">Enter the email and password for your TradeZora account.</p>
+        <div class="field"><label for="loginEmail">Email address</label><input id="loginEmail" name="email" type="email" autocomplete="email" placeholder="you@example.com" required></div>
+        <div class="field"><label for="loginPassword">Password</label><div class="password"><input id="loginPassword" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required><button class="show" type="button" data-toggle="loginPassword">Show</button></div></div>
+        <button class="primary" type="submit">Log in</button>
+        <div class="links"><button class="link" id="forgotLink" type="button">Forgot password?</button></div>
+      </form>
+      <form id="signupForm" class="hidden" novalidate>
+        <h2>Create your account</h2><p class="sub">Register using your details. Your account information is checked by the TradeZora server.</p>
+        <div class="field"><label for="signupName">Full name</label><input id="signupName" name="name" type="text" autocomplete="name" placeholder="Your full name" required></div>
+        <div class="field"><label for="signupEmail">Email address</label><input id="signupEmail" name="email" type="email" autocomplete="email" placeholder="you@example.com" required></div>
+        <div class="field"><label for="signupPassword">Password</label><div class="password"><input id="signupPassword" name="password" type="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters" required><button class="show" type="button" data-toggle="signupPassword">Show</button></div></div>
+        <button class="primary" type="submit">Create account</button>
+      </form>
+      <form id="forgotForm" class="hidden" novalidate>
+        <h2>Reset your password</h2><p class="sub">Enter your account email. If password reset is enabled, the server will send instructions.</p>
+        <div class="field"><label for="forgotEmail">Email address</label><input id="forgotEmail" name="email" type="email" autocomplete="email" placeholder="you@example.com" required></div>
+        <button class="primary" type="submit">Send reset instructions</button>
+        <div class="links"><button class="link" id="backToLogin" type="button">Back to log in</button></div>
+      </form>
+    </section>
+    <p class="fine">TradeZora account access. Use only your own account credentials. Never share your password or session token.</p>
+  </main>
+  <script>
+    (() => {
+      'use strict';
+      const API_BASE = 'https://tradezora-backend-use.onrender.com';
+      const $ = (id) => document.getElementById(id);
+      const message = $('message');
+      const forms = { login: $('loginForm'), signup: $('signupForm'), forgot: $('forgotForm') };
+      const tabs = { login: $('loginTab'), signup: $('signupTab') };
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const API_BASE = "https://tradezora-backend-use.onrender.com";
+      function showMessage(text, kind = 'error') {
+        message.textContent = text;
+        message.className = 'message ' + kind;
+      }
+      function clearMessage() {
+        message.textContent = '';
+        message.className = 'message';
+      }
+      function showView(view) {
+        clearMessage();
+        Object.entries(forms).forEach(([name, form]) => form.classList.toggle('hidden', name !== view));
+        Object.entries(tabs).forEach(([name, tab]) => {
+          const active = name === view;
+          tab.classList.toggle('active', active);
+          tab.setAttribute('aria-selected', String(active));
+        });
+      }
+      async function request(path, payload) {
+        let response;
+        try {
+          response = await fetch(API_BASE + path, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+        } catch (_) {
+          throw new Error('Could not reach the server. Check your internet connection and try again.');
+        }
+        let data;
+        try { data = await response.json(); }
+        catch (_) { throw new Error('The server returned an unreadable response. Please try again later.'); }
+        if (!response.ok || data.success === false) {
+          throw new Error(data.error || data.message || 'Request failed. Please check your details and try again.');
+        }
+        return data;
+      }
+      function storeSession(data) {
+        const token = data.session_token || data.token || data.sessionToken;
+        const user = data.user;
+        if (!token || !user) throw new Error('The server did not return a valid login session. Please try again.');
+        localStorage.setItem('session_token', token);
+        localStorage.setItem('tradezoraDemoUser', JSON.stringify(user));
+        // Compatibility aliases for older dashboard builds; the server remains the source of truth.
+        localStorage.setItem('tradezoraSession', token);
+      }
+      function setBusy(form, busy, label) {
+        const button = form.querySelector('button[type="submit"]');
+        if (!button) return;
+        if (busy) {
+          button.dataset.originalText = button.textContent;
+          button.textContent = label || 'Please wait…';
+          button.disabled = true;
+        } else {
+          button.textContent = button.dataset.originalText || button.textContent;
+          button.disabled = false;
+        }
+      }
 
-  const signupTab = document.getElementById("signupTab");
-  const loginTab = document.getElementById("loginTab");
-  const signupForm = document.getElementById("signup");
-  const loginForm = document.getElementById("login");
-
-  const signupName = document.getElementById("signupName");
-  const signupEmail = document.getElementById("signupEmail");
-  const signupPassword = document.getElementById("signupPassword");
-  const loginEmail = document.getElementById("loginEmail");
-  const loginPassword = document.getElementById("loginPassword");
-
-  const signupMsg = document.getElementById("signupMsg");
-  const loginMsg = document.getElementById("loginMsg");
-
-  function showTab(login) {
-    signupTab.classList.toggle("active", !login);
-    loginTab.classList.toggle("active", login);
-    signupForm.style.display = login ? "none" : "grid";
-    loginForm.style.display = login ? "grid" : "none";
-    signupMsg.textContent = "";
-    loginMsg.textContent = "";
-  }
-
-  signupTab.onclick = () => showTab(false);
-  loginTab.onclick = () => showTab(true);
-
-  async function sendRequest(path, payload) {
-    const response = await fetch(`${API_BASE}${path}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-
-    const data = await response.json().catch(() => ({}));
-
-    if (!response.ok || data.success !== true) {
-      throw new Error(
-        data.error ||
-        data.message ||
-        `Request failed (${response.status}).`
-      );
-    }
-
-    return data;
-  }
-
-  function saveSession(data) {
-    if (!data.session_token || !data.user) {
-      throw new Error("The server did not return a valid login session.");
-    }
-
-    const user = data.user;
-
-    localStorage.setItem("session_token", data.session_token);
-    localStorage.setItem("tradezoraDemoUser", JSON.stringify({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role
-    }));
-
-    // Keep demo display settings separate from real account funds.
-    if (localStorage.getItem("tradezoraDemoBalance") === null) {
-      localStorage.setItem("tradezoraDemoBalance", "10000");
-    }
-    if (localStorage.getItem("tradezoraDemoStake") === null) {
-      localStorage.setItem("tradezoraDemoStake", "10");
-    }
-    if (localStorage.getItem("tradezoraDemoBalanceVersion") === null) {
-      localStorage.setItem(
-        "tradezoraDemoBalanceVersion",
-        localStorage.getItem("tradezoraDemoBalance")
-      );
-    }
-  }
-
-  signupForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const name = signupName.value.trim();
-    const email = signupEmail.value.trim().toLowerCase();
-    const password = signupPassword.value;
-
-    if (!name || !email || password.length < 8) {
-      signupMsg.style.color = "#ff5d6c";
-      signupMsg.textContent =
-        "Enter your name and email. Password must be at least 8 characters.";
-      return;
-    }
-
-    const submitButton = signupForm.querySelector('button[type="submit"]');
-    submitButton.disabled = true;
-    submitButton.textContent = "Creating account...";
-    signupMsg.style.color = "#16e58a";
-    signupMsg.textContent = "Connecting securely to TradeZora...";
-
-    try {
-      const data = await sendRequest("/api/auth/register", {
-        name,
-        email,
-        password
+      tabs.login.addEventListener('click', () => showView('login'));
+      tabs.signup.addEventListener('click', () => showView('signup'));
+      $('forgotLink').addEventListener('click', () => {
+        $('forgotEmail').value = $('loginEmail').value.trim();
+        showView('forgot');
+      });
+      $('backToLogin').addEventListener('click', () => showView('login'));
+      document.querySelectorAll('[data-toggle]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const input = $(button.dataset.toggle);
+          const show = input.type === 'password';
+          input.type = show ? 'text' : 'password';
+          button.textContent = show ? 'Hide' : 'Show';
+        });
       });
 
-      saveSession(data);
-      signupMsg.textContent = "Account created. Opening dashboard...";
-      window.location.href = "dashboard.html";
-    } catch (error) {
-      signupMsg.style.color = "#ff5d6c";
-      signupMsg.textContent =
-        error.message === "Failed to fetch"
-          ? "Could not reach the server. Check your connection and try again."
-          : error.message;
-      submitButton.disabled = false;
-      submitButton.textContent = "Create Demo Account";
-    }
-  });
-
-  loginForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const email = loginEmail.value.trim().toLowerCase();
-    const password = loginPassword.value;
-
-    if (!email || !password) {
-      loginMsg.style.color = "#ff5d6c";
-      loginMsg.textContent = "Enter your email and password.";
-      return;
-    }
-
-    const submitButton = loginForm.querySelector('button[type="submit"]');
-    submitButton.disabled = true;
-    submitButton.textContent = "Logging in...";
-    loginMsg.style.color = "#16e58a";
-    loginMsg.textContent = "Verifying your account...";
-
-    try {
-      const data = await sendRequest("/api/auth/login", {
-        email,
-        password
+      forms.login.addEventListener('submit', async (event) => {
+        event.preventDefault(); clearMessage();
+        const email = $('loginEmail').value.trim();
+        const password = $('loginPassword').value;
+        if (!email || !password) return showMessage('Enter your email address and password.');
+        setBusy(forms.login, true, 'Logging in…');
+        try {
+          const data = await request('/api/auth/login', { email, password });
+          storeSession(data);
+          showMessage('Login successful. Opening your dashboard…', 'ok');
+          window.location.assign('dashboard.html');
+        } catch (error) { showMessage(error.message || 'Login failed. Please try again.'); }
+        finally { setBusy(forms.login, false); }
       });
 
-      saveSession(data);
-      loginMsg.textContent = "Login successful. Opening dashboard...";
-      window.location.href = "dashboard.html";
-    } catch (error) {
-      loginMsg.style.color = "#ff5d6c";
-      loginMsg.textContent =
-        error.message === "Failed to fetch"
-          ? "Could not reach the server. Check your connection and try again."
-          : error.message;
-      submitButton.disabled = false;
-      submitButton.textContent = "Log In";
-    }
-  });
-});
-</script>
+      forms.signup.addEventListener('submit', async (event) => {
+        event.preventDefault(); clearMessage();
+        const name = $('signupName').value.trim();
+        const email = $('signupEmail').value.trim();
+        const password = $('signupPassword').value;
+        if (!name || !email || !password) return showMessage('Complete all fields to create your account.');
+        if (password.length < 8) return showMessage('Use a password with at least 8 characters.');
+        setBusy(forms.signup, true, 'Creating account…');
+        try {
+          const data = await request('/api/auth/register', { name, email, password });
+          if (data.session_token || data.token || data.sessionToken) {
+            storeSession(data);
+            showMessage('Account created. Opening your dashboard…', 'ok');
+            window.location.assign('dashboard.html');
+          } else {
+            showMessage(data.message || 'Account created. Please log in.', 'ok');
+            $('loginEmail').value = email;
+            $('loginPassword').value = '';
+            showView('login');
+          }
+        } catch (error) { showMessage(error.message || 'Could not create your account. Please try again.'); }
+        finally { setBusy(forms.signup, false); }
+      });
+
+      forms.forgot.addEventListener('submit', async (event) => {
+        event.preventDefault(); clearMessage();
+        const email = $('forgotEmail').value.trim();
+        if (!email) return showMessage('Enter your account email address.');
+        setBusy(forms.forgot, true, 'Sending…');
+        try {
+          const data = await request('/api/auth/forgot-password', { email });
+          showMessage(data.message || 'If password reset is available for this account, instructions will be sent to your email.', 'ok');
+        } catch (error) { showMessage(error.message || 'Could not request a password reset. Please try again.'); }
+        finally { setBusy(forms.forgot, false); }
+      });
+    })();
+  </script>
+</body>
+</html>
