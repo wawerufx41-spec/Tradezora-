@@ -1484,10 +1484,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         return;
       }
-      if (data.msg_type === "tick" && data.tick && data.subscription && data.subscription.id) {
-        tickSubscriptions.add(data.subscription.id);
-        if (data.tick.symbol !== activeMarketSymbol) return;
-        currentTickSubscription = data.subscription.id;
+      // Some public Deriv websocket responses may deliver a valid tick before
+      // the subscription metadata is present. Process ticks by their actual
+      // symbol; subscription IDs are optional tracking metadata, not a reason
+      // to discard the live quote. Never accept a quote from another market.
+      if (data.msg_type === "tick" && data.tick && data.tick.symbol === activeMarketSymbol) {
+        if (data.subscription && data.subscription.id) {
+          tickSubscriptions.add(data.subscription.id);
+          currentTickSubscription = data.subscription.id;
+        }
         const quote = Number(data.tick.quote);
         if (!Number.isFinite(quote)) return;
         const oldPrice = previousLivePrice;
