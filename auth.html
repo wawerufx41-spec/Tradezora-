@@ -61,6 +61,7 @@
     (() => {
       'use strict';
       const API_BASE = 'https://tradezora-backend-1.onrender.com';
+      const ADMIN_EMAIL = 'davieswaweru123@gmail.com';
       const $ = (id) => document.getElementById(id);
       const message = $('message');
       const forms = { login: $('loginForm'), signup: $('signupForm'), forgot: $('forgotForm') };
@@ -107,9 +108,17 @@
         const user = data.user;
         if (!token || !user) throw new Error('The server did not return a valid login session. Please try again.');
         localStorage.setItem('session_token', token);
-        localStorage.setItem('tradezoraDemoUser', JSON.stringify(user));
-        // Compatibility aliases for older dashboard builds; the server remains the source of truth.
+        localStorage.setItem('tradezoraAuthToken', token);
         localStorage.setItem('tradezoraSession', token);
+        localStorage.setItem('tradezoraDemoUser', JSON.stringify(user));
+      }
+      function dashboardFor(data) {
+        const user = data && data.user ? data.user : {};
+        const email = String(user.email || '').trim().toLowerCase();
+        // The backend assigns the owner role; the owner email is a fallback for older responses.
+        return String(user.role || '').toLowerCase() === 'admin' || email === ADMIN_EMAIL
+          ? 'admin.html'
+          : 'dashboard.html';
       }
       function setBusy(form, busy, label) {
         const button = form.querySelector('button[type="submit"]');
@@ -149,8 +158,9 @@
         try {
           const data = await request('/api/auth/login', { email, password });
           storeSession(data);
-          showMessage('Login successful. Opening your dashboard…', 'ok');
-          window.location.assign('dashboard.html');
+          const destination = dashboardFor(data);
+          showMessage(destination === 'admin.html' ? 'Login successful. Opening Admin Dashboard…' : 'Login successful. Opening your dashboard…', 'ok');
+          window.location.assign(destination);
         } catch (error) { showMessage(error.message || 'Login failed. Please try again.'); }
         finally { setBusy(forms.login, false); }
       });
@@ -167,8 +177,9 @@
           const data = await request('/api/auth/register', { name, email, password });
           if (data.session_token || data.token || data.sessionToken) {
             storeSession(data);
-            showMessage('Account created. Opening your dashboard…', 'ok');
-            window.location.assign('dashboard.html');
+            const destination = dashboardFor(data);
+            showMessage(destination === 'admin.html' ? 'Account created. Opening Admin Dashboard…' : 'Account created. Opening your dashboard…', 'ok');
+            window.location.assign(destination);
           } else {
             showMessage(data.message || 'Account created. Please log in.', 'ok');
             $('loginEmail').value = email;
