@@ -1449,13 +1449,13 @@ document.addEventListener("DOMContentLoaded", () => {
         // Ignore a delayed history response for a market the user has already left.
         const responseRequestId = data.req_id;
         const requestInfo = marketRequestsById.get(responseRequestId);
-        const responseSymbol = data.echo_req?.ticks_history || data.echo_req?.symbol;
-        // Reject late history for a market the user has already left, even if
-        // the response arrives without a matching local request record.
-        if (responseSymbol && responseSymbol !== activeMarketSymbol) return;
         if (requestInfo) marketRequestsById.delete(responseRequestId);
-        if (requestInfo && requestInfo.symbol !== activeMarketSymbol) return;
-        if (requestInfo && responseRequestId !== activeHistoryRequestId) return;
+        // Check Deriv's echoed symbol and our request record. Never accept
+        // history when its market cannot be verified, or when it belongs to an
+        // earlier history request after the user switched markets.
+        const responseSymbol = data.echo_req?.ticks_history || data.echo_req?.symbol || requestInfo?.symbol;
+        if (!responseSymbol || responseSymbol !== activeMarketSymbol) return;
+        if (responseRequestId !== activeHistoryRequestId) return;
         // Always hydrate the chart with real historical candles first, even in
         // tick mode. This gives the chart prior-day context after a refresh;
         // live ticks then extend that history instead of starting from a blank line.
