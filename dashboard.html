@@ -1310,50 +1310,34 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function setMarketOptions(markets) {
-    if (!marketSelectEl || !Array.isArray(markets) || !markets.length) return;
-    // Preserve the user's current selection on reconnect/market-list refresh.
-    // The initial localStorage value is only a fallback, not a permanent override.
-    const prior = marketSelectEl.value || activeMarketSymbol || savedMarket || activeMarket;
-    // The current Deriv public API uses underlying_symbol and
-    // underlying_symbol_name (the older API used symbol/display_name).
-    // This dashboard is intentionally limited to Deriv's 1-second Volatility
-    // Indices. Do not show forex, commodities, crypto, other synthetic indices,
-    // or non-1-second volatility markets in this selector.
-    const options = markets
-      .map(item => ({
-        ...item,
-        _symbol: item?.underlying_symbol || item?.symbol,
-        _name: item?.underlying_symbol_name || item?.display_name || item?.underlying_symbol || item?.symbol
-      }))
-      .filter(item => {
-        if (!item._symbol || !item._name) return false;
-        const name = String(item._name).trim();
-        const symbol = String(item._symbol).trim();
-        return /^Volatility\s+.+\(1s\)$/i.test(name) && /^1HZ[0-9]+V$/i.test(symbol);
-      })
-      .sort((a, b) => String(a._name).localeCompare(String(b._name), undefined, {numeric:true}));
-    if (!options.length) {
-      setFeedStatus("NO ACTIVE 1-SECOND VOLATILITY MARKETS RETURNED", false);
-      console.warn("Deriv active_symbols response did not include any 1-second Volatility Indices.");
-      return;
-    }
+    // Keep this selector limited to the five genuine 1-second Volatility Indices.
+    // Never replace these options with the API's entire market list.
+    if (!marketSelectEl) return;
+    const supported = [
+      { symbol: "1HZ10V", name: "Volatility 10 (1s)" },
+      { symbol: "1HZ25V", name: "Volatility 25 (1s)" },
+      { symbol: "1HZ50V", name: "Volatility 50 (1s)" },
+      { symbol: "1HZ75V", name: "Volatility 75 (1s)" },
+      { symbol: "1HZ100V", name: "Volatility 100 (1s)" }
+    ];
+    const prior = marketSelectEl.value || activeMarketSymbol || savedMarket || "1HZ10V";
     marketSelectEl.replaceChildren();
-    for (const market of options) {
+    for (const market of supported) {
       const option = document.createElement("option");
-      option.value = market._symbol;
-      option.textContent = market._name;
-      option.dataset.symbol = market._symbol;
+      option.value = market.symbol;
+      option.textContent = market.name;
+      option.dataset.symbol = market.symbol;
       marketSelectEl.appendChild(option);
     }
-    const preferred = options.find(m => m._symbol === prior)
-      || options.find(m => m._name === prior)
-      || options.find(m => /Volatility 10 \(1s\)/i.test(m._name))
-      || options[0];
-    if (preferred) {
-      marketSelectEl.value = preferred._symbol;
-      activeMarket = preferred._name;
-      activeMarketSymbol = preferred._symbol;
-      localStorage.setItem("tradezoraActiveMarket", preferred._symbol);
+    const selected = supported.find(m => m.symbol === prior) || supported[0];
+    marketSelectEl.value = selected.symbol;
+    activeMarket = selected.name;
+    activeMarketSymbol = selected.symbol;
+    localStorage.setItem("tradezoraActiveMarket", selected.symbol);
+    if (Array.isArray(markets)) {
+      const available = new Set(markets.map(item => String(item?.underlying_symbol || item?.symbol || "")));
+      const missing = supported.filter(m => !available.has(m.symbol)).map(m => m.symbol);
+      if (missing.length) console.warn("Deriv active_symbols did not list these 1-second volatility symbols:", missing);
     }
   }
 
@@ -1416,8 +1400,9 @@ document.addEventListener("DOMContentLoaded", () => {
     ws.addEventListener("open", () => {
       if (liveSocket !== ws) return;
       setFeedStatus("LOADING DERIV MARKETS", false);
+      // Wait for active_symbols before requesting data, avoiding duplicate
+      // initial history requests and duplicate tick subscriptions.
       ws.send(JSON.stringify({ active_symbols: "brief", req_id: 1 }));
-      if (activeMarketSymbol && /^[A-Za-z0-9_]{2,30}$/.test(activeMarketSymbol)) requestLiveHistoryAndTick(activeMarketSymbol);
     });
 
     ws.addEventListener("message", event => {
@@ -1433,9 +1418,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       if (data.msg_type === "active_symbols" && Array.isArray(data.active_symbols)) {
         setMarketOptions(data.active_symbols);
-        const selected = marketSelectEl?.selectedOptions?.[0];
-        const symbol = selected?.value || data.active_symbols[0]?.underlying_symbol || data.active_symbols[0]?.symbol;
-        if (symbol && /^[A-Za-z0-9_]{2,30}$/.test(symbol)) requestLiveHistoryAndTick(symbol);
+        const symbol = marketSelectEl?.value || activeMarketSymbol || "1HZ10V";
+        if (/^1HZ(?:10|25|50|75|100)V$/i.test(symbol)) requestLiveHistoryAndTick(symbol);
         return;
       }
       if ((data.msg_type === "history" || data.msg_type === "candles") && (data.history || Array.isArray(data.candles))) {
