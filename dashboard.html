@@ -1297,8 +1297,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const marketSelectEl = $("#marketSelect");
   const savedMarket = localStorage.getItem("tradezoraActiveMarket");
   let activeMarket = marketSelectEl?.selectedOptions?.[0]?.textContent || "Volatility 10 (1s)";
-  // Always start with real Deriv symbol codes, never display labels as API symbols.
-  activeMarketSymbol = marketSelectEl?.value || "1HZ10V";
+  // Restore the user's last selected market on page load. The options list may
+  // be refreshed from Deriv later, so setMarketOptions also checks localStorage.
+  // Always use a real Deriv symbol code, never a display label.
+  activeMarketSymbol = savedMarket || marketSelectEl?.value || "1HZ10V";
+  if (marketSelectEl && savedMarket && [...marketSelectEl.options].some(o => o.value === savedMarket)) {
+    marketSelectEl.value = savedMarket;
+    activeMarket = marketSelectEl.selectedOptions?.[0]?.textContent || activeMarket;
+  }
 
   function setFeedStatus(message, connected = false) {
     const status = $("#marketFeedStatus");
@@ -1324,7 +1330,9 @@ document.addEventListener("DOMContentLoaded", () => {
       { symbol: "R_75", name: "Volatility 75" },
       { symbol: "R_100", name: "Volatility 100" }
     ];
-    const prior = marketSelectEl.value || activeMarketSymbol || savedMarket || "1HZ10V";
+    // The dropdown can still contain its HTML default during first load.
+    // Prefer the persisted/current selection so reconnects never jump back to 1HZ10V.
+    const prior = localStorage.getItem("tradezoraActiveMarket") || marketSelectEl.value || activeMarketSymbol || "1HZ10V";
     let available = [];
     if (Array.isArray(markets)) {
       const unique = new Map();
@@ -1906,28 +1914,26 @@ document.addEventListener("DOMContentLoaded", () => {
   $("#marketSelect").addEventListener("change", () => {
     const selected = $("#marketSelect").selectedOptions[0];
     const symbol = $("#marketSelect").value;
-    activeMarket = selected?.textContent || symbol;
-    if (!/^(?:1HZ[0-9]+V|R_[0-9]+)$/i.test(symbol) || !/volatility/i.test(activeMarket)) {
+    const nextMarketName = selected?.textContent || symbol;
+    if (!/^(?:1HZ[0-9]+V|R_[0-9]+)$/i.test(symbol) || !/volatility/i.test(nextMarketName)) {
       setFeedStatus("PLEASE SELECT A VOLATILITY MARKET", false);
       return;
     }
-    // Save the market being left before changing the active symbol.
+
+    // Save the outgoing market before changing the active symbol.
     if (activeMarketSymbol && activeMarketSymbol !== symbol) saveActiveMarketData();
+    activeMarket = nextMarketName;
+    activeMarketSymbol = symbol;
     chartPanOffset = 0;
     localStorage.setItem("tradezoraActiveMarket", symbol);
     resetDigitProfile(activeMarket);
-    // On an open socket the request helper first saves the outgoing market,
-    // then changes symbol and requests fresh history + ticks. If disconnected,
-    // save before clearing and set the symbol before reconnecting.
-    if (liveSocket && liveSocket.readyState === WebSocket.OPEN) {
-      requestLiveHistoryAndTick(symbol);
-    } else {
-      if (activeMarketSymbol && activeMarketSymbol !== symbol) saveActiveMarketData();
-      activeMarketSymbol = symbol;
-      clearLiveSeries("LOADING " + activeMarket + " — LIVE DERIV");
-      setFeedStatus("DERIV DISCONNECTED — RECONNECTING", false);
-      connectDerivMarketData();
-    }
+
+    // Re-open the read-only public feed on every market change. This drops any
+    // stale subscriptions/late responses from the previous market and forces a
+    // fresh active-symbol list, history request, and tick subscription.
+    clearLiveSeries("LOADING " + activeMarket + " — LIVE DERIV");
+    setFeedStatus("SWITCHING TO " + activeMarket, false);
+    connectDerivMarketData();
     generateProbabilities();
     drawChart();
   });
