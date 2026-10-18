@@ -1449,6 +1449,10 @@ document.addEventListener("DOMContentLoaded", () => {
         // Ignore a delayed history response for a market the user has already left.
         const responseRequestId = data.req_id;
         const requestInfo = marketRequestsById.get(responseRequestId);
+        const responseSymbol = data.echo_req?.ticks_history || data.echo_req?.symbol;
+        // Reject late history for a market the user has already left, even if
+        // the response arrives without a matching local request record.
+        if (responseSymbol && responseSymbol !== activeMarketSymbol) return;
         if (requestInfo) marketRequestsById.delete(responseRequestId);
         if (requestInfo && requestInfo.symbol !== activeMarketSymbol) return;
         if (requestInfo && responseRequestId !== activeHistoryRequestId) return;
@@ -1474,9 +1478,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (series.length) {
           price = series[series.length - 1];
           previousLivePrice = price;
-          liveFeedReady = true;
-          localStorage.setItem("tradezoraDemoLastPrice", String(price));
-          setFeedStatus("LIVE DERIV", true);
+          liveFeedReady = false;
+          setFeedStatus("HISTORY LOADED — WAITING FOR LIVE TICK", false);
           recordCurrentDigit();
           generateProbabilities();
           saveActiveMarketData();
@@ -1484,11 +1487,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         return;
       }
-      // Some public Deriv websocket responses may deliver a valid tick before
-      // the subscription metadata is present. Process ticks by their actual
-      // symbol; subscription IDs are optional tracking metadata, not a reason
-      // to discard the live quote. Never accept a quote from another market.
       if (data.msg_type === "tick" && data.tick && data.tick.symbol === activeMarketSymbol) {
+        // A matching symbol is authoritative; subscription metadata is optional.
         if (data.subscription && data.subscription.id) {
           tickSubscriptions.add(data.subscription.id);
           currentTickSubscription = data.subscription.id;
@@ -1573,11 +1573,11 @@ document.addEventListener("DOMContentLoaded", () => {
     liveSocket.send(JSON.stringify({
       ticks_history: symbol,
       end: "latest",
-      count: Math.min(MAX_HISTORY_CANDLES, Math.ceil(86400 / candleGranularity)),
+      count: Math.min(1000, MAX_CHART_POINTS),
       start: Math.floor(Date.now() / 1000) - 86400,
-      // Request genuine OHLC history independently for the selected market.
-      style: "candles",
-      granularity: candleGranularity,
+      // Request actual tick history for the selected symbol, matching the
+      // supplied reference dashboard; live ticks extend this same price series.
+      style: "ticks",
       subscribe: 0,
       req_id: historyReqId
     }));
