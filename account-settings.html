@@ -73,6 +73,14 @@
       width:100%;height:44px;padding:0 12px;border:1px solid var(--border);
       border-radius:9px;outline:none;background:#07100c;color:#fff;font-size:13px
     }
+    .password-wrap{position:relative}
+    .password-wrap input{padding-right:70px}
+    .toggle-password{
+      position:absolute;right:8px;top:50%;transform:translateY(-50%);
+      height:32px;padding:0 9px;border:1px solid var(--border);border-radius:7px;
+      background:#0b1510;color:#b9c8c0;font-size:10px;font-weight:800
+    }
+    .toggle-password:active{transform:translateY(-50%) scale(.98)}
     .field input:focus{border-color:#286c4c;box-shadow:0 0 0 2px rgba(22,229,138,.08)}
     .save{
       width:100%;height:44px;margin-top:10px;border:0;border-radius:9px;
@@ -147,16 +155,59 @@
       </div>
 
       <div class="section">
-        <h2>Other Account Settings</h2>
-        <p>These options will be added one at a time.</p>
+        <h2>Change Password</h2>
+        <p>Update your account password securely.</p>
 
-        <div class="setting-row">
-          <div>
-            <strong>Change Password</strong>
-            <span>Update your account password.</span>
+        <div class="field">
+          <label for="currentPassword">Current Password</label>
+          <div class="password-wrap">
+            <input
+            id="currentPassword"
+            type="password"
+            autocomplete="current-password"
+            placeholder="Enter your current password"
+          >
+            <button class="toggle-password" type="button" data-target="currentPassword" aria-label="Show password">Show</button>
           </div>
-          <span class="coming">Coming next</span>
         </div>
+
+        <div class="field" style="margin-top:12px">
+          <label for="newPassword">New Password</label>
+          <div class="password-wrap">
+            <input
+            id="newPassword"
+            type="password"
+            minlength="8"
+            autocomplete="new-password"
+            placeholder="At least 8 characters"
+          >
+            <button class="toggle-password" type="button" data-target="newPassword" aria-label="Show password">Show</button>
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:12px">
+          <label for="confirmPassword">Confirm New Password</label>
+          <div class="password-wrap">
+            <input
+            id="confirmPassword"
+            type="password"
+            minlength="8"
+            autocomplete="new-password"
+            placeholder="Enter the new password again"
+          >
+            <button class="toggle-password" type="button" data-target="confirmPassword" aria-label="Show password">Show</button>
+          </div>
+        </div>
+
+        <button id="changePassword" class="save" type="button">
+          Change Password
+        </button>
+        <div id="passwordStatus" class="status" aria-live="polite"></div>
+      </div>
+
+      <div class="section">
+        <h2>Other Account Settings</h2>
+        <p>More account security options will be added later.</p>
 
         <div class="setting-row">
           <div>
@@ -180,9 +231,9 @@
   <div id="toast" class="toast" role="status"></div>
 
   <script>
-    const API_BASE = "https://tradezora-backend-use.onrender.com";
+    const API_BASE = "https://tradezora-backend-1.onrender.com";
 
-    const token = localStorage.getItem("tradezoraAuthToken") ||               localStorage.getItem("session_token") ||               localStorage.getItem("sessionToken") ||               localStorage.getItem("tradezoraSession");
+    const token = localStorage.getItem("tradezoraAuthToken");
     const storedUser = JSON.parse(
       localStorage.getItem("tradezoraDemoUser") || "null"
     );
@@ -228,16 +279,16 @@
 
         const data = await response.json();
 
-        if (!response.ok || !data.success || !data.user) {
+        if (!response.ok || !data.success || !data.account) {
           throw new Error(data.error || "Could not load your account.");
         }
 
-        renderUser(data.user);
+        renderUser(data.account);
         localStorage.setItem(
           "tradezoraDemoUser",
           JSON.stringify({
-            name: data.user.name,
-            email: data.user.email
+            name: data.account.name,
+            email: data.account.email
           })
         );
       } catch (error) {
@@ -293,6 +344,90 @@
         button.disabled = false;
         button.textContent = "Save Name";
       }
+    });
+
+    $("#changePassword").addEventListener("click", async () => {
+      const button = $("#changePassword");
+      const currentPassword = $("#currentPassword").value;
+      const newPassword = $("#newPassword").value;
+      const confirmPassword = $("#confirmPassword").value;
+      const status = $("#passwordStatus");
+
+      status.textContent = "";
+      status.className = "status";
+
+      if (!currentPassword) {
+        status.textContent = "Enter your current password.";
+        status.className = "status error";
+        return;
+      }
+
+      if (newPassword.length < 8) {
+        status.textContent = "New password must be at least 8 characters.";
+        status.className = "status error";
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        status.textContent = "New passwords do not match.";
+        status.className = "status error";
+        return;
+      }
+
+      button.disabled = true;
+      button.textContent = "Changing...";
+
+      try {
+        const response = await fetch(API_BASE + "/api/account/password", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token
+          },
+          body: JSON.stringify({
+            current_password: currentPassword,
+            new_password: newPassword,
+            confirm_password: confirmPassword
+          })
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok || !data.success) {
+          throw new Error(
+            data.error || "Could not change your password."
+          );
+        }
+
+        $("#currentPassword").value = "";
+        $("#newPassword").value = "";
+        $("#confirmPassword").value = "";
+
+        status.textContent = "Password changed successfully.";
+        status.className = "status success";
+        showToast("Password changed");
+      } catch (error) {
+        status.textContent =
+          error.message || "Could not change your password.";
+        status.className = "status error";
+      } finally {
+        button.disabled = false;
+        button.textContent = "Change Password";
+      }
+    });
+
+    document.querySelectorAll(".toggle-password").forEach((button) => {
+      button.addEventListener("click", () => {
+        const input = document.getElementById(button.dataset.target);
+        const showing = input.type === "text";
+
+        input.type = showing ? "password" : "text";
+        button.textContent = showing ? "Show" : "Hide";
+        button.setAttribute(
+          "aria-label",
+          showing ? "Show password" : "Hide password"
+        );
+      });
     });
 
     $("#backBtn").addEventListener("click", () => {
