@@ -99,6 +99,7 @@
     .setting-row strong{display:block;font-size:12px}
     .setting-row span{display:block;margin-top:3px;color:var(--muted);font-size:10px}
     .kyc-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+    .kyc-link{display:inline-block;padding:9px 12px;border-radius:8px;background:var(--green);color:#041008;text-decoration:none;font-size:11px;font-weight:900;white-space:nowrap}
     .kyc-field{min-width:0}
     .kyc-field label{display:block;margin-bottom:6px;color:#cbd6d0;font-size:11px;font-weight:800}
     .kyc-field input,.kyc-field select,.kyc-field textarea{width:100%;min-height:43px;padding:10px;border:1px solid var(--border);border-radius:9px;background:#07100c;color:#fff;font-size:12px}
@@ -108,6 +109,37 @@
     .kyc-preview{display:none;width:100%;max-height:220px;object-fit:contain;margin-top:8px;border:1px solid var(--border);border-radius:8px;background:#030604}
     .kyc-status{margin-top:10px;padding:10px;border-radius:8px;background:#07100c;border:1px solid var(--border);font-size:11px;line-height:1.5;white-space:pre-wrap}
     .kyc-status.success{color:var(--green)}.kyc-status.error{color:var(--danger)}
+    .kyc-accordion{margin-top:12px;border:1px solid var(--border);border-radius:11px;background:#07100c;overflow:hidden}
+    .kyc-accordion summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px;cursor:pointer}
+    .kyc-accordion summary::-webkit-details-marker{display:none}
+    .kyc-summary-copy{min-width:0;display:block}
+    .kyc-summary-copy strong,.kyc-summary-copy span,.kyc-summary-copy small{display:block}
+    .kyc-summary-copy strong{font-size:12px}
+    .kyc-summary-copy span{margin-top:4px;color:var(--muted);font-size:10px;line-height:1.4}
+    .kyc-summary-copy small{margin-top:5px;color:var(--green);font-size:10px;font-weight:800}
+    .kyc-expand{flex-shrink:0;padding:8px 10px;border-radius:7px;background:#123d29;color:var(--green);font-size:10px;font-weight:900}
+    .kyc-accordion[open] .kyc-expand{background:#1a2921;color:#d0e4d8}
+    .kyc-content{padding:0 13px 13px;border-top:1px solid var(--border)}
+    .kyc-content .kyc-status{white-space:pre-wrap}
+    .kyc-form-section{padding:14px 0 4px;border-bottom:1px solid var(--border)}
+    .kyc-form-section:last-child{border-bottom:0}
+    .kyc-form-section h3{margin:0;font-size:13px}
+    .kyc-form-section>p{margin:5px 0 12px;color:var(--muted);font-size:10px;line-height:1.5}
+    .kyc-field{min-width:0}
+    .kyc-field label{display:block;margin-bottom:6px;color:#cbd6d0;font-size:11px;font-weight:800}
+    .kyc-field input,.kyc-field select,.kyc-field textarea{width:100%;min-height:43px;padding:10px;border:1px solid var(--border);border-radius:9px;background:#07100c;color:#fff;font-size:12px}
+    .kyc-field textarea{min-height:76px;resize:vertical}
+    .kyc-field input[type=file]{padding:8px;font-size:10px}
+    .upload-card{min-width:0;padding:11px;border:1px solid var(--border);border-radius:10px;background:#09110d}
+    .upload-card.required{border-color:#24523a}
+    .upload-label{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+    .upload-label label{margin:0;color:#cbd6d0;font-size:11px;font-weight:800}
+    .tag{padding:4px 6px;border-radius:5px;background:#123d29;color:var(--green);font-size:9px;font-weight:900;white-space:nowrap}
+    .tag.optional{background:#1a211d;color:#aab7af}
+    .kyc-help{color:var(--muted);font-size:10px;line-height:1.5;margin-top:6px}
+    .kyc-preview{display:none;width:100%;max-height:180px;object-fit:contain;margin-top:8px;border:1px solid var(--border);border-radius:8px;background:#030604}
+    @media(max-width:520px){.kyc-grid{grid-template-columns:1fr}}
+
     @media(max-width:520px){.kyc-grid{grid-template-columns:1fr}}
     .coming{
       padding:7px 9px;border:1px solid var(--border);border-radius:7px;
@@ -228,23 +260,40 @@
           <span class="coming">Coming later</span>
         </div>
 
-        <div class="setting-row"><div><strong>Identity Verification (KYC)</strong><span>Submit your details and identity images for manual admin review.</span></div><span class="coming">Manual review</span></div>
-        <div id="kycCurrentStatus" class="kyc-status" aria-live="polite">Loading verification status…</div>
-        <form id="kycForm">
-          <div class="kyc-grid">
-            <div class="kyc-field"><label for="kycLegalName">Full legal name *</label><input id="kycLegalName" name="legal_name" maxlength="200" autocomplete="name" required></div>
-            <div class="kyc-field"><label for="kycDob">Date of birth *</label><input id="kycDob" name="date_of_birth" type="date" required></div>
-            <div class="kyc-field"><label for="kycCountry">Country *</label><input id="kycCountry" name="country" maxlength="100" autocomplete="country-name" required></div>
-            <div class="kyc-field"><label for="kycDocumentType">Identity document *</label><select id="kycDocumentType" name="document_type" required><option value="">Choose document</option><option value="national_id">National ID</option><option value="passport">Passport</option><option value="driving_licence">Driving licence</option><option value="other">Other</option></select></div>
-            <div class="kyc-field"><label for="kycDocumentReference">Document number (optional)</label><input id="kycDocumentReference" name="document_reference" maxlength="80" autocomplete="off"></div>
-            <div class="kyc-field"><label for="kycSelfie">Selfie photo *</label><input id="kycSelfie" type="file" accept="image/jpeg,image/png,image/webp" required><div class="kyc-help">Clear selfie photo. JPEG, PNG or WebP; maximum 2 MB.</div><img id="kycSelfiePreview" class="kyc-preview" alt="Selfie preview"></div>
-            <div class="kyc-field"><label for="kycIdFront">Front of ID *</label><input id="kycIdFront" type="file" accept="image/jpeg,image/png,image/webp" required><div class="kyc-help">Front side is required. JPEG, PNG or WebP; maximum 2 MB.</div><img id="kycIdFrontPreview" class="kyc-preview" alt="Front of ID preview"></div>
-            <div class="kyc-field"><label for="kycIdBack">Back of ID (optional)</label><input id="kycIdBack" type="file" accept="image/jpeg,image/png,image/webp"><div class="kyc-help">Optional; include if your document has important details on the back. Maximum 2 MB.</div><img id="kycIdBackPreview" class="kyc-preview" alt="Back of ID preview"></div>
-            <div class="kyc-field" style="grid-column:1/-1"><label for="kycNotes">Additional notes (optional)</label><textarea id="kycNotes" maxlength="1000" placeholder="Any details the reviewer should know"></textarea></div>
+        <details class="kyc-accordion" id="kycAccordion">
+          <summary>
+            <span class="kyc-summary-copy"><strong>Identity Verification (KYC)</strong><span>Submit your ID and selfie for manual review.</span><small id="kycSummaryStatus">Loading status…</small></span>
+            <span class="kyc-expand">View / Update</span>
+          </summary>
+          <div class="kyc-content">
+            <div class="kyc-status" id="kycCurrentStatus" aria-live="polite">Loading verification status…</div>
+            <form id="kycForm">
+              <div class="kyc-form-section">
+                <h3>Personal details</h3>
+                <p>Enter your details exactly as they appear on your identity document.</p>
+                <div class="kyc-grid">
+                  <div class="kyc-field"><label for="kycLegalName">Full legal name *</label><input id="kycLegalName" name="legal_name" maxlength="200" autocomplete="name" required></div>
+                  <div class="kyc-field"><label for="kycDob">Date of birth *</label><input id="kycDob" name="date_of_birth" type="date" required></div>
+                  <div class="kyc-field"><label for="kycCountry">Country *</label><input id="kycCountry" name="country" maxlength="100" autocomplete="country-name" required></div>
+                  <div class="kyc-field"><label for="kycDocumentType">Identity document *</label><select id="kycDocumentType" name="document_type" required><option value="">Choose document</option><option value="national_id">National ID</option><option value="passport">Passport</option><option value="driving_licence">Driving licence</option><option value="other">Other</option></select></div>
+                  <div class="kyc-field"><label for="kycDocumentReference">Document number (optional)</label><input id="kycDocumentReference" name="document_reference" maxlength="80" autocomplete="off" placeholder="Enter document number"></div>
+                  <div class="kyc-field"><label for="kycNotes">Additional notes (optional)</label><textarea id="kycNotes" maxlength="1000" placeholder="Anything the reviewer should know"></textarea></div>
+                </div>
+              </div>
+              <div class="kyc-form-section">
+                <h3>Identity images</h3>
+                <p>JPEG, PNG or WebP only. Maximum 2 MB per image.</p>
+                <div class="kyc-grid">
+                  <div class="upload-card required"><div class="upload-label"><label for="kycSelfie">Selfie photo *</label><span class="tag">Required</span></div><input id="kycSelfie" type="file" accept="image/jpeg,image/png,image/webp" required><div class="kyc-help">Your face should be clearly visible, with good lighting.</div><img id="kycSelfiePreview" class="kyc-preview" alt="Selfie preview"></div>
+                  <div class="upload-card required"><div class="upload-label"><label for="kycIdFront">Front of ID *</label><span class="tag">Required</span></div><input id="kycIdFront" type="file" accept="image/jpeg,image/png,image/webp" required><div class="kyc-help">All text and document edges should be visible.</div><img id="kycIdFrontPreview" class="kyc-preview" alt="Front of ID preview"></div>
+                  <div class="upload-card"><div class="upload-label"><label for="kycIdBack">Back of ID</label><span class="tag optional">Optional</span></div><input id="kycIdBack" type="file" accept="image/jpeg,image/png,image/webp"><div class="kyc-help">Upload the back only if your document has relevant details there.</div><img id="kycIdBackPreview" class="kyc-preview" alt="Back of ID preview"></div>
+                </div>
+                <button id="submitKyc" class="save" type="submit">Submit for Verification</button>
+                <div id="kycFormStatus" class="status" aria-live="polite"></div>
+              </div>
+            </form>
           </div>
-          <button id="submitKyc" class="save" type="submit">Submit for Verification</button>
-          <div id="kycFormStatus" class="status" aria-live="polite"></div>
-        </form>
+        </details>
       </div>
     </section>
   </main>
@@ -455,64 +504,93 @@
       location.href = "dashboard.html";
     });
 
-    function setKycStatus(message, type) {
-      const el = $("#kycFormStatus"); el.textContent = message; el.className = "status " + (type || "");
+    function setKycFormStatus(message, type) {
+      const el = $("#kycFormStatus");
+      el.textContent = message;
+      el.className = "status " + (type || "");
     }
+
     function fileToDataUrl(file) {
       return new Promise((resolve, reject) => {
         if (!file) return resolve(null);
         if (!/^image\/(jpeg|png|webp)$/i.test(file.type)) return reject(new Error("Choose a JPEG, PNG, or WebP image."));
         if (file.size > 2 * 1024 * 1024) return reject(new Error("Each image must be no larger than 2 MB."));
-        const reader = new FileReader(); reader.onload = () => resolve(String(reader.result)); reader.onerror = () => reject(new Error("Could not read the selected image.")); reader.readAsDataURL(file);
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(new Error("Could not read the selected image."));
+        reader.readAsDataURL(file);
       });
     }
+
     function previewKycFile(inputId, previewId) {
       const input = $("#" + inputId), preview = $("#" + previewId);
       input.addEventListener("change", async () => {
-        preview.style.display = "none"; preview.removeAttribute("src");
+        preview.style.display = "none";
+        preview.removeAttribute("src");
         if (!input.files || !input.files[0]) return;
         try { preview.src = await fileToDataUrl(input.files[0]); preview.style.display = "block"; }
-        catch (e) { input.value = ""; setKycStatus(e.message, "error"); }
+        catch (error) { input.value = ""; setKycFormStatus(error.message, "error"); }
       });
     }
+
     previewKycFile("kycSelfie", "kycSelfiePreview");
     previewKycFile("kycIdFront", "kycIdFrontPreview");
     previewKycFile("kycIdBack", "kycIdBackPreview");
+
     async function loadKycStatus() {
+      const box = $("#kycCurrentStatus");
+      const summary = $("#kycSummaryStatus");
       try {
         const r = await fetch(API_BASE + "/api/kyc", { headers: { Authorization: "Bearer " + token, Accept: "application/json" } });
         const data = await r.json().catch(() => ({}));
         if (!r.ok || !data.success) throw new Error(data.error || "Could not load verification status.");
         const app = data.application;
-        const box = $("#kycCurrentStatus");
-        if (!app) { box.textContent = "Not submitted yet. Submit your selfie and the front of your ID to begin."; return; }
+        box.className = "kyc-status";
+        if (!app) {
+          box.textContent = "Not submitted yet. Open this section to complete your identity verification.";
+          summary.textContent = "Not submitted";
+          return;
+        }
         const status = String(app.status || "pending").toUpperCase();
         box.textContent = `Status: ${status}\nSubmitted: ${app.submitted_at ? new Date(app.submitted_at).toLocaleString() : "—"}` + (app.rejection_reason ? `\nReason: ${app.rejection_reason}` : "") + `\nImages on file: selfie ${app.has_selfie ? "✓" : "missing"}, front of ID ${app.has_id_front ? "✓" : "missing"}, back of ID ${app.has_id_back ? "✓" : "not supplied"}.`;
-        if (app.status === "approved" || app.status === "verified") { $("#kycForm").querySelectorAll("input,select,textarea,button").forEach(el => el.disabled = true); box.classList.add("success"); }
-        if (app.status === "rejected") box.classList.add("error");
+        summary.textContent = status === "APPROVED" || status === "VERIFIED" ? "Verified ✓" : status === "REJECTED" ? "Needs changes — see reason" : "Under review";
+        if (app.status === "approved" || app.status === "verified") {
+          box.classList.add("success");
+          $("#kycForm").querySelectorAll("input,select,textarea,button").forEach(el => el.disabled = true);
+        }
+        if (app.status === "rejected") { box.classList.add("error"); $("#kycAccordion").open = true; }
         if (app.legal_name) $("#kycLegalName").value = app.legal_name;
-        if (app.date_of_birth) $("#kycDob").value = String(app.date_of_birth).slice(0,10);
+        if (app.date_of_birth) $("#kycDob").value = String(app.date_of_birth).slice(0, 10);
         if (app.country) $("#kycCountry").value = app.country;
         if (app.document_type) $("#kycDocumentType").value = app.document_type;
+        if (app.document_reference) $("#kycDocumentReference").value = app.document_reference;
         if (app.notes) $("#kycNotes").value = app.notes;
-      } catch (e) { $("#kycCurrentStatus").textContent = e.message || "Could not load verification status."; }
+      } catch (error) {
+        box.textContent = error.message || "Could not load verification status.";
+        summary.textContent = "Status unavailable";
+      }
     }
+
     $("#kycForm").addEventListener("submit", async event => {
       event.preventDefault();
       const button = $("#submitKyc");
       try {
         const selfie = $("#kycSelfie").files[0], front = $("#kycIdFront").files[0], back = $("#kycIdBack").files[0];
         if (!selfie || !front) throw new Error("A selfie and the front of your ID are both required.");
-        button.disabled = true; button.textContent = "Uploading securely…"; setKycStatus("Preparing images…", "");
+        button.disabled = true;
+        button.textContent = "Uploading securely…";
+        setKycFormStatus("Preparing images…", "");
         const [selfieImage, idFrontImage, idBackImage] = await Promise.all([fileToDataUrl(selfie), fileToDataUrl(front), fileToDataUrl(back)]);
         const body = { legal_name: $("#kycLegalName").value.trim(), date_of_birth: $("#kycDob").value, country: $("#kycCountry").value.trim(), document_type: $("#kycDocumentType").value, document_reference: $("#kycDocumentReference").value.trim(), notes: $("#kycNotes").value.trim(), selfie_image: selfieImage, id_front_image: idFrontImage, id_back_image: idBackImage };
         const r = await fetch(API_BASE + "/api/kyc", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + token, Accept: "application/json" }, body: JSON.stringify(body) });
         const data = await r.json().catch(() => ({}));
         if (!r.ok || !data.success) throw new Error(data.error || "Could not submit identity verification.");
-        setKycStatus(data.message || "Submitted for review.", "success");
-        $("#kycForm").reset(); ["kycSelfiePreview","kycIdFrontPreview","kycIdBackPreview"].forEach(id => { const img = $("#" + id); img.style.display = "none"; img.removeAttribute("src"); });
+        setKycFormStatus(data.message || "Submitted for review.", "success");
+        showToast("Verification submitted");
+        $("#kycForm").reset();
+        ["kycSelfiePreview", "kycIdFrontPreview", "kycIdBackPreview"].forEach(id => { const img = $("#" + id); img.style.display = "none"; img.removeAttribute("src"); });
         await loadKycStatus();
-      } catch (e) { setKycStatus(e.message || "Could not submit identity verification.", "error"); }
+      } catch (error) { setKycFormStatus(error.message || "Could not submit identity verification.", "error"); }
       finally { button.disabled = false; button.textContent = "Submit for Verification"; }
     });
 
