@@ -12,7 +12,7 @@
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.62);opacity:0;visibility:hidden;transition:.2s;z-index:80}.overlay.show{opacity:1;visibility:visible}
 .topbar{position:sticky;top:0;z-index:70;height:68px;display:flex;align-items:center;gap:12px;padding:0 18px;background:rgba(5,8,7,.97);border-bottom:1px solid var(--border);backdrop-filter:blur(12px)}
 .menu-btn{width:44px;height:44px;flex:0 0 44px;border:1px solid #244334;border-radius:10px;background:#0b1510;display:grid;place-content:center;gap:4px}.menu-btn span{width:20px;height:2px;display:block;background:var(--text);border-radius:2px}
-.mobile-logo{color:var(--green);text-decoration:none;font-weight:900;font-size:19px}.top-spacer{flex:1}.demo-badge{border:1px solid #4a3c74;background:#17112b;color:#bcaeff;border-radius:7px;padding:5px 8px;font-size:9px;font-weight:900}.balance-box{min-width:145px;padding:7px 13px;border:1px solid var(--border);border-radius:11px;background:#08110d;text-align:right}.balance-box small{display:block;color:var(--muted);font-size:9px;letter-spacing:.7px}.balance-box strong{display:block;color:var(--green);font-size:17px}.notification-btn{width:44px;height:44px;border:1px solid var(--border);border-radius:11px;background:#08110d;color:#fff}
+.mobile-logo{color:var(--green);text-decoration:none;font-weight:900;font-size:19px}.top-spacer{flex:1}.demo-badge{border:1px solid #4a3c74;background:#17112b;color:#bcaeff;border-radius:7px;padding:5px 8px;font-size:9px;font-weight:900}.balance-box{min-width:145px;padding:7px 13px;border:1px solid var(--border);border-radius:11px;background:#08110d;text-align:right}.balance-box small{display:block;color:var(--muted);font-size:9px;letter-spacing:.7px}.balance-box strong{display:block;color:var(--green);font-size:17px}.notification-btn{position:relative;width:44px;height:44px;border:1px solid var(--border);border-radius:11px;background:#08110d;color:#fff}.notification-btn:focus-visible,.notification-panel button:focus-visible{outline:2px solid var(--green);outline-offset:2px}.notification-count{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 4px;display:grid;place-items:center;border-radius:999px;background:var(--red);border:2px solid var(--bg);color:#fff;font-size:9px;font-weight:900}.notification-backdrop{position:fixed;inset:0;z-index:155;background:rgba(0,0,0,.42)}.notification-panel{position:fixed;z-index:160;top:76px;right:14px;width:min(420px,calc(100vw - 24px));max-height:calc(100dvh - 92px);overflow:hidden;display:flex;flex-direction:column;border:1px solid #244334;border-radius:16px;background:#07100c;box-shadow:0 22px 70px rgba(0,0,0,.55)}.notification-panel[hidden],.notification-backdrop[hidden],.notification-count[hidden]{display:none!important}.notification-panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px;border-bottom:1px solid var(--border)}.notification-panel-head h2{margin:0;font-size:16px}.notification-panel-head p{margin:4px 0 0;color:var(--muted);font-size:10px}.notification-panel-actions{display:flex;gap:7px}.notification-panel-actions button{border:1px solid var(--border);border-radius:8px;padding:7px 9px;background:#0b1510;color:#dce8e3;font-size:10px;font-weight:800}.notification-panel-actions button:disabled{opacity:.45;cursor:default}.notification-list{overflow:auto;padding:9px;overscroll-behavior:contain}.notification-empty{padding:25px 12px;color:var(--muted);text-align:center;font-size:12px;line-height:1.5}.notification-item{display:block;width:100%;margin:0 0 8px;padding:12px;border:1px solid #14291e;border-radius:11px;background:#09140f;color:var(--text);text-align:left}.notification-item:last-child{margin-bottom:0}.notification-item.unread{border-color:#246c47;background:#0b1d13}.notification-item-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.notification-item-title{font-size:12px;font-weight:850}.notification-item-dot{width:7px;height:7px;flex:0 0 7px;margin-top:4px;border-radius:50%;background:var(--green)}.notification-item-message{display:block;margin-top:7px;color:#c4d2ca;font-size:11px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}.notification-item-time{display:block;margin-top:8px;color:var(--muted);font-size:9px}
 .side-menu{position:fixed;top:0;left:0;width:min(330px,88vw);height:100vh;padding:18px;background:#060b08;border-right:1px solid var(--border);box-shadow:18px 0 50px rgba(0,0,0,.4);transform:translateX(-105%);transition:transform .24s ease;z-index:90;overflow-y:auto}.side-menu.open{transform:translateX(0)}.side-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}.side-brand{display:flex;align-items:center;gap:9px;color:var(--green);font-size:20px;font-weight:900}.brand-mark{width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--green);border-radius:9px;font-size:12px}.icon-btn{border:1px solid var(--border);background:#0b1510;color:#fff;border-radius:9px}.close-btn{width:38px;height:38px;font-size:24px}.profile{display:flex;gap:11px;align-items:center;padding:13px;border:1px solid var(--border);border-radius:12px;background:#09140f;margin-bottom:12px}.avatar{width:44px;height:44px;flex:0 0 44px;display:grid;place-items:center;border-radius:50%;background:#103622;border:1px solid #246c47;color:var(--green);font-weight:900}.profile-info{min-width:0}.profile-info strong,.profile-info span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.profile-info span{margin-top:3px;color:var(--muted);font-size:11px}.side-nav{display:grid;gap:4px}.side-link{width:100%;min-height:44px;display:flex;align-items:center;gap:11px;padding:10px 12px;border:0;border-radius:9px;background:transparent;color:#d7e0dc;text-decoration:none;text-align:left;font-size:13px}.side-link span{width:19px;text-align:center;color:#9aa9a2}.side-link:hover,.side-link.active{background:#0b2117;color:var(--green)}.admin-only{display:none!important}.admin-only.visible{display:flex!important}.logout-btn{width:100%;margin-top:16px;padding:12px;border:1px solid #4b2028;border-radius:9px;background:#1a0b0e;color:#ff7c88}
 .page{width:100%}.terminal{width:min(1100px,100%);margin:0 auto;padding:16px}.market-tabs{display:flex;gap:5px;padding:4px;margin-bottom:10px;border:1px solid var(--border);border-radius:10px;background:#07100c;overflow-x:auto}.market-tabs button{flex:1 0 auto;min-height:38px;padding:8px 14px;border:0;border-radius:7px;background:transparent;color:var(--muted);font-weight:700;font-size:12px;white-space:nowrap}.market-tabs button.active{background:#10301f;color:var(--green)}.market-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:10px}.eyebrow{display:block;margin-bottom:4px;color:var(--muted);font-size:9px;font-weight:800;letter-spacing:1px}.market-head select{min-width:190px;padding:9px 11px;border:1px solid var(--border);border-radius:8px;background:#09130f;color:#fff;outline:none}.price-change{text-align:right}.price-change span{display:block;color:var(--muted);font-size:8px}.price-change strong{display:block;color:var(--green);font-size:13px}
 .panel{border:1px solid var(--border);border-radius:14px;background:linear-gradient(180deg,#09110d,#07100c);box-shadow:var(--shadow)}.chart-panel{padding:13px}.chart-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px}.historical{padding:5px 8px;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:9px}.chart-tools{display:flex;gap:4px}.chart-tools button{min-width:31px;height:29px;padding:0 7px;border:1px solid var(--border);border-radius:6px;background:#0b1711;color:#dbe4df}.chart-wrap{position:relative;height:310px;margin-top:7px;overflow:hidden;border-radius:9px;background:linear-gradient(rgba(31,73,54,.15) 1px,transparent 1px),linear-gradient(90deg,rgba(31,73,54,.15) 1px,transparent 1px),#050a08;background-size:45px 45px}#priceChart{display:block;width:100%;height:100%}.chart-label{position:absolute;left:10px;bottom:8px;color:#4c6258;font-size:8px;pointer-events:none}.probability-title{display:flex;justify-content:space-between;gap:10px;margin-top:12px;color:#d9e3de;font-size:10px;font-weight:800}.probability-title small{color:var(--muted);font-size:8px;font-weight:500}.probabilities{display:grid;grid-template-columns:repeat(10,minmax(31px,1fr));gap:4px;margin-top:9px;align-items:start;overflow:visible}
@@ -45,7 +45,7 @@
 .session{margin-top:10px;min-height:46px;padding:0 12px;border:1px solid var(--border);border-radius:9px;background:#07100c;display:flex;align-items:center;gap:8px;overflow:hidden}.session-dot{width:8px;height:8px;border-radius:50%;background:#f4c542;box-shadow:0 0 8px rgba(244,197,66,.45);flex:0 0 auto}.session-label{color:#e9f0ed;font-size:12px;font-weight:800}.session-record{color:var(--muted);font-size:11px;font-weight:700;white-space:nowrap}.session-pnl{margin-left:auto;color:var(--green);font-size:15px;font-weight:900;white-space:nowrap}.session-pnl.negative{color:#ff5d6c}.contract-title{margin-top:12px;color:var(--muted);font-size:10px;font-weight:800}.contract-digits{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;margin-top:7px;padding:8px;border:1px solid var(--border);border-radius:9px;background:#07100c}.contract-digits button{min-width:0;padding:8px 0;border:0;border-radius:6px;background:#4d4f50;color:#fff;font-size:12px;font-weight:800}.contract-digits button.active{background:var(--green);color:#041008}
 .trade-buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.trade-buttons button{min-height:62px;border:0;border-radius:12px;color:#fff;font-size:16px;font-weight:900}.trade-buttons strong{display:block}.trade-buttons span{display:none}.match-btn{background:linear-gradient(135deg,#11df86,#16c978)}.differ-btn{background:linear-gradient(135deg,#ff5265,#f33f56)}
 .data-section{margin-top:12px;padding:14px}.section-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.section-head h2{margin:0;font-size:21px}.section-head button{padding:7px 12px;border:0;border-radius:6px;background:#4d4f50;color:#fff}.position,.history-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);font-size:11px}.position:last-child,.history-item:last-child{border-bottom:0}.win{color:var(--green)}.loss{color:var(--red)}.empty{padding:25px 5px;color:var(--muted);text-align:center;font-size:12px}.demo-note{margin:14px 4px 0;color:#62736b;text-align:center;font-size:9px;line-height:1.5}.toast{position:fixed;left:50%;bottom:25px;z-index:120;max-width:min(90vw,360px);padding:10px 13px;border:1px solid #20543b;border-radius:8px;background:#102019;color:#e8fff3;font-size:11px;opacity:0;pointer-events:none;transform:translate(-50%,12px);transition:.2s}.toast.show{opacity:1;transform:translate(-50%,0)}.bottom-nav{display:none}
-@media(max-width:650px){body{padding-bottom:68px}.topbar{height:58px;padding:0 9px;gap:7px}.menu-btn{width:40px;height:40px;flex-basis:40px;border-radius:8px}.mobile-logo{font-size:17px}.demo-badge{display:none}.balance-box{min-width:0;padding:5px 8px;border-radius:9px}.balance-box strong{font-size:13px}.balance-box small{font-size:7px}.notification-btn{width:40px;height:40px;flex-basis:40px}.terminal{padding:8px}.market-tabs{margin-bottom:8px;border-radius:8px}.market-tabs button{min-height:35px;padding:7px 10px;font-size:9px}.market-head{align-items:center}.market-head select{min-width:0;width:180px;max-width:65vw;padding:8px;font-size:11px}.price-change strong{font-size:10px}.chart-panel,.trade-card,.data-section{border-radius:10px}.chart-panel{padding:9px}.chart-wrap{height:245px}.probabilities{gap:3px}.probability{height:48px}.probability .digit-number{font-size:11px}.probability .percent{font-size:6px}.probability.current-digit::after{bottom:-8px;border-left-width:4px;border-right-width:4px;border-top-width:6px}.trade-card{padding:10px}.controls-grid{grid-template-columns:1fr 1fr}.controls-grid label:last-child{grid-column:1/-1}.contract-digits{gap:3px;padding:6px}.contract-digits button{padding:7px 0;font-size:10px}.trade-buttons{gap:7px}.trade-buttons button{min-height:58px;border-radius:10px;font-size:14px}.section-head h2{font-size:19px}.bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:75;height:60px;display:flex;background:rgba(6,12,9,.98);border-top:1px solid var(--border)}.bottom-nav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--muted);text-decoration:none;font-size:10px}.bottom-nav a.active{color:var(--green)}.nav-icon{font-size:14px}.side-menu{width:min(300px,82vw);padding:14px}.side-head{margin-bottom:14px}.side-brand{font-size:18px}.profile{padding:10px}.side-link{min-height:40px;font-size:12px;padding:8px 10px}.toast{bottom:72px}}
+@media(max-width:650px){body{padding-bottom:68px}.topbar{height:58px;padding:0 9px;gap:7px}.menu-btn{width:40px;height:40px;flex-basis:40px;border-radius:8px}.mobile-logo{font-size:17px}.demo-badge{display:none}.balance-box{min-width:0;padding:5px 8px;border-radius:9px}.balance-box strong{font-size:13px}.balance-box small{font-size:7px}.notification-btn{width:40px;height:40px;flex-basis:40px}.notification-panel{top:65px;right:8px;width:calc(100vw - 16px);max-height:calc(100dvh - 76px)}.terminal{padding:8px}.market-tabs{margin-bottom:8px;border-radius:8px}.market-tabs button{min-height:35px;padding:7px 10px;font-size:9px}.market-head{align-items:center}.market-head select{min-width:0;width:180px;max-width:65vw;padding:8px;font-size:11px}.price-change strong{font-size:10px}.chart-panel,.trade-card,.data-section{border-radius:10px}.chart-panel{padding:9px}.chart-wrap{height:245px}.probabilities{gap:3px}.probability{height:48px}.probability .digit-number{font-size:11px}.probability .percent{font-size:6px}.probability.current-digit::after{bottom:-8px;border-left-width:4px;border-right-width:4px;border-top-width:6px}.trade-card{padding:10px}.controls-grid{grid-template-columns:1fr 1fr}.controls-grid label:last-child{grid-column:1/-1}.contract-digits{gap:3px;padding:6px}.contract-digits button{padding:7px 0;font-size:10px}.trade-buttons{gap:7px}.trade-buttons button{min-height:58px;border-radius:10px;font-size:14px}.section-head h2{font-size:19px}.bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:75;height:60px;display:flex;background:rgba(6,12,9,.98);border-top:1px solid var(--border)}.bottom-nav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--muted);text-decoration:none;font-size:10px}.bottom-nav a.active{color:var(--green)}.nav-icon{font-size:14px}.side-menu{width:min(300px,82vw);padding:14px}.side-head{margin-bottom:14px}.side-brand{font-size:18px}.profile{padding:10px}.side-link{min-height:40px;font-size:12px;padding:8px 10px}.toast{bottom:72px}}
 @media(max-width:390px){.topbar{gap:5px}.mobile-logo{font-size:15px}.balance-box strong{font-size:12px}.balance-box{padding-left:6px;padding-right:6px}.notification-btn{width:36px;flex-basis:36px}.market-head select{width:155px}.chart-wrap{height:220px}.session-label{font-size:11px}.session-record{font-size:10px}.session-pnl{font-size:13px}}
 
 /* ===== TRADE SESSION RISK RESULT MODAL ===== */
@@ -209,8 +209,22 @@
       <strong id="balance">$10,000.00</strong>
     </div>
 
-    <button class="notification-btn" type="button" aria-label="Notifications">●</button>
+    <button id="notificationsButton" class="notification-btn" type="button" aria-label="Notifications" aria-expanded="false" aria-controls="notificationPanel">
+      <span aria-hidden="true">●</span><span id="notificationCount" class="notification-count" hidden>0</span>
+    </button>
   </header>
+
+  <div id="notificationBackdrop" class="notification-backdrop" hidden></div>
+  <section id="notificationPanel" class="notification-panel" role="dialog" aria-modal="false" aria-labelledby="notificationTitle" hidden>
+    <div class="notification-panel-head">
+      <div><h2 id="notificationTitle">Notifications</h2><p id="notificationSummary">Your account updates appear here.</p></div>
+      <div class="notification-panel-actions">
+        <button id="markAllNotificationsRead" type="button">Mark all read</button>
+        <button id="closeNotifications" type="button" aria-label="Close notifications">✕</button>
+      </div>
+    </div>
+    <div id="notificationList" class="notification-list" aria-live="polite"><div class="notification-empty">Open notifications to check for updates.</div></div>
+  </section>
 
   <!-- MAIN -->
   <main id="terminal" class="page">
@@ -578,6 +592,186 @@ document.addEventListener("DOMContentLoaded", () => {
       element.classList.remove("show");
     }, 1800);
   }
+
+  /* =========================
+     IN-APP NOTIFICATIONS
+     Separate from the live chart and demo trading engine.
+  ========================= */
+  const NOTIFICATION_API_BASE = "https://tradezora-backend-1.onrender.com";
+  const notificationsButton = $("#notificationsButton");
+  const notificationPanel = $("#notificationPanel");
+  const notificationBackdrop = $("#notificationBackdrop");
+  const notificationCount = $("#notificationCount");
+  const notificationList = $("#notificationList");
+  const notificationSummary = $("#notificationSummary");
+  const markAllNotificationsRead = $("#markAllNotificationsRead");
+  let notificationUnreadCount = 0;
+  let notificationLoadInProgress = false;
+
+  function getNotificationToken() {
+    return localStorage.getItem("tradezoraAuthToken") ||
+      localStorage.getItem("session_token") ||
+      localStorage.getItem("sessionToken") || "";
+  }
+
+  async function notificationApi(path, options = {}) {
+    const token = getNotificationToken();
+    if (!token) throw new Error("Sign in to your registered TradeZora account to view notifications.");
+    const response = await fetch(`${NOTIFICATION_API_BASE}${path}`, {
+      ...options,
+      headers: {
+        Accept: "application/json",
+        ...(options.body ? { "Content-Type": "application/json" } : {}),
+        Authorization: `Bearer ${token}`,
+        ...(options.headers || {})
+      }
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data.success === false) {
+      throw new Error(data.error || `Notifications request failed (${response.status}).`);
+    }
+    return data;
+  }
+
+  function updateNotificationBadge(count) {
+    notificationUnreadCount = Math.max(0, Number(count) || 0);
+    if (!notificationCount) return;
+    notificationCount.textContent = notificationUnreadCount > 99 ? "99+" : String(notificationUnreadCount);
+    notificationCount.hidden = notificationUnreadCount === 0;
+    if (notificationsButton) {
+      notificationsButton.setAttribute("aria-label", notificationUnreadCount
+        ? `Notifications, ${notificationUnreadCount} unread`
+        : "Notifications");
+    }
+  }
+
+  function renderNotificationList(items) {
+    if (!notificationList) return;
+    notificationList.replaceChildren();
+    if (!Array.isArray(items) || items.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "notification-empty";
+      empty.textContent = "You're all caught up. New account updates will appear here.";
+      notificationList.appendChild(empty);
+      return;
+    }
+    items.forEach((item) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `notification-item${item.read_at ? "" : " unread"}`;
+      button.dataset.notificationId = String(item.id);
+      const head = document.createElement("span");
+      head.className = "notification-item-head";
+      const title = document.createElement("span");
+      title.className = "notification-item-title";
+      title.textContent = String(item.title || "TradeZora update");
+      head.appendChild(title);
+      if (!item.read_at) {
+        const dot = document.createElement("span");
+        dot.className = "notification-item-dot";
+        dot.setAttribute("aria-label", "Unread");
+        head.appendChild(dot);
+      }
+      const message = document.createElement("span");
+      message.className = "notification-item-message";
+      message.textContent = String(item.message || "");
+      const time = document.createElement("span");
+      time.className = "notification-item-time";
+      const date = item.created_at ? new Date(item.created_at) : null;
+      time.textContent = date && !Number.isNaN(date.getTime()) ? date.toLocaleString() : "Recently";
+      button.append(head, message, time);
+      button.addEventListener("click", async () => {
+        if (item.read_at) return;
+        button.disabled = true;
+        try {
+          await notificationApi(`/api/notifications/${encodeURIComponent(item.id)}/read`, { method: "PATCH" });
+          await loadNotifications({ silent: true });
+        } catch (error) {
+          button.disabled = false;
+          toast(error.message || "Could not mark notification as read.");
+        }
+      });
+      notificationList.appendChild(button);
+    });
+  }
+
+  async function loadNotifications(options = {}) {
+    if (notificationLoadInProgress) return;
+    if (!getNotificationToken()) {
+      updateNotificationBadge(0);
+      if (notificationSummary) notificationSummary.textContent = "Sign in to see account updates.";
+      if (notificationList && notificationPanel && !notificationPanel.hidden) {
+        notificationList.replaceChildren();
+        const empty = document.createElement("div");
+        empty.className = "notification-empty";
+        empty.textContent = "Sign in to your registered TradeZora account to view notifications.";
+        notificationList.appendChild(empty);
+      }
+      return;
+    }
+    notificationLoadInProgress = true;
+    try {
+      const data = await notificationApi("/api/notifications?limit=30");
+      updateNotificationBadge(data.unread_count);
+      if (notificationSummary) notificationSummary.textContent = notificationUnreadCount
+        ? `${notificationUnreadCount} unread update${notificationUnreadCount === 1 ? "" : "s"}`
+        : "You're up to date.";
+      renderNotificationList(data.notifications || []);
+    } catch (error) {
+      if (notificationSummary) notificationSummary.textContent = "Notifications are temporarily unavailable.";
+      if (!options.silent && notificationList && notificationPanel && !notificationPanel.hidden) {
+        notificationList.replaceChildren();
+        const empty = document.createElement("div");
+        empty.className = "notification-empty";
+        empty.textContent = error.message || "Could not load notifications. Try again shortly.";
+        notificationList.appendChild(empty);
+      }
+    } finally {
+      notificationLoadInProgress = false;
+    }
+  }
+
+  function openNotifications() {
+    if (!notificationPanel || !notificationBackdrop) return;
+    notificationPanel.hidden = false;
+    notificationBackdrop.hidden = false;
+    notificationsButton?.setAttribute("aria-expanded", "true");
+    loadNotifications();
+  }
+
+  function closeNotifications() {
+    if (!notificationPanel || !notificationBackdrop) return;
+    notificationPanel.hidden = true;
+    notificationBackdrop.hidden = true;
+    notificationsButton?.setAttribute("aria-expanded", "false");
+  }
+
+  notificationsButton?.addEventListener("click", () => {
+    if (notificationPanel?.hidden) openNotifications();
+    else closeNotifications();
+  });
+  $("#closeNotifications")?.addEventListener("click", closeNotifications);
+  notificationBackdrop?.addEventListener("click", closeNotifications);
+  markAllNotificationsRead?.addEventListener("click", async () => {
+    markAllNotificationsRead.disabled = true;
+    try {
+      await notificationApi("/api/notifications/read-all", { method: "PATCH" });
+      await loadNotifications({ silent: true });
+    } catch (error) {
+      toast(error.message || "Could not update notifications.");
+    } finally {
+      markAllNotificationsRead.disabled = false;
+    }
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && notificationPanel && !notificationPanel.hidden) closeNotifications();
+  });
+  loadNotifications({ silent: true });
+  window.setInterval(() => {
+    if (getNotificationToken() && (!notificationPanel || notificationPanel.hidden)) {
+      loadNotifications({ silent: true });
+    }
+  }, 60000);
 
 
   function renderBalance() {
