@@ -479,6 +479,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // but cannot trade until server-side real-trade execution and settlement exist.
   let accountMode = localStorage.getItem("tradezoraAccountMode") === "real" ? "real" : "demo";
   let realBalance = null;
+  let realBalanceLoadStatus = "loading";
 
   // Show the Admin Dashboard shortcut only after the active backend confirms
   // this session belongs to the owner admin. The admin page still verifies access.
@@ -794,7 +795,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const sessionLossesValue = Number(sessionState.sessionLosses || 0);
 
     if (balanceEl) balanceEl.textContent = accountMode === "real"
-      ? (realBalance === null ? "Loading…" : money(realBalance))
+      ? (realBalanceLoadStatus === "error" ? "Unavailable" : (realBalance === null ? "Loading…" : money(realBalance)))
       : money(balance);
     const balanceLabel = $("#balanceLabel");
     if (balanceLabel) balanceLabel.textContent = accountMode === "real" ? "REAL BALANCE" : "DEMO BALANCE";
@@ -867,7 +868,7 @@ document.addEventListener("DOMContentLoaded", () => {
      REAL-MONEY M-PESA DEPOSIT
      Kept separate from the simulated demo balance.
   ========================= */
-  const PAYMENT_API_BASE = "https://tradezora-backend-use.onrender.com";
+  const PAYMENT_API_BASE = "https://tradezora-backend-1.onrender.com";
   const depositModal = $("#depositModal");
   const depositForm = $("#mpesaDepositForm");
   const depositAmountInput = $("#depositAmountUsd");
@@ -929,19 +930,24 @@ document.addEventListener("DOMContentLoaded", () => {
   async function refreshActiveRealBalance() {
     if (!localStorage.getItem("tradezoraAuthToken") && !localStorage.getItem("session_token") && !localStorage.getItem("sessionToken")) {
       realBalance = null;
+      realBalanceLoadStatus = "error";
       renderBalance();
       if (accountMode === "real") toast("Sign in to load your real-account balance.");
       return;
     }
     try {
+      realBalanceLoadStatus = "loading";
+      renderBalance();
       const data = await paymentApi("/api/real-account");
       const account = data.account || data;
       const parsed = Number(account.balance);
       if (!Number.isFinite(parsed) || parsed < 0) throw new Error("The server returned an invalid real-account balance.");
       realBalance = parsed;
+      realBalanceLoadStatus = "loaded";
       renderBalance();
     } catch (error) {
       realBalance = null;
+      realBalanceLoadStatus = "error";
       renderBalance();
       console.warn("Active real-account balance could not be loaded:", error.message);
       if (accountMode === "real") toast("Real balance unavailable. No real funds were changed.");
