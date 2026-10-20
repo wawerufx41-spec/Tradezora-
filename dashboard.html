@@ -182,8 +182,8 @@
       <button class="side-link" type="button" onclick="alert('Responsible Trading tools are coming soon.')">
         <span>◈</span> Responsible Trading
       </button>
-      <button class="side-link" type="button" onclick="alert('Live Chat is not available in demo mode.')">
-        <span>●</span> Live Chat
+      <button id="openLiveChat" class="side-link" type="button">
+        <span>●</span> Live Chat <span id="liveChatUnread" hidden style="margin-left:auto;background:#16e58a;color:#031009;border-radius:999px;padding:2px 7px;font-size:10px;font-weight:900">NEW</span>
       </button>
     </nav>
 
@@ -3222,5 +3222,29 @@ document.addEventListener("DOMContentLoaded", () => {
 })();
 
   </script>
+
+<style>
+#tzChatOverlay{position:fixed;inset:0;z-index:12000;background:rgba(0,0,0,.64);display:none;align-items:flex-end;justify-content:center;padding:12px}#tzChatOverlay.open{display:flex}#tzChatBox{width:min(520px,100%);height:min(680px,88dvh);background:#07100c;border:1px solid #20543b;border-radius:18px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 90px #000a;color:#edf7f2}#tzChatHead{padding:15px;background:#0b1712;border-bottom:1px solid #173528;display:flex;justify-content:space-between;align-items:center;gap:10px}#tzChatHead strong{font-size:15px}#tzChatHead small{display:block;color:#8f9b96;font-size:11px;margin-top:4px}#tzChatClose{background:#102019;border:1px solid #234536;color:#edf7f2;border-radius:9px;padding:7px 10px}#tzChatMessages{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:9px} .tz-chat-bubble{max-width:88%;padding:10px 12px;border-radius:13px;font-size:13px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}.tz-chat-bubble.user{align-self:flex-end;background:#103b28;border:1px solid #20543b}.tz-chat-bubble.admin{align-self:flex-start;background:#101a15;border:1px solid #233c2e}.tz-chat-meta{font-size:9px;color:#8f9b96;margin-top:5px}.tz-chat-empty{color:#8f9b96;font-size:12px;text-align:center;margin:auto;line-height:1.6}#tzChatForm{display:flex;gap:8px;padding:12px;border-top:1px solid #173528;background:#09100d}#tzChatInput{min-width:0;flex:1;resize:none;max-height:100px;background:#050807;color:#edf7f2;border:1px solid #234536;border-radius:11px;padding:11px;font:inherit;font-size:13px;outline:none}#tzChatSend{border:0;border-radius:11px;background:#16e58a;color:#031009;padding:0 15px;font-weight:900}#tzChatStatus{padding:0 14px 8px;color:#8f9b96;font-size:10px}#tzChatSend:disabled{opacity:.55}@media(min-width:700px){#tzChatOverlay{align-items:center}}
+</style>
+<div id="tzChatOverlay" aria-hidden="true"><section id="tzChatBox" role="dialog" aria-modal="true" aria-labelledby="tzChatTitle"><header id="tzChatHead"><div><strong id="tzChatTitle">TradeZora Support</strong><small>Private chat with the admin support team</small></div><button id="tzChatClose" type="button" aria-label="Close chat">✕</button></header><div id="tzChatMessages" aria-live="polite"><div class="tz-chat-empty">Loading your conversation…</div></div><div id="tzChatStatus">Only you and TradeZora admin can access this conversation.</div><form id="tzChatForm"><textarea id="tzChatInput" maxlength="2000" rows="1" placeholder="Write a message…" aria-label="Your message" required></textarea><button id="tzChatSend" type="submit">Send</button></form></section></div>
+<script>
+(()=>{
+ const API='https://tradezora-backend-1.onrender.com';
+ const $=s=>document.querySelector(s);
+ const overlay=$('#tzChatOverlay'), list=$('#tzChatMessages'), form=$('#tzChatForm'), input=$('#tzChatInput'), send=$('#tzChatSend'), status=$('#tzChatStatus');
+ if(!overlay||!$('#openLiveChat'))return;
+ let opened=false, busy=false, poll=null, lastMessages='';
+ const token=()=>localStorage.getItem('tradezoraAuthToken')||localStorage.getItem('session_token')||localStorage.getItem('sessionToken')||localStorage.getItem('tradezoraSession')||'';
+ async function api(path,options={}){const t=token();if(!t)throw new Error('Please sign in to use Live Chat.');const r=await fetch(API+path,{...options,headers:{Accept:'application/json',...(options.body?{'Content-Type':'application/json'}:{}),Authorization:'Bearer '+t,...(options.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok||!d.success)throw new Error(d.error||'Chat request failed.');return d;}
+ function date(v){try{return new Date(v).toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});}catch{return '';}}
+ function render(messages){const signature=JSON.stringify(messages||[]);if(signature===lastMessages)return;lastMessages=signature;list.replaceChildren();if(!messages||!messages.length){const e=document.createElement('div');e.className='tz-chat-empty';e.textContent='Welcome to TradeZora Support. Send a message and the admin will reply here.';list.append(e);return;}for(const m of messages){const wrap=document.createElement('div');wrap.className='tz-chat-bubble '+(m.sender_role==='admin'?'admin':'user');const body=document.createElement('div');body.textContent=m.message;const meta=document.createElement('div');meta.className='tz-chat-meta';meta.textContent=(m.sender_role==='admin'?'TradeZora Support':'You')+' · '+date(m.created_at);wrap.append(body,meta);list.append(wrap);}list.scrollTop=list.scrollHeight;}
+ async function load(){if(busy)return;busy=true;try{const d=await api('/api/support/messages');render(d.messages||[]);status.textContent=d.conversation?.status==='closed'?'Conversation closed. Sending a message will reopen it.':'Private conversation with TradeZora admin support.';}catch(e){status.textContent=e.message||'Could not load chat.';}finally{busy=false;}}
+ function open(){overlay.classList.add('open');overlay.setAttribute('aria-hidden','false');opened=true;load();input.focus();clearInterval(poll);poll=setInterval(()=>{if(opened)load();},8000);}
+ function close(){overlay.classList.remove('open');overlay.setAttribute('aria-hidden','true');opened=false;clearInterval(poll);}
+ $('#openLiveChat').addEventListener('click',open);$('#tzChatClose').addEventListener('click',close);overlay.addEventListener('click',e=>{if(e.target===overlay)close();});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&opened)close();});
+ form.addEventListener('submit',async e=>{e.preventDefault();const message=input.value.trim();if(!message||send.disabled)return;send.disabled=true;status.textContent='Sending…';try{await api('/api/support/messages',{method:'POST',body:JSON.stringify({message})});input.value='';lastMessages='';await load();status.textContent='Message sent to TradeZora admin support.';}catch(err){status.textContent=err.message||'Could not send message.';}finally{send.disabled=false;input.focus();}});
+})();
+</script>
+
 </body>
 </html>
