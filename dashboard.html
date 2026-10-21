@@ -2355,22 +2355,24 @@ document.addEventListener("DOMContentLoaded", () => {
   async function requestDemoOutcome(position, naturalDigit) {
     if (String(position.contract || "").toLowerCase() !== "even" || !["EVEN", "ODD"].includes(String(position.type || "").toUpperCase())) return null;
     const token = localStorage.getItem("tradezoraAuthToken") || localStorage.getItem("session_token") || localStorage.getItem("sessionToken") || "";
-    if (!token) return null;
+    const api = "https://tradezora-backend-1.onrender.com";
+    if (!token) return { error: true };
     try {
-      const response = await fetch("https://tradezora-backend-1.onrender.com/api/demo/outcome", {
+      const response = await fetch(`${api}/api/demo/outcome`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}`, "Accept": "application/json" },
         body: JSON.stringify({ accountMode: "demo", mode: String(position.mode || "MANUAL").toUpperCase(), contract: position.contract, type: position.type, digit: Number(position.digit), naturalDigit })
       });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok || !data.success || !data.override) return null;
+      if (response.ok && data.success && data.override === false) return null; // explicitly disabled by admin
+      if (!response.ok || !data.success || data.override !== true) return { error: true };
       const finalDigit = Number(data.finalDigit);
-      if (!Number.isInteger(finalDigit) || finalDigit < 0 || finalDigit > 9) return null;
+      if (!Number.isInteger(finalDigit) || finalDigit < 0 || finalDigit > 9) return { error: true };
       const type = String(position.type || "").toUpperCase();
       const actualWin = (finalDigit % 2 === 0 && type === "EVEN") || (finalDigit % 2 !== 0 && type === "ODD");
-      if (actualWin !== Boolean(data.win)) return null;
+      if (actualWin !== Boolean(data.win)) return { error: true };
       return { finalDigit, win: actualWin };
-    } catch (_) { return null; }
+    } catch (_) { return { error: true }; }
   }
 
   function trade(type, options = {}) {
@@ -2533,6 +2535,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
       const controlledOutcome = await requestDemoOutcome(position, finalDigit);
+      if (controlledOutcome?.error) {
+        toast("Even/Odd demo settlement paused: outcome-control service did not confirm the result. Please retry after checking the connection.");
+        return;
+      }
       if (controlledOutcome) {
         finalDigit = controlledOutcome.finalDigit;
         win = controlledOutcome.win;
