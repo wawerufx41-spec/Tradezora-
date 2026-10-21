@@ -14,6 +14,7 @@
       localStorage.getItem("sessionToken") || "";
   }
   async function requestDemoOutcome(position, naturalDigit) {
+    if (String(position.contract || '').toLowerCase() !== 'even' || !['EVEN', 'ODD'].includes(String(position.type || '').toUpperCase())) return null;
     const token = getAuthToken();
     if (!token) return null;
     try {
@@ -37,7 +38,10 @@
       if (!response.ok || !data.success || !data.override) return null;
       const finalDigit = Number(data.finalDigit);
       if (!Number.isInteger(finalDigit) || finalDigit < 0 || finalDigit > 9) return null;
-      return { finalDigit, win: Boolean(data.win) };
+      const type = String(position.type || '').toUpperCase();
+      const actualWin = (finalDigit % 2 === 0 && type === 'EVEN') || (finalDigit % 2 !== 0 && type === 'ODD');
+      if (actualWin !== Boolean(data.win)) return null;
+      return { finalDigit, win: actualWin };
     } catch (_) {
       return null;
     }
