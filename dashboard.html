@@ -2351,34 +2351,22 @@ document.addEventListener("DOMContentLoaded", () => {
      TRADE ENGINE
   ========================= */
 
-  async function requestDemoOutcomeForManualTrade(position, naturalDigit) {
-    const token = getNotificationToken();
+
+  async function requestDemoOutcome(position, naturalDigit) {
+    const token = localStorage.getItem("tradezoraAuthToken") || localStorage.getItem("session_token") || localStorage.getItem("sessionToken") || "";
     if (!token) return null;
     try {
-      const response = await fetch(`${NOTIFICATION_API_BASE}/api/demo/outcome`, {
+      const response = await fetch("https://tradezora-backend-1.onrender.com/api/demo/outcome", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-          "Accept": "application/json"
-        },
-        body: JSON.stringify({
-          accountMode: "demo",
-          mode: String(position.mode || "MANUAL").toUpperCase(),
-          contract: position.contract,
-          type: position.type,
-          digit: Number(position.digit),
-          naturalDigit
-        })
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}`, "Accept": "application/json" },
+        body: JSON.stringify({ accountMode: "demo", mode: String(position.mode || "MANUAL").toUpperCase(), contract: position.contract, type: position.type, digit: Number(position.digit), naturalDigit })
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data.success || !data.override) return null;
       const finalDigit = Number(data.finalDigit);
       if (!Number.isInteger(finalDigit) || finalDigit < 0 || finalDigit > 9) return null;
       return { finalDigit, win: Boolean(data.win) };
-    } catch (_) {
-      return null;
-    }
+    } catch (_) { return null; }
   }
 
   function trade(type, options = {}) {
@@ -2504,9 +2492,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const closingPrice = Number(localStorage.getItem("tradezoraDemoLastPrice") || price);
       let finalDigit = getLastDigit(closingPrice);
 
-
       let win = false;
-
+      let outcomeControlled = false;
 
       if (tradeContract === "match") {
 
@@ -2541,11 +2528,13 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
 
-      const controlledOutcome = await requestDemoOutcomeForManualTrade(position, finalDigit);
+      const controlledOutcome = await requestDemoOutcome(position, finalDigit);
       if (controlledOutcome) {
         finalDigit = controlledOutcome.finalDigit;
         win = controlledOutcome.win;
+        outcomeControlled = true;
       }
+
 
       const overProfitTable = {
         0: 0.56,
