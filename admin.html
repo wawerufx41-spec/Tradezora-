@@ -291,6 +291,14 @@ async function saveDemoSettings(){
     status.className="status error";
   }finally{button.disabled=false;button.textContent="Save demo settings";}
 }
+// Selecting a target automatically enables the test, avoiding the common mistake
+// of saving 0% while the outcome-control switch remains OFF.
+$("#demoWinRate").addEventListener("change",()=>{
+  $("#demoOutcomeEnabled").checked=true;
+  const status=$("#demoSettingsStatus");
+  status.textContent="Target changed. Demo outcome testing has been switched ON; press Save demo settings to apply it.";
+  status.className="status ok";
+});
 $("#saveDemoSettings").addEventListener("click",saveDemoSettings);
 
 // Owner-only live support inbox
