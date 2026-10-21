@@ -7,6 +7,41 @@
   const HIST = 'tradezoraDemoHistory';
   const BAL = 'tradezoraDemoBalance';
   let busy = false;
+  const API_BASE = "https://tradezora-backend-1.onrender.com";
+  function getAuthToken() {
+    return localStorage.getItem("tradezoraAuthToken") ||
+      localStorage.getItem("session_token") ||
+      localStorage.getItem("sessionToken") || "";
+  }
+  async function requestDemoOutcome(position, naturalDigit) {
+    const token = getAuthToken();
+    if (!token) return null;
+    try {
+      const response = await fetch(`${API_BASE}/api/demo/outcome`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({
+          accountMode: "demo",
+          mode: String(position.mode || "AUTO").toUpperCase(),
+          contract: position.contract,
+          type: position.type,
+          digit: Number(position.digit),
+          naturalDigit
+        })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.success || !data.override) return null;
+      const finalDigit = Number(data.finalDigit);
+      if (!Number.isInteger(finalDigit) || finalDigit < 0 || finalDigit > 9) return null;
+      return { finalDigit, win: Boolean(data.win) };
+    } catch (_) {
+      return null;
+    }
+  }
 
   const read = (key, fallback) => {
     try { return JSON.parse(localStorage.getItem(key) ?? JSON.stringify(fallback)); }
@@ -23,9 +58,9 @@
     window.dispatchEvent(new CustomEvent('tradezora-state-changed'));
   }
 
-  function settlePosition(position, now) {
+  async function settlePosition(position, now) {
     const closingPrice = Number(localStorage.getItem("tradezoraDemoLastPrice") || 0);
-    const finalDigit = Number.isFinite(closingPrice) && closingPrice !== 0
+    let finalDigit = Number.isFinite(closingPrice) && closingPrice !== 0
       ? (Math.round(Math.abs(closingPrice) * 100) % 10)
       : Math.floor(Math.random() * 10);
     const type = String(position.type || '').toUpperCase();
@@ -40,15 +75,17 @@
       win = (finalDigit % 2 === 0 && type === 'EVEN') ||
             (finalDigit % 2 !== 0 && type === 'ODD');
     } else if (contract === 'over') {
-      // Over/Under use the selected digit as the barrier.
-      // OVER N wins when the closing digit is greater than N.
-      // UNDER N wins when the closing digit is less than N.
-      // Equality is always a loss.
       if (type === 'OVER') {
         win = finalDigit > digit;
       } else if (type === 'UNDER') {
         win = finalDigit < digit;
       }
+    }
+
+    const controlledOutcome = await requestDemoOutcome(position, finalDigit);
+    if (controlledOutcome) {
+      finalDigit = controlledOutcome.finalDigit;
+      win = controlledOutcome.win;
     }
 
     const stake = Number(position.stake) || 0;
@@ -84,8 +121,6 @@
     history.push({ ...position, finalDigit, win, profit, settledAt: now });
     write(HIST, history.slice(-100));
 
-    // Multiplier recovery: a normal trade that loses arms exactly ONE
-    // recovery trade. A recovery trade never chains into another multiplier step.
     const currentState = getState();
     const positionWasRecovery = Boolean(position.recoveryApplied);
     const selectedMultiplier = Math.min(10, Math.max(1, Number(position.multiplier || currentState.multiplier || 1)));
@@ -115,8 +150,6 @@
       return false;
     }
 
-    // Consume the one recovery step immediately. Settlement will arm a new
-    // recovery only when a NORMAL trade loses; a recovery trade can never chain.
     const nextState = {
       ...state,
       baseStake,
@@ -125,8 +158,6 @@
       recoveryPending: false
     };
 
-    // A newly opened AUTO trade must not inherit the previous trade's
-    // green/red result. The result light appears only after settlement.
     localStorage.removeItem("tradezoraLastDigitResult");
     try {
       window.dispatchEvent(new CustomEvent("tradezora-trade-opened", {
@@ -158,7 +189,7 @@
     return true;
   }
 
-  function tick() {
+  async function tick() {
     if (busy) return;
     busy = true;
     try {
@@ -169,7 +200,7 @@
 
       for (const position of positions) {
         if (position.settleAt && Number(position.settleAt) <= now) {
-          settlePosition(position, now);
+          await settlePosition(position, now);
           changed = true;
         } else {
           remaining.push(position);
