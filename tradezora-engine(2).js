@@ -16,35 +16,23 @@
   async function requestDemoOutcome(position, naturalDigit) {
     if (String(position.contract || '').toLowerCase() !== 'even' || !['EVEN', 'ODD'].includes(String(position.type || '').toUpperCase())) return null;
     const token = getAuthToken();
-    if (!token) return null;
+    if (!token) return { error: true };
     try {
       const response = await fetch(`${API_BASE}/api/demo/outcome`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-          "Accept": "application/json"
-        },
-        body: JSON.stringify({
-          accountMode: "demo",
-          mode: String(position.mode || "AUTO").toUpperCase(),
-          contract: position.contract,
-          type: position.type,
-          digit: Number(position.digit),
-          naturalDigit
-        })
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}`, "Accept": "application/json" },
+        body: JSON.stringify({ accountMode: "demo", mode: String(position.mode || "AUTO").toUpperCase(), contract: position.contract, type: position.type, digit: Number(position.digit), naturalDigit })
       });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok || !data.success || !data.override) return null;
+      if (response.ok && data.success && data.override === false) return null; // explicitly disabled by admin
+      if (!response.ok || !data.success || data.override !== true) return { error: true };
       const finalDigit = Number(data.finalDigit);
-      if (!Number.isInteger(finalDigit) || finalDigit < 0 || finalDigit > 9) return null;
+      if (!Number.isInteger(finalDigit) || finalDigit < 0 || finalDigit > 9) return { error: true };
       const type = String(position.type || '').toUpperCase();
       const actualWin = (finalDigit % 2 === 0 && type === 'EVEN') || (finalDigit % 2 !== 0 && type === 'ODD');
-      if (actualWin !== Boolean(data.win)) return null;
+      if (actualWin !== Boolean(data.win)) return { error: true };
       return { finalDigit, win: actualWin };
-    } catch (_) {
-      return null;
-    }
+    } catch (_) { return { error: true }; }
   }
 
   const read = (key, fallback) => {
@@ -87,6 +75,10 @@
     }
 
     const controlledOutcome = await requestDemoOutcome(position, finalDigit);
+    if (controlledOutcome?.error) {
+      window.dispatchEvent(new CustomEvent('tradezora-settlement-error', { detail: { message: 'Even/Odd demo settlement paused because the outcome-control service did not confirm the result.' } }));
+      return false;
+    }
     if (controlledOutcome) {
       finalDigit = controlledOutcome.finalDigit;
       win = controlledOutcome.win;
@@ -140,6 +132,7 @@
         detail: { digit: finalDigit, win: Boolean(win), profit: profit }
       }));
     } catch (e) {}
+    return true;
   }
 
   function openContinuousTrade(state, now) {
@@ -204,8 +197,9 @@
 
       for (const position of positions) {
         if (position.settleAt && Number(position.settleAt) <= now) {
-          await settlePosition(position, now);
-          changed = true;
+          const settled = await settlePosition(position, now);
+          if (settled === false) remaining.push(position);
+          else changed = true;
         } else {
           remaining.push(position);
         }
