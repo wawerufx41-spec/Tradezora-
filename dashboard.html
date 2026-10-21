@@ -456,7 +456,7 @@
   };
 })();
 </script>
-<script src="tradezora-engine.js?v=3"></script>
+<script src="tradezora-engine.js?v=4"></script>
   <script>
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -2351,6 +2351,36 @@ document.addEventListener("DOMContentLoaded", () => {
      TRADE ENGINE
   ========================= */
 
+  async function requestDemoOutcomeForManualTrade(position, naturalDigit) {
+    const token = getNotificationToken();
+    if (!token) return null;
+    try {
+      const response = await fetch(`${NOTIFICATION_API_BASE}/api/demo/outcome`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({
+          accountMode: "demo",
+          mode: String(position.mode || "MANUAL").toUpperCase(),
+          contract: position.contract,
+          type: position.type,
+          digit: Number(position.digit),
+          naturalDigit
+        })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.success || !data.override) return null;
+      const finalDigit = Number(data.finalDigit);
+      if (!Number.isInteger(finalDigit) || finalDigit < 0 || finalDigit > 9) return null;
+      return { finalDigit, win: Boolean(data.win) };
+    } catch (_) {
+      return null;
+    }
+  }
+
   function trade(type, options = {}) {
 
     if (accountMode === "real") {
@@ -2458,7 +2488,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     // Simulate the contract result after 5 seconds.
-    setTimeout(() => {
+    setTimeout(async () => {
 
       const index =
         positions.findIndex(
@@ -2472,7 +2502,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Settlement digit comes from the simulated closing quote, not a
       // separate random result. Example 9557.77 closes on digit 7.
       const closingPrice = Number(localStorage.getItem("tradezoraDemoLastPrice") || price);
-      const finalDigit = getLastDigit(closingPrice);
+      let finalDigit = getLastDigit(closingPrice);
 
 
       let win = false;
@@ -2510,6 +2540,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       }
 
+
+      const controlledOutcome = await requestDemoOutcomeForManualTrade(position, finalDigit);
+      if (controlledOutcome) {
+        finalDigit = controlledOutcome.finalDigit;
+        win = controlledOutcome.win;
+      }
 
       const overProfitTable = {
         0: 0.56,
