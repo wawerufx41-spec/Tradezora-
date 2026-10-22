@@ -263,6 +263,13 @@
         baseStake:Number(config.baseStake ?? config.stake ?? 1),
         multiplier:Math.min(10, Math.max(1, Number(config.multiplier || 1))),
         recoveryPending:false,
+        // Start a fresh session with all session counters aligned to P/L.
+        sessionPnl:0,
+        sessionWins:0,
+        sessionLosses:0,
+        sessionTrades:0,
+        wins:0,
+        losses:0,
         mode:config.mode || 'AUTO',
         market:config.market || null,
         nextTradeAt:Date.now()
