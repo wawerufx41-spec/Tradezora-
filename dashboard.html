@@ -861,9 +861,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   renderBalance();
+  // Keep the Session panel refreshed even when no positions are open.
+  // AUTO settlements update the shared engine state asynchronously, and this
+  // lightweight refresh ensures the displayed counters/P&L don't stay stale
+  // while the user is idle or has navigated back to the Trade page.
   window.setInterval(() => {
-    if (positions.length) renderBalance();
-  }, 1000);
+    try {
+      const storedPositions = JSON.parse(localStorage.getItem("tradezoraDemoPositions") || "[]");
+      if (Array.isArray(storedPositions)) positions = storedPositions;
+      const storedHistory = JSON.parse(localStorage.getItem("tradezoraDemoHistory") || "[]");
+      if (Array.isArray(storedHistory)) history = storedHistory;
+      renderBalance();
+    } catch (error) {
+      renderBalance();
+    }
+  }, 500);
 
 
   /* =========================
