@@ -799,11 +799,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const openStatusEl = $("#sessionOpenStatus");
     const sessionState = currentContinuousState();
     const sessionPnlValue = Number(sessionState.sessionPnl || 0);
-    // Derive the displayed settled count from the engine counters plus the
-    // dashboard's manual-settlement counters. The event bridge below keeps
-    // this panel refreshed as trades settle.
-    const sessionWinsValue = Number(sessionState.sessionWins ?? sessionState.wins ?? 0) + wins;
-    const sessionLossesValue = Number(sessionState.sessionLosses ?? sessionState.losses ?? 0) + losses;
+    // The Session panel must show only the current AUTO session.
+    // Do not add page-level/manual counters, which may include older trades.
+    const sessionWinsValue = Math.max(0, Number(sessionState.sessionWins ?? 0) || 0);
+    const sessionLossesValue = Math.max(0, Number(sessionState.sessionLosses ?? 0) || 0);
+    const sessionTradesValue = Math.max(0, Number(sessionState.sessionTrades ?? (sessionWinsValue + sessionLossesValue)) || 0);
 
     if (balanceEl) balanceEl.textContent = accountMode === "real"
       ? (realBalanceLoadStatus === "error" ? "Unavailable" : (realBalance === null ? "Loading…" : money(realBalance)))
@@ -826,7 +826,7 @@ document.addEventListener("DOMContentLoaded", () => {
       pnlElement.style.color = sessionPnlValue >= 0 ? "#16e58a" : "#ff5d6c";
     }
     if (recordEl) recordEl.textContent = `${sessionWinsValue}W · ${sessionLossesValue}L`;
-    if (totalEl) totalEl.textContent = `${sessionWinsValue + sessionLossesValue} trades`;
+    if (totalEl) totalEl.textContent = `${sessionTradesValue} trades`;
     if (openStatusEl) {
       const openCount = positions.length;
       const countNode = openStatusEl.querySelector(".session-open-count");
@@ -861,21 +861,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   renderBalance();
-  // Keep the Session panel refreshed even when no positions are open.
-  // AUTO settlements update the shared engine state asynchronously, and this
-  // lightweight refresh ensures the displayed counters/P&L don't stay stale
-  // while the user is idle or has navigated back to the Trade page.
   window.setInterval(() => {
-    try {
-      const storedPositions = JSON.parse(localStorage.getItem("tradezoraDemoPositions") || "[]");
-      if (Array.isArray(storedPositions)) positions = storedPositions;
-      const storedHistory = JSON.parse(localStorage.getItem("tradezoraDemoHistory") || "[]");
-      if (Array.isArray(storedHistory)) history = storedHistory;
-      renderBalance();
-    } catch (error) {
-      renderBalance();
-    }
-  }, 500);
+    if (positions.length) renderBalance();
+  }, 1000);
 
 
   /* =========================
