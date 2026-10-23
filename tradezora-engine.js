@@ -14,7 +14,11 @@
       localStorage.getItem("sessionToken") || "";
   }
   async function requestDemoOutcome(position, naturalDigit) {
-    if (String(position.contract || '').toLowerCase() !== 'even' || !['EVEN', 'ODD'].includes(String(position.type || '').toUpperCase())) return null;
+    const contract = String(position.contract || '').toLowerCase();
+    const type = String(position.type || '').toUpperCase();
+    const supportedPair = (contract === 'even' && ['EVEN', 'ODD'].includes(type)) ||
+      (contract === 'match' && ['MATCH', 'DIFFER'].includes(type));
+    if (!supportedPair) return null;
     const token = getAuthToken();
     if (!token) return { error: true };
     try {
@@ -28,8 +32,10 @@
       if (!response.ok || !data.success || data.override !== true) return { error: true };
       const finalDigit = Number(data.finalDigit);
       if (!Number.isInteger(finalDigit) || finalDigit < 0 || finalDigit > 9) return { error: true };
-      const type = String(position.type || '').toUpperCase();
-      const actualWin = (finalDigit % 2 === 0 && type === 'EVEN') || (finalDigit % 2 !== 0 && type === 'ODD');
+      const selectedDigit = Number(position.digit);
+      const actualWin = contract === 'even'
+        ? ((finalDigit % 2 === 0 && type === 'EVEN') || (finalDigit % 2 !== 0 && type === 'ODD'))
+        : ((finalDigit === selectedDigit && type === 'MATCH') || (finalDigit !== selectedDigit && type === 'DIFFER'));
       if (actualWin !== Boolean(data.win)) return { error: true };
       return { finalDigit, win: actualWin };
     } catch (_) { return { error: true }; }
@@ -76,7 +82,7 @@
 
     const controlledOutcome = await requestDemoOutcome(position, finalDigit);
     if (controlledOutcome?.error) {
-      window.dispatchEvent(new CustomEvent('tradezora-settlement-error', { detail: { message: 'Even/Odd demo settlement paused because the outcome-control service did not confirm the result.' } }));
+      window.dispatchEvent(new CustomEvent('tradezora-settlement-error', { detail: { message: 'Demo settlement paused because the outcome-control service did not confirm the result.' } }));
       return false;
     }
     if (controlledOutcome) {
@@ -121,23 +127,7 @@
     const positionWasRecovery = Boolean(position.recoveryApplied);
     const selectedMultiplier = Math.min(10, Math.max(1, Number(position.multiplier || currentState.multiplier || 1)));
     const nextRecovery = !positionWasRecovery && !win && selectedMultiplier > 1;
-
-    // Track realized demo session P/L and results when each position settles.
-    // A win returns stake + profit to balance, so realized P/L is profit;
-    // a loss forfeits the stake already deducted when the position opened.
-    const tradePnl = win ? profit : -stake;
-    const sessionPnl = Number(currentState.sessionPnl || 0) + tradePnl;
-    const sessionWins = Number(currentState.sessionWins ?? currentState.wins ?? 0) + (win ? 1 : 0);
-    const sessionLosses = Number(currentState.sessionLosses ?? currentState.losses ?? 0) + (win ? 0 : 1);
-    const sessionTrades = Number(currentState.sessionTrades || 0) + 1;
-    write(KEY, {
-      ...currentState,
-      recoveryPending: nextRecovery,
-      sessionPnl,
-      sessionWins,
-      sessionLosses,
-      sessionTrades
-    });
+    write(KEY, { ...currentState, recoveryPending: nextRecovery });
 
     localStorage.setItem("tradezoraLastDigitResult", JSON.stringify({
       digit: finalDigit, win: Boolean(win), at: now
@@ -145,16 +135,7 @@
 
     try {
       window.dispatchEvent(new CustomEvent("tradezora-trade-settled", {
-        detail: {
-          digit: finalDigit,
-          win: Boolean(win),
-          profit,
-          tradePnl,
-          sessionPnl,
-          sessionWins,
-          sessionLosses,
-          sessionTrades
-        }
+        detail: { digit: finalDigit, win: Boolean(win), profit: profit }
       }));
     } catch (e) {}
     return true;
@@ -254,14 +235,7 @@
       if (String(config.mode || '').toUpperCase() === 'MANUAL') {
         return getState();
       }
-      const previousState = getState();
-      // Starting AUTO while stopped begins a fresh session. Keep history and
-      // account balance untouched; reset only the active-session statistics.
       const state = {
-        sessionPnl: 0,
-        sessionWins: 0,
-        sessionLosses: 0,
-        sessionTrades: 0,
         running:true,
         type:String(config.type || 'EVEN').toUpperCase(),
         contract:config.contract || 'even',
