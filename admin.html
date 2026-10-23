@@ -15,59 +15,19 @@
 .support-layout{display:grid;grid-template-columns:minmax(0, .8fr) minmax(0,1.2fr);gap:12px}.support-conversations{display:grid;gap:8px;max-height:65vh;overflow:auto}.support-conversation{width:100%;text-align:left;border:1px solid var(--border);border-radius:12px;background:#07100c;color:#edf7f2;padding:12px}.support-conversation.active{border-color:var(--green);background:#0b1a12}.support-conversation strong{display:block;font-size:12px;overflow-wrap:anywhere}.support-conversation small{display:block;color:var(--muted);font-size:10px;margin-top:4px;overflow-wrap:anywhere}.support-preview{font-size:11px;color:#cbd7d2;margin-top:8px;display:block;overflow-wrap:anywhere}.support-unread{float:right;background:var(--green);color:#031009;border-radius:99px;padding:2px 6px;font-size:9px;font-weight:900}.support-chat{border:1px solid var(--border);border-radius:13px;min-width:0;overflow:hidden}.support-thread-head{padding:12px;border-bottom:1px solid var(--border);font-size:12px}.support-thread{height:42vh;min-height:240px;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:9px}.support-message{max-width:90%;border:1px solid var(--border);background:#101a15;border-radius:12px;padding:10px;font-size:12px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}.support-message.user{align-self:flex-start}.support-message.admin{align-self:flex-end;background:#103b28;border-color:#20543b}.support-message small{display:block;color:var(--muted);font-size:9px;margin-top:5px}.support-reply{display:flex;gap:8px;padding:10px;border-top:1px solid var(--border)}.support-reply textarea{min-width:0;flex:1;resize:vertical;background:#050807;color:#edf7f2;border:1px solid var(--border);border-radius:9px;padding:10px;font:inherit;font-size:12px}.support-reply button{align-self:stretch}.support-status-note{font-size:10px;color:var(--muted);padding:0 12px 10px}@media(max-width:700px){.support-layout{grid-template-columns:1fr}.support-conversations{max-height:230px}.support-thread{height:36vh;min-height:200px}}
 
 
-
-/* TradeZora admin layout repair: preserve original sections and handlers. */
-html { -webkit-text-size-adjust: 100%; }
-body { width: 100%; overflow-x: hidden; }
-.wrap { width: min(1100px, 100%); min-width: 0; }
-.topbar, .brand, .topbar > div { min-width: 0; }
-.brand strong, .brand small { overflow-wrap: anywhere; }
-.nav { display:flex; flex-wrap:wrap; overflow:visible; align-items:center; }
-.nav button { flex: 0 0 auto; max-width:100%; }
-.section, .hero, .notice, .stats, .grid, .support-layout,
-.support-chat, .support-thread, .user-modal-panel { min-width: 0; }
-.section { overflow-wrap: anywhere; }
-.grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-input, select, textarea, button { max-width:100%; }
-input, select, textarea { min-width:0; }
-.kyc-details { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.support-layout { grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); }
-@media (min-width:700px) {
-  .nav { flex-wrap:wrap; }
-  .stats { grid-template-columns:repeat(4,minmax(0,1fr)); }
-  .grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
-}
-@media (max-width:699px) {
-  .topbar { padding:10px 12px; gap:8px; }
-  .logo { width:36px; height:36px; flex:0 0 36px; }
-  .brand { gap:7px; }
-  .brand strong { font-size:15px; }
-  .demo { padding:5px 7px; }
-  .back { padding:8px 9px; white-space:nowrap; }
-  .wrap { padding:14px 10px; }
-  .hero { padding:15px; }
-  .hero h1 { font-size:22px; }
-  .section { padding:12px; }
-  .head { align-items:flex-start; flex-wrap:wrap; }
-  .nav { display:flex; flex-wrap:nowrap; overflow-x:auto; overflow-y:hidden; padding-bottom:8px; max-width:100%; }
-  .nav button { flex:0 0 auto; }
-  .grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
-  .support-layout { grid-template-columns:minmax(0,1fr); }
-  .support-conversations { max-height:230px; }
-  .support-thread { height:36vh; min-height:200px; }
-  .kyc-details { grid-template-columns:minmax(0,1fr); }
-  .kyc-card-head { flex-wrap:wrap; }
-  .support-reply { flex-wrap:wrap; }
-  .support-reply textarea { flex-basis:100%; }
-}
-@media (max-width:380px) {
-  .topbar { flex-wrap:wrap; }
-  .topbar > div:last-child { margin-left:auto; }
-  .stats { grid-template-columns:minmax(0,1fr); }
-  .grid { grid-template-columns:minmax(0,1fr); }
-  .kyc-actions { flex-direction:column; }
-}
+/* Per-user demo contract win-rate controls; layout-only addition to existing admin. */
+.demo-rate-panel{margin-top:12px;border:1px solid var(--border);border-radius:12px;padding:12px;background:#07100c;min-width:0}
+.demo-rate-panel summary{cursor:pointer;font-weight:800;font-size:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.demo-rate-panel p{font-size:11px;line-height:1.5;color:var(--muted)}
+.demo-only-tag{font-size:9px;border:1px solid var(--border);border-radius:99px;padding:3px 7px;color:#9ce7b9}
+.demo-rate-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.demo-rate-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px;border:1px solid var(--border);border-radius:9px;font-size:11px;font-weight:700;min-width:0}
+.demo-rate-controls{display:flex;align-items:center;gap:5px;white-space:nowrap}
+.demo-rate-controls input[type=number]{width:64px;min-width:0;background:#050807;color:#edf7f2;border:1px solid var(--border);border-radius:7px;padding:7px}
+.demo-rate-controls input[type=checkbox]{accent-color:#38d783}
+.demo-rate-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.demo-rate-actions [role=status]{font-size:11px;color:#9ce7b9;overflow-wrap:anywhere}
+@media(max-width:520px){.demo-rate-grid{grid-template-columns:1fr}.demo-rate-row{font-size:12px}}
 
 </style>
 </head>
@@ -148,7 +108,11 @@ async function loadUsers(){
   const rows=Array.isArray(data.users)?data.users:[];
   if(!rows.length){message.innerHTML="<strong>No users found.</strong>";return;}
   message.style.display="none";
-  list.innerHTML=rows.map(u=>`<article class="kyc-card"><div class="kyc-card-head"><div><h3>${escapeHtml(u.name||"Unnamed user")}</h3><div class="email">${escapeHtml(u.email||"")}</div></div><span class="kyc-badge ${String(u.status||"active").toLowerCase()==="active"?"approved":""}">${escapeHtml(String(u.status||"unknown").toUpperCase())}</span></div><div class="kyc-details"><div class="kyc-detail"><small>User ID</small><span>${escapeHtml(u.id??"—")}</span></div><div class="kyc-detail"><small>Role</small><span>${escapeHtml(u.role||"user")}</span></div><div class="kyc-detail"><small>Demo balance</small><span>$${Number(u.balance??0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div><div class="kyc-detail"><small>Registered</small><span>${escapeHtml(formatKycDate(u.created_at))}</span></div><div class="kyc-detail"><small>KYC</small><span>${escapeHtml(u.kyc_status||"pending")}</span></div></div></article>`).join("");
+  list.innerHTML=rows.map(u=>`<article class="kyc-card"><div class="kyc-card-head"><div><h3>${escapeHtml(u.name||"Unnamed user")}</h3><div class="email">${escapeHtml(u.email||"")}</div></div><span class="kyc-badge ${String(u.status||"active").toLowerCase()==="active"?"approved":""}">${escapeHtml(String(u.status||"unknown").toUpperCase())}</span></div><div class="kyc-details"><div class="kyc-detail"><small>User ID</small><span>${escapeHtml(u.id??"—")}</span></div><div class="kyc-detail"><small>Role</small><span>${escapeHtml(u.role||"user")}</span></div><div class="kyc-detail"><small>Demo balance</small><span>$${Number(u.balance??0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div><div class="kyc-detail"><small>Registered</small><span>${escapeHtml(formatKycDate(u.created_at))}</span></div><div class="kyc-detail"><small>KYC</small><span>${escapeHtml(u.kyc_status||"pending")}</span></div></div>
+ <details class="demo-rate-panel" data-demo-rate-panel="${Number(u.id)}"><summary>Demo win-rate settings <span class="demo-only-tag">DEMO ONLY</span></summary>
+ <p>Set the target independently for each contract type. These settings must not affect real-account trades or balances.</p>
+ <div class="demo-rate-grid">${["EVEN","ODD","MATCH","DIFFER","OVER","UNDER"].map(type=>`<label class="demo-rate-row"><span>${type}</span><span class="demo-rate-controls"><input type="checkbox" data-rate-enabled="${Number(u.id)}-${type}" checked aria-label="Enable ${type}"><input type="number" min="0" max="100" step="1" value="70" data-rate-value="${Number(u.id)}-${type}" aria-label="${type} target win rate"> <span>%</span></span></label>`).join("")}</div>
+ <div class="demo-rate-actions"><button type="button" class="refresh" data-load-demo-rates="${Number(u.id)}">Reload saved</button><button type="button" class="refresh" data-save-demo-rates="${Number(u.id)}">Save demo rates</button><span data-demo-rate-status="${Number(u.id)}" role="status"></span></div></details></article>`).join("");
  }catch(e){console.error("Load admin users:",e);message.innerHTML=`<strong>${escapeHtml(e.message||"Could not load users.")}</strong>Check the admin session and backend response.`;}
 }
 
@@ -301,6 +265,31 @@ async function loadSupportThread(id){selectedSupportId=Number(id);$('#supportThr
 $('#supportConversations').addEventListener('click',e=>{const b=e.target.closest('[data-support-id]');if(b)loadSupportThread(b.dataset.supportId);});
 $('#refreshSupport').addEventListener('click',async()=>{await loadSupportConversations();if(selectedSupportId)await loadSupportThread(selectedSupportId);});
 $('#supportReplyForm').addEventListener('submit',async e=>{e.preventDefault();if(!selectedSupportId)return;const input=$('#supportReplyInput'),button=$('#supportReplySend'),message=input.value.trim();if(!message)return;button.disabled=true;try{await supportApi(`/api/admin/support/conversations/${encodeURIComponent(selectedSupportId)}/messages`,{method:'POST',body:JSON.stringify({message})});input.value='';supportStatus('Reply sent to the user.');await loadSupportThread(selectedSupportId);}catch(err){supportStatus(err.message||'Could not send reply.',true);}finally{button.disabled=false;}});
+
+
+// Per-user demo contract rates. Uses the owner-admin API on TradeZora backend 1.
+const DEMO_RATE_TYPES=["EVEN","ODD","MATCH","DIFFER","OVER","UNDER"];
+async function requestDemoRates(userId, options={}){
+ const token=getAuthToken();if(!token)throw new Error("Admin session required.");
+ const response=await fetch(`${API_BASE}/api/admin/users/${encodeURIComponent(userId)}/demo-contract-settings`,{...options,headers:{Accept:"application/json",...(options.body?{"Content-Type":"application/json"}:{}),Authorization:`Bearer ${token}`,...(options.headers||{})}});
+ const data=await response.json().catch(()=>({}));if(!response.ok||!data.success)throw new Error(data.error||`Demo settings request failed (HTTP ${response.status}).`);return data;
+}
+async function loadDemoContractRates(userId){
+ const panel=document.querySelector(`[data-demo-rate-panel="${userId}"]`);if(!panel)return;
+ const status=panel.querySelector(`[data-demo-rate-status="${userId}"]`);status.textContent="Loading saved settings…";
+ try{const data=await requestDemoRates(userId);for(const type of DEMO_RATE_TYPES){const item=data.settings?.[type]||{enabled:true,target_win_rate:70};const enabled=panel.querySelector(`[data-rate-enabled="${userId}-${type}"]`);const value=panel.querySelector(`[data-rate-value="${userId}-${type}"]`);if(enabled)enabled.checked=Boolean(item.enabled);if(value)value.value=String(Math.max(0,Math.min(100,Number(item.target_win_rate??70))));}status.textContent="Saved settings loaded.";
+ }catch(error){status.textContent=error.message||"Could not load saved settings.";status.style.color="#ffb4a9";}
+}
+async function saveDemoContractRates(userId){
+ const panel=document.querySelector(`[data-demo-rate-panel="${userId}"]`);if(!panel)return;const status=panel.querySelector(`[data-demo-rate-status="${userId}"]`);const button=panel.querySelector(`[data-save-demo-rates="${userId}"]`);const settings={};
+ for(const type of DEMO_RATE_TYPES){const enabled=panel.querySelector(`[data-rate-enabled="${userId}-${type}"]`);const input=panel.querySelector(`[data-rate-value="${userId}-${type}"]`);const rate=Number(input?.value);if(!Number.isInteger(rate)||rate<0||rate>100){status.textContent=`${type}: enter a whole-number rate from 0 to 100.`;status.style.color="#ffb4a9";input?.focus();return;}settings[type]={enabled:Boolean(enabled?.checked),target_win_rate:rate};}
+ if(button){button.disabled=true;button.textContent="Saving…";}status.textContent="Saving…";status.style.color="";
+ try{await requestDemoRates(userId,{method:"PUT",body:JSON.stringify({settings})});status.textContent="Saved successfully. Demo only.";status.style.color="";}
+ catch(error){status.textContent=error.message||"Could not save settings.";status.style.color="#ffb4a9";}
+ finally{if(button){button.disabled=false;button.textContent="Save demo rates";}}
+}
+$("#usersList").addEventListener("click",event=>{const load=event.target.closest("[data-load-demo-rates]");const save=event.target.closest("[data-save-demo-rates]");if(load)loadDemoContractRates(load.dataset.loadDemoRates);if(save)saveDemoContractRates(save.dataset.saveDemoRates);});
+$("#usersList").addEventListener("toggle",event=>{const panel=event.target.closest("details[data-demo-rate-panel]");if(panel&&panel.open&&!panel.dataset.loaded){panel.dataset.loaded="1";loadDemoContractRates(panel.dataset.demoRatePanel);}},true);
 
 setInterval(()=>{if(document.querySelector("#support.active")){loadSupportConversations();if(selectedSupportId)loadSupportThread(selectedSupportId);}},12000);
 verifyAdmin();loadStats();loadUsers();loadKyc();loadWithdrawals();
