@@ -127,7 +127,21 @@
     const positionWasRecovery = Boolean(position.recoveryApplied);
     const selectedMultiplier = Math.min(10, Math.max(1, Number(position.multiplier || currentState.multiplier || 1)));
     const nextRecovery = !positionWasRecovery && !win && selectedMultiplier > 1;
-    write(KEY, { ...currentState, recoveryPending: nextRecovery });
+    // Preserve session totals when each demo position settles.
+    // Wins add net profit; losses subtract the stake already deducted at open.
+    const tradePnl = win ? profit : -stake;
+    const sessionPnl = Number(currentState.sessionPnl || 0) + tradePnl;
+    const sessionWins = Number(currentState.sessionWins ?? currentState.wins ?? 0) + (win ? 1 : 0);
+    const sessionLosses = Number(currentState.sessionLosses ?? currentState.losses ?? 0) + (win ? 0 : 1);
+    const sessionTrades = Number(currentState.sessionTrades || 0) + 1;
+    write(KEY, {
+      ...currentState,
+      recoveryPending: nextRecovery,
+      sessionPnl,
+      sessionWins,
+      sessionLosses,
+      sessionTrades
+    });
 
     localStorage.setItem("tradezoraLastDigitResult", JSON.stringify({
       digit: finalDigit, win: Boolean(win), at: now
@@ -135,7 +149,16 @@
 
     try {
       window.dispatchEvent(new CustomEvent("tradezora-trade-settled", {
-        detail: { digit: finalDigit, win: Boolean(win), profit: profit }
+        detail: {
+          digit: finalDigit,
+          win: Boolean(win),
+          profit,
+          tradePnl,
+          sessionPnl,
+          sessionWins,
+          sessionLosses,
+          sessionTrades
+        }
       }));
     } catch (e) {}
     return true;
