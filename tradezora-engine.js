@@ -17,7 +17,8 @@
     const contract = String(position.contract || '').toLowerCase();
     const type = String(position.type || '').toUpperCase();
     const supportedPair = (contract === 'even' && ['EVEN', 'ODD'].includes(type)) ||
-      (contract === 'match' && ['MATCH', 'DIFFER'].includes(type));
+      (contract === 'match' && ['MATCH', 'DIFFER'].includes(type)) ||
+      (contract === 'over' && ['OVER', 'UNDER'].includes(type));
     if (!supportedPair) return null;
     const token = getAuthToken();
     if (!token) return { error: true };
@@ -35,7 +36,9 @@
       const selectedDigit = Number(position.digit);
       const actualWin = contract === 'even'
         ? ((finalDigit % 2 === 0 && type === 'EVEN') || (finalDigit % 2 !== 0 && type === 'ODD'))
-        : ((finalDigit === selectedDigit && type === 'MATCH') || (finalDigit !== selectedDigit && type === 'DIFFER'));
+        : contract === 'match'
+          ? ((finalDigit === selectedDigit && type === 'MATCH') || (finalDigit !== selectedDigit && type === 'DIFFER'))
+          : ((finalDigit > selectedDigit && type === 'OVER') || (finalDigit < selectedDigit && type === 'UNDER'));
       if (actualWin !== Boolean(data.win)) return { error: true };
       return { finalDigit, win: actualWin };
     } catch (_) { return { error: true }; }
