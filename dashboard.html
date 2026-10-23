@@ -462,7 +462,7 @@
   };
 })();
 </script>
-<script src="tradezora-engine.js?v=4"></script>
+<script src="tradezora-engine.js?v=5"></script>
   <script>
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -799,11 +799,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const openStatusEl = $("#sessionOpenStatus");
     const sessionState = currentContinuousState();
     const sessionPnlValue = Number(sessionState.sessionPnl || 0);
-    // Derive the displayed settled count from the engine counters plus the
-    // dashboard's manual-settlement counters. The event bridge below keeps
-    // this panel refreshed as trades settle.
-    const sessionWinsValue = Number(sessionState.sessionWins ?? sessionState.wins ?? 0) + wins;
-    const sessionLossesValue = Number(sessionState.sessionLosses ?? sessionState.losses ?? 0) + losses;
+      const previousState = getState();
+      // Starting AUTO while stopped begins a fresh session. Keep history and
+      // account balance untouched; reset only the active-session statistics.
+      const state = {
+        sessionPnl: 0,
+        sessionWins: 0,
+        sessionLosses: 0,
+        sessionTrades: 0,
+        running:true,
+        type:String(config.type || 'EVEN').toUpperCase(),
 
     if (balanceEl) balanceEl.textContent = accountMode === "real"
       ? (realBalanceLoadStatus === "error" ? "Unavailable" : (realBalance === null ? "Loading…" : money(realBalance)))
