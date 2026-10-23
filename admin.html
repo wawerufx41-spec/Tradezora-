@@ -1,320 +1,125 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#050807">
-<title>TradeZora — Admin Panel</title>
-<style>
-*{box-sizing:border-box}html,body{margin:0;padding:0;min-height:100%;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#050807;color:#edf7f2}body{padding-bottom:30px}button,input{font:inherit}button{cursor:pointer}a{text-decoration:none;color:inherit}:root{--bg:#050807;--panel:#09100d;--border:#173528;--green:#16e58a;--muted:#8f9b96;--red:#ff4f61}
-.topbar{position:sticky;top:0;z-index:50;min-height:68px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:rgba(5,8,7,.96);border-bottom:1px solid var(--border);backdrop-filter:blur(12px)}.brand{display:flex;align-items:center;gap:10px}.logo{width:42px;height:42px;border:2px solid var(--green);border-radius:12px;display:grid;place-items:center;color:var(--green);font-weight:900}.brand strong{display:block;font-size:17px}.brand small{display:block;color:var(--muted);font-size:11px;margin-top:2px}.demo{border:1px solid #5d3b86;background:#211632;color:#d8b9ff;border-radius:999px;padding:6px 9px;font-size:10px;font-weight:800}.back{border:1px solid var(--border);background:var(--panel);border-radius:11px;padding:10px 12px;font-size:12px;font-weight:700}
-.wrap{width:min(1100px,100%);margin:auto;padding:18px 14px}.hero{border:1px solid var(--border);background:#0b1712;border-radius:18px;padding:18px;margin-bottom:14px}.hero h1{margin:0 0 5px;font-size:25px}.hero p{margin:0;color:var(--muted);font-size:13px;line-height:1.5}.chip{display:inline-flex;margin-top:12px;padding:7px 10px;border-radius:999px;background:rgba(22,229,138,.09);border:1px solid rgba(22,229,138,.3);color:var(--green);font-size:11px;font-weight:800}.notice{border:1px solid #5b4b24;background:#17140b;color:#d9c98c;border-radius:14px;padding:12px 13px;margin-bottom:14px;font-size:12px;line-height:1.45}
-.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}.stat{background:var(--panel);border:1px solid var(--border);border-radius:15px;padding:14px}.label{font-size:11px;color:var(--muted)}.value{font-size:22px;font-weight:900;margin-top:7px}.sub{font-size:10px;color:var(--muted);margin-top:4px}.nav{display:flex;gap:8px;overflow:auto;padding-bottom:8px;margin-bottom:12px;scrollbar-width:none}.nav::-webkit-scrollbar{display:none}.nav button{white-space:nowrap;border:1px solid var(--border);background:var(--panel);color:#cbd7d2;border-radius:10px;padding:10px 12px;font-size:12px;font-weight:700}.nav button.active{border-color:var(--green);background:rgba(22,229,138,.09);color:var(--green)}
-.section{display:none;background:var(--panel);border:1px solid var(--border);border-radius:17px;padding:15px;margin-bottom:14px}.section.active{display:block}.head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px}.section h2{font-size:17px;margin:0}.head span{font-size:11px;color:var(--muted)}.search{width:100%;background:#060b09;color:#edf7f2;border:1px solid var(--border);border-radius:11px;padding:12px;outline:none;margin-bottom:12px}.empty{border:1px dashed #234536;border-radius:13px;padding:22px 14px;text-align:center;color:var(--muted);font-size:12px;line-height:1.5}.empty strong{display:block;color:#dce8e3;margin-bottom:5px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.action{min-height:88px;text-align:left;background:#07100c;border:1px solid var(--border);border-radius:14px;padding:13px;color:#edf7f2}.action b{display:block;font-size:13px;margin-bottom:6px}.action span{font-size:10px;color:var(--muted);line-height:1.4}.profile{display:flex;align-items:center;gap:12px;padding:13px;border:1px solid var(--border);border-radius:14px;background:#07100c}.avatar{width:45px;height:45px;border-radius:50%;display:grid;place-items:center;background:rgba(22,229,138,.12);border:1px solid rgba(22,229,138,.35);color:var(--green);font-weight:900}.profile small{display:block;color:var(--muted);margin-top:3px;font-size:11px;word-break:break-all}.refresh{border:1px solid var(--border);background:#07100c;color:#dce8e3;border-radius:10px;padding:8px 10px;font-size:11px;font-weight:700}.status{margin-top:12px;padding:11px;border-radius:11px;font-size:11px;display:none}.status.ok{display:block;background:rgba(22,229,138,.08);border:1px solid rgba(22,229,138,.25);color:var(--green)}.status.error{display:block;background:rgba(255,79,97,.08);border:1px solid rgba(255,79,97,.25);color:#ff9ba7}.footer{padding:10px 4px;color:#62716a;font-size:10px;text-align:center} .kyc-tools{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:12px}.kyc-tools .search{margin:0}.kyc-list{display:grid;gap:12px}.kyc-card{border:1px solid var(--border);border-radius:14px;background:#07100c;padding:14px}.kyc-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.kyc-card h3{margin:0 0 5px;font-size:14px;overflow-wrap:anywhere}.kyc-card .email{color:var(--muted);font-size:11px;overflow-wrap:anywhere}.kyc-badge{display:inline-block;padding:6px 8px;border-radius:7px;font-size:9px;font-weight:900;background:#21190b;border:1px solid #594521;color:#ffc66d;white-space:nowrap}.kyc-badge.approved{background:#102019;border-color:#20543b;color:var(--green)}.kyc-badge.rejected{background:#211014;border-color:#5a2930;color:#ff9ba7}.kyc-details{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:13px}.kyc-detail{padding:9px;border:1px solid #14291e;border-radius:9px;min-width:0}.kyc-detail small{display:block;color:var(--muted);font-size:9px;margin-bottom:5px}.kyc-detail span{display:block;font-size:11px;overflow-wrap:anywhere;white-space:pre-wrap}.kyc-notes{margin-top:9px;padding:10px;border-radius:9px;background:#0a1510;color:#cbd7d2;font-size:11px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}.kyc-images{margin:12px 0}.kyc-image-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.kyc-image-grid figure{margin:0;min-width:0}.kyc-image-grid figcaption{font-size:11px;color:var(--muted);margin-bottom:6px}.kyc-image-grid img{display:block;width:100%;max-height:300px;object-fit:contain;background:#030604;border:1px solid var(--border);border-radius:8px}.kyc-image-missing{font-size:11px;color:var(--muted);padding:12px;border:1px dashed var(--border);border-radius:8px}.kyc-view-images{border:1px solid var(--border);background:#102019;color:var(--green);border-radius:8px;padding:9px 11px;font-size:11px;font-weight:800;margin-top:12px}.kyc-image-error{color:var(--red);font-size:12px;padding:10px}@media(max-width:560px){.kyc-image-grid{grid-template-columns:1fr}}.kyc-actions{display:flex;gap:8px;margin-top:12px}.kyc-actions button{flex:1;border-radius:9px;padding:10px 8px;font-size:11px;font-weight:800;border:1px solid var(--border)}.approve-kyc{background:#10301f;border-color:#20543b!important;color:var(--green)}.reject-kyc{background:#2a1115;border-color:#5a2930!important;color:#ff9ba7}.kyc-actions button:disabled{opacity:.5;cursor:wait}@media(min-width:700px){.wrap{padding:24px 20px}.stats{grid-template-columns:repeat(4,1fr)}.grid{grid-template-columns:repeat(4,1fr)}.hero{padding:24px}.kyc-tools{grid-template-columns:180px 1fr auto}.kyc-card{padding:17px}}
-
-.support-layout{display:grid;grid-template-columns:minmax(0, .8fr) minmax(0,1.2fr);gap:12px}.support-conversations{display:grid;gap:8px;max-height:65vh;overflow:auto}.support-conversation{width:100%;text-align:left;border:1px solid var(--border);border-radius:12px;background:#07100c;color:#edf7f2;padding:12px}.support-conversation.active{border-color:var(--green);background:#0b1a12}.support-conversation strong{display:block;font-size:12px;overflow-wrap:anywhere}.support-conversation small{display:block;color:var(--muted);font-size:10px;margin-top:4px;overflow-wrap:anywhere}.support-preview{font-size:11px;color:#cbd7d2;margin-top:8px;display:block;overflow-wrap:anywhere}.support-unread{float:right;background:var(--green);color:#031009;border-radius:99px;padding:2px 6px;font-size:9px;font-weight:900}.support-chat{border:1px solid var(--border);border-radius:13px;min-width:0;overflow:hidden}.support-thread-head{padding:12px;border-bottom:1px solid var(--border);font-size:12px}.support-thread{height:42vh;min-height:240px;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:9px}.support-message{max-width:90%;border:1px solid var(--border);background:#101a15;border-radius:12px;padding:10px;font-size:12px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}.support-message.user{align-self:flex-start}.support-message.admin{align-self:flex-end;background:#103b28;border-color:#20543b}.support-message small{display:block;color:var(--muted);font-size:9px;margin-top:5px}.support-reply{display:flex;gap:8px;padding:10px;border-top:1px solid var(--border)}.support-reply textarea{min-width:0;flex:1;resize:vertical;background:#050807;color:#edf7f2;border:1px solid var(--border);border-radius:9px;padding:10px;font:inherit;font-size:12px}.support-reply button{align-self:stretch}.support-status-note{font-size:10px;color:var(--muted);padding:0 12px 10px}@media(max-width:700px){.support-layout{grid-template-columns:1fr}.support-conversations{max-height:230px}.support-thread{height:36vh;min-height:200px}}
-
-</style>
-</head>
-<body>
-<header class="topbar"><div class="brand"><div class="logo">TZ</div><div><strong>TradeZora</strong><small>Administrator Console</small></div></div><div style="display:flex;align-items:center;gap:8px"><span class="demo">DEMO</span><a class="back" href="dashboard.html">← Trade</a></div></header>
-<main class="wrap">
-<section class="hero"><h1>Admin Panel</h1><p>Manage the TradeZora platform from one protected control centre.</p><span class="chip">◆ OWNER ADMIN</span></section>
-<div class="notice"><strong>Demo mode:</strong> this control panel is currently connected to the standalone TradeZora demo platform. No real-money deposits, withdrawals or live broker trades are processed here.</div>
-<section class="stats"><div class="stat"><div class="label">TOTAL USERS</div><div class="value" id="totalUsers">—</div><div class="sub">Backend statistics</div></div><div class="stat"><div class="label">PENDING KYC</div><div class="value" id="pendingKyc">—</div><div class="sub">Backend statistics</div></div><div class="stat"><div class="label">DEPOSITS</div><div class="value" id="deposits">—</div><div class="sub">Backend statistics</div></div><div class="stat"><div class="label">WITHDRAWALS</div><div class="value" id="withdrawals">—</div><div class="sub">Backend statistics</div></div></section>
-<nav class="nav"><button class="active" data-tab="overview">Overview</button><button data-tab="users">Users</button><button data-tab="kyc">KYC</button><button data-tab="deposits">Deposits</button><button data-tab="withdrawals">Withdrawals</button><button data-tab="trades">Trades</button><button data-tab="ledger">Ledger</button><button data-tab="settings">Settings</button><button data-tab="support">Live Chat <span id="supportUnreadBadge"></span></button></nav>
-<section class="section active" id="overview"><div class="head"><h2>Overview</h2><button class="refresh" id="refreshBtn">Refresh</button></div><div class="profile"><div class="avatar" id="avatar">D</div><div><strong id="adminName">Checking admin session…</strong><small id="adminEmail">—</small></div></div><div class="grid" style="margin-top:12px"><button class="action" data-target="users"><b>👥 Users</b><span>View registered accounts, status and account information.</span></button><button class="action" data-target="kyc"><b>🪪 KYC</b><span>Review verification records when the KYC system is connected.</span></button><button class="action" data-target="deposits"><b>↓ Deposits</b><span>Monitor deposit requests and transaction records.</span></button><button class="action" data-target="withdrawals"><b>↑ Withdrawals</b><span>Monitor withdrawal requests and their status.</span></button><button class="action" data-target="trades"><b>📈 Trades</b><span>Review demo trade activity, outcomes and P/L.</span></button><button class="action" data-target="ledger"><b>▤ Ledger</b><span>Track balance movements and audit records.</span></button><button class="action" data-target="settings"><b>⚙ Settings</b><span>Platform controls and administrative configuration.</span></button></div><div id="sessionStatus" class="status"></div></section>
-<section class="section" id="users"><div class="head"><h2>Users</h2><button class="refresh" id="refreshUsers">Refresh</button></div><input id="userSearch" class="search" placeholder="Search by name or email…"><div id="usersMessage" class="empty"><strong>Loading users…</strong></div><div id="usersList" class="kyc-list"></div></section>
-<section class="section" id="kyc"><div class="head"><h2>KYC Applications</h2><button class="refresh" id="refreshKyc">Refresh</button></div><div class="kyc-tools"><select id="kycStatusFilter" class="search"><option value="">All statuses</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select><input id="kycSearch" class="search" placeholder="Search name or email…"><button class="refresh" id="searchKyc">Search</button></div><div id="kycMessage" class="empty"><strong>Loading identity applications…</strong>Only owner-admin accounts can review applications.</div><div id="kycList" class="kyc-list"></div></section>
-<section class="section" id="deposits"><div class="head"><h2>Deposits</h2><span>Transaction control</span></div><div class="empty"><strong>No live deposit processor is connected.</strong>Deposit requests and transaction statuses will populate this section after payment infrastructure is implemented.</div></section>
-<section class="section" id="withdrawals">
-  <div class="head"><h2>Withdrawals</h2><button class="refresh" id="refreshWithdrawals">Refresh</button></div>
-  <div class="notice" style="margin-bottom:12px"><strong>Review carefully:</strong> Rejection should refund the reserved amount. Never approve a sandbox/test withdrawal or claim a payout was sent unless it was actually sent and verified.</div>
-  <select id="withdrawalStatusFilter" class="search" style="margin-bottom:12px">
-    <option value="">All statuses</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option>
-  </select>
-  <div id="withdrawalsMessage" class="empty"><strong>Loading withdrawals…</strong></div>
-  <div id="withdrawalsList" class="kyc-list"></div>
-</section>
-<section class="section" id="trades"><div class="head"><h2>Trades</h2><span>Demo activity</span></div><div class="empty"><strong>Trade activity endpoint is next.</strong>This section will show user, market, contract type, stake, entry, exit, result and P/L from the server-side trade ledger.</div></section>
-<section class="section" id="ledger"><div class="head"><h2>Ledger</h2><span>Audit trail</span></div><div class="empty"><strong>Ledger endpoint is next.</strong>Balance changes should be recorded as auditable transactions rather than direct balance edits.</div></section>
-<section class="section" id="support"><div class="head"><h2>Live Chat — Customer Support</h2><button class="refresh" id="refreshSupport">Refresh</button></div><p style="color:var(--muted);font-size:12px;line-height:1.5;margin-top:0">Private support inbox. Only the owner admin can view and reply to user conversations.</p><div class="support-layout"><div><div id="supportConversations" class="support-conversations"><div class="empty"><strong>Loading conversations…</strong></div></div></div><div class="support-chat"><div id="supportThreadHead" class="empty"><strong>Select a conversation</strong>Choose a user from the inbox to read and reply.</div><div id="supportThread" class="support-thread"></div><form id="supportReplyForm" class="support-reply" hidden><textarea id="supportReplyInput" maxlength="2000" rows="2" placeholder="Write a reply to this user…" required></textarea><button class="refresh" id="supportReplySend" type="submit">Send reply</button></form><div id="supportStatus" class="status"></div></div></div></section>
-<section class="section" id="settings">
-  <div class="head"><h2>Platform Settings</h2><span>Owner controls</span></div>
-  <div class="grid">
-    <div class="action"><b>Platform mode</b><span>Standalone DEMO</span></div>
-    <div class="action"><b>Broker connection</b><span>Not connected</span></div>
-    <div class="action"><b>Payments</b><span>Existing backend configuration</span></div>
-    <div class="action"><b>Admin account</b><span>Owner-only access</span></div>
+<!-- TradeZora per-user demo contract rates panel.
+     Insert inside the existing Admin Settings section. Keep existing settings and scripts.
+     Uses existing API_BASE and the logged-in admin's bearer token from localStorage/sessionStorage.
+     If your admin page uses a different token key, update getAdminToken() below to match it. -->
+<section class="card" id="perUserDemoRatesPanel" style="margin-top:18px;padding:18px;border:1px solid #d9e0ea;border-radius:12px">
+  <h3 style="margin:0 0 8px">Individual user demo win rates</h3>
+  <p style="margin:0 0 14px;color:#64748b">Demo testing only. These controls do not change real-account or live broker outcomes.</p>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end">
+    <label style="display:grid;gap:5px;min-width:220px;flex:1">User ID
+      <input id="userDemoRatesUserId" type="text" inputmode="numeric" placeholder="Enter exact user ID" style="padding:10px;border:1px solid #cbd5e1;border-radius:8px">
+    </label>
+    <button type="button" id="loadUserDemoRates" style="padding:10px 14px;border:0;border-radius:8px;cursor:pointer">Load settings</button>
   </div>
-  <div style="margin-top:14px;border:1px solid var(--border);border-radius:14px;padding:14px;background:#07100c">
-    <div class="head"><h2>Demo outcome testing</h2><span>Simulated accounts only</span></div>
-    <p style="color:var(--muted);font-size:12px;line-height:1.5;margin-top:0">Use this control for demo testing only. When enabled, demo results are simulated toward a statistical target and may vary over short periods. It does not control broker outcomes, real-money trades, real balances, deposits, or withdrawals.</p>
-    <label for="demoOutcomeEnabled" style="display:flex;align-items:center;gap:10px;font-size:13px;font-weight:800;margin:12px 0"><input id="demoOutcomeEnabled" type="checkbox" style="width:18px;height:18px;accent-color:var(--green)"> Enable demo outcome testing</label>
-    <label for="demoWinRate" style="display:block;font-size:11px;color:var(--muted);margin-bottom:6px">Even/Odd demo win rate (0–100%)</label>
-    <select id="demoWinRate" class="search" style="margin-bottom:10px">
-      <option value="0">0%</option><option value="10">10%</option><option value="20">20%</option><option value="30">30%</option><option value="40">40%</option><option value="50">50%</option><option value="60">60%</option><option value="70" selected>70%</option><option value="80">80%</option><option value="90">90%</option><option value="100">100%</option>
-    </select>
-    <button type="button" class="refresh" id="saveDemoSettings" style="border-color:var(--green);color:var(--green)">Save demo settings</button>
-    <div id="demoSettingsStatus" class="status"></div>
+  <label style="display:flex;gap:8px;align-items:center;margin:16px 0">
+    <input id="userDemoRatesEnabled" type="checkbox" checked>
+    Enable individual contract rates for this user
+  </label>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px">
+    <label style="display:grid;gap:5px">EVEN rate
+      <select id="userDemoRateEVEN" class="user-demo-rate" data-contract="EVEN"></select>
+    </label>
+    <label style="display:grid;gap:5px">ODD rate
+      <select id="userDemoRateODD" class="user-demo-rate" data-contract="ODD"></select>
+    </label>
+    <label style="display:grid;gap:5px">MATCH rate
+      <select id="userDemoRateMATCH" class="user-demo-rate" data-contract="MATCH"></select>
+    </label>
+    <label style="display:grid;gap:5px">DIFFER rate
+      <select id="userDemoRateDIFFER" class="user-demo-rate" data-contract="DIFFER"></select>
+    </label>
+    <label style="display:grid;gap:5px">OVER rate
+      <select id="userDemoRateOVER" class="user-demo-rate" data-contract="OVER"></select>
+    </label>
+    <label style="display:grid;gap:5px">UNDER rate
+      <select id="userDemoRateUNDER" class="user-demo-rate" data-contract="UNDER"></select>
+    </label>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px">
+    <button type="button" id="saveUserDemoRates" style="padding:10px 14px;border:0;border-radius:8px;cursor:pointer">Save user rates</button>
+    <span id="userDemoRatesStatus" role="status" aria-live="polite" style="color:#64748b"></span>
   </div>
 </section>
-<div class="footer">TradeZora Admin Console • Protected owner area</div>
-</main>
 <script>
-(()=>{
-"use strict";
-const API_BASE="https://tradezora-backend-1.onrender.com";
-const ADMIN_EMAIL="davieswaweru123@gmail.com";
-const $=s=>document.querySelector(s);
-function getAuthToken(){return localStorage.getItem("tradezoraAuthToken")||localStorage.getItem("session_token")||localStorage.getItem("tradezoraSession")||"";}
-function showSection(id){document.querySelectorAll(".section").forEach(x=>x.classList.toggle("active",x.id===id));document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.tab===id));window.scrollTo({top:0,behavior:"smooth"})}
-document.querySelectorAll(".nav button").forEach(b=>b.addEventListener("click",()=>showSection(b.dataset.tab)));
-document.querySelectorAll("[data-target]").forEach(b=>b.addEventListener("click",()=>showSection(b.dataset.target)));
-async function verifyAdmin(){
- const token=getAuthToken();
- if(!token){location.href="auth.html";return}
- try{
-  const r=await fetch(`${API_BASE}/api/admin/me`,{headers:{Authorization:`Bearer ${token}`,Accept:"application/json"}});
-  if(!r.ok)throw new Error("Admin authorization failed.");
-  const data=await r.json();
-  const admin=data.admin||data.user||data.account||data;
-  const email=String(admin.email||"").trim().toLowerCase();
-  if(email!==ADMIN_EMAIL||String(admin.role||"").toLowerCase()!=="admin")throw new Error("This account is not authorized.");
-  const name=String(admin.name||"Davies").trim()||"Davies";
-  $("#adminName").textContent=name;$("#adminEmail").textContent=email;$("#avatar").textContent=name.charAt(0).toUpperCase();
-  $("#sessionStatus").textContent="Admin authorization verified.";$("#sessionStatus").className="status ok";
- }catch(e){console.error(e);$("#sessionStatus").textContent="Admin authorization failed. Returning to dashboard.";$("#sessionStatus").className="status error";setTimeout(()=>location.href="dashboard.html",1200)}
-}
+(function () {
+  'use strict';
+  const contracts = ['EVEN', 'ODD', 'MATCH', 'DIFFER', 'OVER', 'UNDER'];
+  const $ = id => document.getElementById(id);
+  const status = message => { $('userDemoRatesStatus').textContent = message; };
 
-function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));}
+  contracts.forEach(contract => {
+    const select = $('userDemoRate' + contract);
+    if (!select) return;
+    select.innerHTML = '';
+    for (let rate = 0; rate <= 100; rate += 10) {
+      const option = document.createElement('option');
+      option.value = String(rate);
+      option.textContent = rate + '%';
+      select.appendChild(option);
+    }
+    select.value = '50';
+  });
 
-async function loadStats(){
- const token=getAuthToken();if(!token)return;
- try{
-  const r=await fetch(`${API_BASE}/api/admin/stats`,{headers:{Authorization:`Bearer ${token}`,Accept:"application/json"}});
-  const data=await r.json().catch(()=>({}));if(!r.ok||!data.success)throw new Error(data.error||"Could not load statistics.");
-  const s=data.stats||{};
-  $("#totalUsers").textContent=Number(s.total_users??0).toLocaleString();
-  $("#pendingKyc").textContent=Number(s.pending_kyc??0).toLocaleString();
-  $("#deposits").textContent=Number(s.pending_deposits??0).toLocaleString();
-  $("#withdrawals").textContent=Number(s.pending_withdrawals??0).toLocaleString();
- }catch(e){console.error("Load admin statistics:",e);["#totalUsers","#pendingKyc","#deposits","#withdrawals"].forEach(id=>$(id).textContent="—");$("#sessionStatus").textContent="Statistics failed to load: "+(e.message||"request failed");$("#sessionStatus").className="status error";}
-}
-async function loadUsers(){
- const token=getAuthToken();if(!token){location.href="auth.html";return;}
- const message=$("#usersMessage"),list=$("#usersList");if(!message||!list)return;
- message.style.display="block";message.innerHTML="<strong>Loading users…</strong>";list.innerHTML="";
- const search=$("#userSearch").value.trim(),params=new URLSearchParams({limit:"100"});if(search)params.set("search",search);
- try{
-  const r=await fetch(`${API_BASE}/api/admin/users?${params.toString()}`,{headers:{Authorization:`Bearer ${token}`,Accept:"application/json"}});
-  const data=await r.json().catch(()=>({}));if(!r.ok||!data.success)throw new Error(data.error||"Could not load users.");
-  const rows=Array.isArray(data.users)?data.users:[];
-  if(!rows.length){message.innerHTML="<strong>No users found.</strong>";return;}
-  message.style.display="none";
-  list.innerHTML=rows.map(u=>`<article class="kyc-card"><div class="kyc-card-head"><div><h3>${escapeHtml(u.name||"Unnamed user")}</h3><div class="email">${escapeHtml(u.email||"")}</div></div><span class="kyc-badge ${String(u.status||"active").toLowerCase()==="active"?"approved":""}">${escapeHtml(String(u.status||"unknown").toUpperCase())}</span></div><div class="kyc-details"><div class="kyc-detail"><small>User ID</small><span>${escapeHtml(u.id??"—")}</span></div><div class="kyc-detail"><small>Role</small><span>${escapeHtml(u.role||"user")}</span></div><div class="kyc-detail"><small>Demo balance</small><span>$${Number(u.balance??0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div><div class="kyc-detail"><small>Registered</small><span>${escapeHtml(formatKycDate(u.created_at))}</span></div><div class="kyc-detail"><small>KYC</small><span>${escapeHtml(u.kyc_status||"pending")}</span></div></div></article>`).join("");
- }catch(e){console.error("Load admin users:",e);message.innerHTML=`<strong>${escapeHtml(e.message||"Could not load users.")}</strong>Check the admin session and backend response.`;}
-}
-
-
-async function loadWithdrawals(){
-  const token=getAuthToken();
-  if(!token){location.href="auth.html";return;}
-  const message=$("#withdrawalsMessage"),list=$("#withdrawalsList");
-  message.style.display="block";message.innerHTML="<strong>Loading withdrawal requests…</strong>";list.innerHTML="";
-  const status=$("#withdrawalStatusFilter").value;
-  const params=new URLSearchParams({limit:"100"});if(status)params.set("status",status);
-  try{
-    const r=await fetch(`${API_BASE}/api/admin/withdrawals?${params.toString()}`,{
-      headers:{Authorization:`Bearer ${token}`,Accept:"application/json"}
+  // Prefer the same API_BASE/token conventions already used in admin.html.
+  function getApiBase() {
+    if (typeof window.API_BASE === 'string' && window.API_BASE) return window.API_BASE.replace(/\/$/, '');
+    if (typeof API_BASE === 'string' && API_BASE) return API_BASE.replace(/\/$/, '');
+    return 'https://tradezora-backend-1.onrender.com';
+  }
+  function getAdminToken() {
+    // Adjust only if the existing admin page stores its session token under another key.
+    const keys = ['tradezoraToken', 'token', 'authToken', 'accessToken', 'tradezora_token'];
+    for (const store of [localStorage, sessionStorage]) {
+      for (const key of keys) {
+        const value = store.getItem(key);
+        if (value) return value;
+      }
+    }
+    return '';
+  }
+  async function request(userId, method, body) {
+    const token = getAdminToken();
+    if (!token) throw new Error('Admin session token was not found. Connect this panel to the token variable already used by admin.html.');
+    const response = await fetch(`${getApiBase()}/api/admin/users/${encodeURIComponent(userId)}/demo-contract-settings`, {
+      method,
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      ...(body ? { body: JSON.stringify(body) } : {})
     });
-    const data=await r.json().catch(()=>({}));
-    if(!r.ok||!data.success)throw new Error(data.error||`Could not load withdrawals (HTTP ${r.status}).`);
-    const rows=Array.isArray(data.withdrawals)?data.withdrawals:[];
-    if(!rows.length){message.innerHTML="<strong>No withdrawal requests found.</strong>";return;}
-    message.style.display="none";
-    list.innerHTML=rows.map(w=>{
-      const state=String(w.status||"unknown").toLowerCase();
-      const amount=Number(w.amount||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
-      const actions=state==="pending"
-        ? `<div class="kyc-actions"><button class="reject-kyc" data-withdrawal-reject="${Number(w.id)}">Reject &amp; refund</button></div>`
-        : "";
-      return `<article class="kyc-card">
-        <div class="kyc-card-head"><div><h3>Withdrawal #${escapeHtml(w.id)}</h3><div class="email">${escapeHtml(w.user_name||"User")} · ${escapeHtml(w.user_email||"")}</div></div><span class="kyc-badge ${escapeHtml(state)}">${escapeHtml(state.toUpperCase())}</span></div>
-        <div class="kyc-details">
-          <div class="kyc-detail"><small>Requested amount</small><span>$${amount} ${escapeHtml(w.currency||"USD")}</span></div>
-          <div class="kyc-detail"><small>Withdrawal method</small><span>${escapeHtml(w.destination_type||"—")}</span></div>
-          <div class="kyc-detail"><small>Phone number</small><span>${escapeHtml(w.phone_number||"—")}</span></div>
-          <div class="kyc-detail"><small>Created</small><span>${escapeHtml(formatKycDate(w.created_at))}</span></div>
-          <div class="kyc-detail"><small>Reviewed</small><span>${escapeHtml(formatKycDate(w.reviewed_at))}</span></div>
-          <div class="kyc-detail"><small>Provider reference</small><span>${escapeHtml(w.provider_reference||"—")}</span></div>
-        </div>
-        ${w.review_note?`<div class="kyc-notes"><strong>Review note:</strong> ${escapeHtml(w.review_note)}</div>`:""}
-        ${actions}
-      </article>`;
-    }).join("");
-  }catch(e){
-    console.error("Load admin withdrawals:",e);
-    message.innerHTML=`<strong>${escapeHtml(e.message||"Could not load withdrawals.")}</strong>Confirm the latest backend deployment is live and the admin withdrawals route is present.`;
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || data.message || `Request failed (${response.status})`);
+    return data;
   }
-}
-async function rejectWithdrawal(id){
-  const token=getAuthToken();
-  const note=prompt("Reason for rejection (this should refund the reserved amount):","Sandbox test only — no payout made; refund reserved amount.");
-  if(note===null)return;
-  if(!note.trim()){alert("A review note is required.");return;}
-  if(!confirm("Reject this withdrawal and request the backend to refund its reserved amount? Do not use this for a payout that was actually sent."))return;
-  const button=document.querySelector(`[data-withdrawal-reject="${id}"]`);
-  if(button){button.disabled=true;button.textContent="Processing…";}
-  try{
-    const r=await fetch(`${API_BASE}/api/admin/withdrawals/${encodeURIComponent(id)}/review`,{
-      method:"PATCH",
-      headers:{"Content-Type":"application/json",Authorization:`Bearer ${token}`,Accept:"application/json"},
-      body:JSON.stringify({status:"rejected",review_note:note.trim()})
+  function applySettings(settings) {
+    contracts.forEach(contract => {
+      const row = settings && settings[contract] || {};
+      $('userDemoRate' + contract).value = String(Number.isFinite(Number(row.target_win_rate)) ? row.target_win_rate : 50);
     });
-    const data=await r.json().catch(()=>({}));
-    if(!r.ok||!data.success)throw new Error(data.error||`Could not reject withdrawal (HTTP ${r.status}).`);
-    alert("Withdrawal rejected. Check the returned balance and withdrawal status before reversing any test credit.");
-    await loadWithdrawals();await loadStats();
-  }catch(e){
-    alert(e.message||"Could not reject withdrawal.");
-    if(button){button.disabled=false;button.textContent="Reject & refund";}
+    const anyEnabled = contracts.some(contract => settings && settings[contract] && settings[contract].enabled === true);
+    $('userDemoRatesEnabled').checked = anyEnabled;
   }
-}
-$("#withdrawalsList").addEventListener("click",event=>{
-  const button=event.target.closest("button[data-withdrawal-reject]");
-  if(button)rejectWithdrawal(button.dataset.withdrawalReject);
-});
-$("#refreshWithdrawals").addEventListener("click",loadWithdrawals);
-$("#withdrawalStatusFilter").addEventListener("change",loadWithdrawals);
-
-function formatKycDate(value){if(!value)return "—";const d=new Date(value);return Number.isNaN(d.getTime())?String(value):d.toLocaleString();}
-function kycMessage(message,error=false){const el=$("#kycMessage");el.style.display="block";el.innerHTML=`<strong>${escapeHtml(message)}</strong>${error?"Check your admin session and backend deployment.":""}`;}
-async function loadKyc(){
- const token=getAuthToken();
- if(!token){location.href="auth.html";return;}
- const status=$("#kycStatusFilter").value;
- const search=$("#kycSearch").value.trim();
- const params=new URLSearchParams();if(status)params.set("status",status);if(search)params.set("search",search);
- $("#kycList").innerHTML="";kycMessage("Loading identity applications…");
- try{
-  const r=await fetch(`${API_BASE}/api/admin/kyc${params.toString()?"?"+params.toString():""}`,{headers:{Authorization:`Bearer ${token}`,Accept:"application/json"}});
-  const data=await r.json().catch(()=>({}));
-  if(!r.ok||!data.success)throw new Error(data.error||"Could not load KYC applications.");
-  const rows=Array.isArray(data.applications)?data.applications:[];
-  if(!rows.length){kycMessage("No identity applications match this filter.");return;}
-  $("#kycMessage").style.display="none";
-  $("#kycList").innerHTML=rows.map(a=>{
-   const state=String(a.status||"pending").toLowerCase();
-   const docType=({national_id:"National ID",passport:"Passport",driving_licence:"Driving licence",other:"Other"})[a.document_type]||a.document_type||"—";
-   const reviewActions=state==="pending"?`<div class="kyc-actions"><button class="approve-kyc" data-kyc-action="approve" data-kyc-id="${Number(a.id)}">Approve</button><button class="reject-kyc" data-kyc-action="reject" data-kyc-id="${Number(a.id)}">Reject</button></div>`:"";
-   return `<article class="kyc-card"><div class="kyc-card-head"><div><h3>${escapeHtml(a.legal_name||a.account_name||"Applicant")}</h3><div class="email">${escapeHtml(a.email||"")}</div></div><span class="kyc-badge ${escapeHtml(state)}">${escapeHtml(state.replaceAll("_"," ").toUpperCase())}</span></div><div class="kyc-details"><div class="kyc-detail"><small>Account name</small><span>${escapeHtml(a.account_name||"—")}</span></div><div class="kyc-detail"><small>Date of birth</small><span>${escapeHtml(a.date_of_birth?String(a.date_of_birth).slice(0,10):"—")}</span></div><div class="kyc-detail"><small>Country</small><span>${escapeHtml(a.country||"—")}</span></div><div class="kyc-detail"><small>Document type</small><span>${escapeHtml(docType)}</span></div><div class="kyc-detail"><small>Reference (if supplied)</small><span>${escapeHtml(a.document_reference||"Not provided")}</span></div><div class="kyc-detail"><small>Submitted</small><span>${escapeHtml(formatKycDate(a.submitted_at))}</span></div></div>${a.notes?`<div class="kyc-notes"><strong>Applicant notes:</strong> ${escapeHtml(a.notes)}</div>`:""}<button type="button" class="kyc-view-images" data-kyc-images="${Number(a.id)}">View submitted images</button><div id="kyc-images-${Number(a.id)}" class="kyc-images" hidden></div>${a.rejection_reason?`<div class="kyc-notes"><strong>Rejection reason:</strong> ${escapeHtml(a.rejection_reason)}</div>`:""}${reviewActions}</article>`;
-  }).join("");
- }catch(e){console.error("Load KYC applications:",e);kycMessage(e.message||"Could not load KYC applications.",true);}
-}
-async function viewKycImages(id, button) {
- const token=getAuthToken(), target=document.getElementById(`kyc-images-${Number(id)}`);
- if(!token||!target)return;
- if(!target.hidden){target.hidden=true;target.innerHTML="";button.textContent="View submitted images";return;}
- button.disabled=true;button.textContent="Loading images…";
- try{
-  const r=await fetch(`${API_BASE}/api/admin/kyc/${encodeURIComponent(id)}/images`,{headers:{Authorization:`Bearer ${token}`,Accept:"application/json"},cache:"no-store"});
-  const data=await r.json().catch(()=>({}));if(!r.ok||!data.success)throw new Error(data.error||"Could not load images.");
-  const images=data.images||{};
-  const items=[["Selfie",images.selfie],["Front of ID",images.id_front],["Back of ID",images.id_back]];
-  target.innerHTML=`<div class="kyc-image-grid">${items.map(([label,src])=>`<figure><figcaption>${escapeHtml(label)}${src?"":" — not supplied"}</figcaption>${src?`<img alt="${escapeHtml(label)}" src="${src}" loading="lazy">`:`<div class="kyc-image-missing">No image uploaded</div>`}</figure>`).join("")}</div><p class="kyc-notes">Sensitive identity documents. View only for verification; do not download or share them.</p>`;
-  target.hidden=false;button.textContent="Hide submitted images";
- }catch(e){target.innerHTML=`<div class="kyc-image-error">${escapeHtml(e.message||"Could not load images.")}</div>`;target.hidden=false;button.textContent="Retry image loading";}
- finally{button.disabled=false;}
-}
-
-async function reviewKyc(id,status){
- const token=getAuthToken();
- let reason="";
- if(status==="rejected"){
-  reason=prompt("Enter the reason for rejecting this application:");
-  if(reason===null)return;
-  reason=reason.trim();
-  if(!reason){alert("A rejection reason is required.");return;}
- }
- const button=document.querySelector(`[data-kyc-id="${id}"][data-kyc-action="${status==="approved"?"approve":"reject"}"]`);
- if(button){button.disabled=true;button.textContent="Saving…";}
- try{
-  const r=await fetch(`${API_BASE}/api/admin/kyc/${encodeURIComponent(id)}`,{method:"PATCH",headers:{"Content-Type":"application/json",Authorization:`Bearer ${token}`},body:JSON.stringify({status,rejection_reason:reason})});
-  const data=await r.json().catch(()=>({}));if(!r.ok||!data.success)throw new Error(data.error||"Could not update application.");
-  await loadKyc();
- }catch(e){alert(e.message||"Could not update application.");if(button){button.disabled=false;button.textContent=status==="approved"?"Approve":"Reject";}}
-}
-$("#kycList").addEventListener("click",event=>{const imageButton=event.target.closest("button[data-kyc-images]");if(imageButton){viewKycImages(imageButton.dataset.kycImages,imageButton);return;}const button=event.target.closest("button[data-kyc-action]");if(!button)return;const status=button.dataset.kycAction==="approve"?"approved":"rejected";reviewKyc(button.dataset.kycId,status);});
-$("#refreshKyc").addEventListener("click",loadKyc);
-$("#searchKyc").addEventListener("click",loadKyc);
-$("#kycStatusFilter").addEventListener("change",loadKyc);
-$("#kycSearch").addEventListener("keydown",event=>{if(event.key==="Enter")loadKyc();});
-$("#refreshBtn").addEventListener("click",()=>{verifyAdmin();loadStats();loadKyc();loadWithdrawals();loadSupportConversations();loadDemoSettings();});
-$("#refreshUsers").addEventListener("click",loadUsers);
-$("#userSearch").addEventListener("keydown",event=>{if(event.key==="Enter")loadUsers();});
-$("#userSearch").addEventListener("input",()=>{clearTimeout(window.__tzUserSearchTimer);window.__tzUserSearchTimer=setTimeout(loadUsers,350);});
-
-// Owner-only demo outcome testing settings. This is not a real-money control.
-async function loadDemoSettings(){
-  const status=$("#demoSettingsStatus");
-  const token=getAuthToken();
-  if(!token)return;
-  try{
-    const r=await fetch(`${API_BASE}/api/admin/demo-settings`,{headers:{Authorization:`Bearer ${token}`,Accept:"application/json"}});
-    const data=await r.json().catch(()=>({}));
-    if(!r.ok||!data.success)throw new Error(data.error||"Could not load demo settings.");
-    const settings=data.settings||{};
-    $("#demoOutcomeEnabled").checked=Boolean(settings.outcome_control_enabled);
-    const target=String(Number(settings.target_win_rate??70));
-    $("#demoWinRate").value=[...$("#demoWinRate").options].some(o=>o.value===target)?target:"70";
-    status.textContent=`Loaded. Demo outcome testing is ${settings.outcome_control_enabled?"ON":"OFF"}.`;
-    status.className="status ok";
-  }catch(e){
-    status.textContent=e.message||"Could not load demo settings.";
-    status.className="status error";
-  }
-}
-async function saveDemoSettings(){
-  const button=$("#saveDemoSettings"),status=$("#demoSettingsStatus"),token=getAuthToken();
-  if(!token){status.textContent="Admin session required.";status.className="status error";return;}
-  const payload={outcome_control_enabled:$("#demoOutcomeEnabled").checked,target_win_rate:Number($("#demoWinRate").value)};
-  button.disabled=true;button.textContent="Saving…";
-  try{
-    const r=await fetch(`${API_BASE}/api/admin/demo-settings`,{method:"PATCH",headers:{"Content-Type":"application/json",Authorization:`Bearer ${token}`,Accept:"application/json"},body:JSON.stringify(payload)});
-    const data=await r.json().catch(()=>({}));
-    if(!r.ok||!data.success)throw new Error(data.error||"Could not save demo settings.");
-    status.textContent=`Saved. Demo outcome testing is ${data.settings.outcome_control_enabled?"ON":"OFF"}; target ${data.settings.target_win_rate}%. Applies to Even/Odd simulated demo trades only.`;
-    status.className="status ok";
-  }catch(e){
-    status.textContent=e.message||"Could not save demo settings.";
-    status.className="status error";
-  }finally{button.disabled=false;button.textContent="Save demo settings";}
-}
-// Selecting a target automatically enables the test, avoiding the common mistake
-// of saving 0% while the outcome-control switch remains OFF.
-$("#demoWinRate").addEventListener("change",()=>{
-  $("#demoOutcomeEnabled").checked=true;
-  const status=$("#demoSettingsStatus");
-  status.textContent="Target changed. Demo outcome testing has been switched ON; press Save demo settings to apply it.";
-  status.className="status ok";
-});
-$("#saveDemoSettings").addEventListener("click",saveDemoSettings);
-
-// Owner-only live support inbox
-let selectedSupportId=null;
-function supportStatus(message,error=false){const el=$('#supportStatus');el.textContent=message;el.className='status '+(error?'error':'ok');}
-function supportDate(value){try{return new Date(value).toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});}catch{return '';}}
-async function supportApi(path,options={}){const token=getAuthToken();if(!token)throw new Error('Admin session required.');const r=await fetch(`${API_BASE}${path}`,{...options,headers:{Accept:'application/json',...(options.body?{'Content-Type':'application/json'}:{}),Authorization:`Bearer ${token}`,...(options.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok||!d.success)throw new Error(d.error||'Support request failed.');return d;}
-async function loadSupportConversations(){const box=$('#supportConversations');try{const d=await supportApi('/api/admin/support/conversations');const rows=d.conversations||[];box.replaceChildren();const unread=rows.reduce((n,c)=>n+Number(c.unread_count||0),0);$('#supportUnreadBadge').textContent=unread?`(${unread})`:'';if(!rows.length){box.innerHTML='<div class="empty"><strong>No support conversations yet.</strong>New user messages will appear here.</div>';return;}for(const c of rows){const b=document.createElement('button');b.type='button';b.className='support-conversation'+(Number(c.id)===Number(selectedSupportId)?' active':'');b.dataset.supportId=c.id;const title=document.createElement('strong');title.textContent=c.name||'TradeZora user';if(Number(c.unread_count)>0){const badge=document.createElement('span');badge.className='support-unread';badge.textContent=String(c.unread_count);title.prepend(badge);}const email=document.createElement('small');email.textContent=c.email||'';const preview=document.createElement('span');preview.className='support-preview';preview.textContent=c.last_message||'No messages yet';const time=document.createElement('small');time.textContent=(c.status==='closed'?'CLOSED · ':'OPEN · ')+(c.last_message_at?supportDate(c.last_message_at):'No messages');b.append(title,email,preview,time);box.append(b);}if(selectedSupportId&&!rows.some(c=>Number(c.id)===Number(selectedSupportId)))selectedSupportId=null;}catch(e){box.innerHTML=`<div class="empty"><strong>${escapeHtml(e.message||'Could not load inbox.')}</strong>Check that the support backend has deployed successfully.</div>`;}}
-async function loadSupportThread(id){selectedSupportId=Number(id);$('#supportThreadHead').textContent='Loading conversation…';$('#supportThread').replaceChildren();$('#supportReplyForm').hidden=true;try{const d=await supportApi(`/api/admin/support/conversations/${encodeURIComponent(id)}/messages`);const c=d.conversation;$('#supportThreadHead').textContent=`${c.name||'User'} · ${c.email||''} · ${String(c.status||'open').toUpperCase()}`;const thread=$('#supportThread');for(const m of (d.messages||[])){const bubble=document.createElement('div');bubble.className='support-message '+(m.sender_role==='admin'?'admin':'user');const body=document.createElement('div');body.textContent=m.message;const meta=document.createElement('small');meta.textContent=(m.sender_role==='admin'?'You · ':'User · ')+supportDate(m.created_at);bubble.append(body,meta);thread.append(bubble);}if(!(d.messages||[]).length){const empty=document.createElement('div');empty.className='empty';empty.textContent='The user has opened support but has not sent a message yet.';thread.append(empty);}thread.scrollTop=thread.scrollHeight;$('#supportReplyForm').hidden=false;$('#supportReplyInput').focus();await loadSupportConversations();}catch(e){supportStatus(e.message||'Could not load conversation.',true);}}
-$('#supportConversations').addEventListener('click',e=>{const b=e.target.closest('[data-support-id]');if(b)loadSupportThread(b.dataset.supportId);});
-$('#refreshSupport').addEventListener('click',async()=>{await loadSupportConversations();if(selectedSupportId)await loadSupportThread(selectedSupportId);});
-$('#supportReplyForm').addEventListener('submit',async e=>{e.preventDefault();if(!selectedSupportId)return;const input=$('#supportReplyInput'),button=$('#supportReplySend'),message=input.value.trim();if(!message)return;button.disabled=true;try{await supportApi(`/api/admin/support/conversations/${encodeURIComponent(selectedSupportId)}/messages`,{method:'POST',body:JSON.stringify({message})});input.value='';supportStatus('Reply sent to the user.');await loadSupportThread(selectedSupportId);}catch(err){supportStatus(err.message||'Could not send reply.',true);}finally{button.disabled=false;}});
-
-setInterval(()=>{if(document.querySelector("#support.active")){loadSupportConversations();if(selectedSupportId)loadSupportThread(selectedSupportId);}},12000);
-verifyAdmin();loadStats();loadUsers();loadKyc();loadWithdrawals();loadDemoSettings();
+  $('loadUserDemoRates').addEventListener('click', async () => {
+    const userId = $('userDemoRatesUserId').value.trim();
+    if (!userId) return status('Enter a user ID first.');
+    status('Loading…');
+    try {
+      const data = await request(userId, 'GET');
+      applySettings(data.settings || data.contract_settings || data);
+      status('Settings loaded.');
+    } catch (error) { status(error.message); }
+  });
+  $('saveUserDemoRates').addEventListener('click', async () => {
+    const userId = $('userDemoRatesUserId').value.trim();
+    if (!userId) return status('Enter a user ID first.');
+    const enabled = $('userDemoRatesEnabled').checked;
+    const settings = {};
+    contracts.forEach(contract => {
+      settings[contract] = { enabled, target_win_rate: Number($('userDemoRate' + contract).value) };
+    });
+    status('Saving…');
+    try {
+      await request(userId, 'PUT', { settings });
+      status('Saved successfully for user ID ' + userId + '.');
+    } catch (error) { status(error.message); }
+  });
 })();
 </script>
-</body>
-</html>
