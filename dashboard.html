@@ -3168,22 +3168,14 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <div class="tz-s-body">
           <div class="tz-s-info">
-            Choose a market category. The demo scanner will <strong>search several simulated volatility markets</strong> and select a simulated setup. It does not connect to Deriv.
+            Choose a <strong>contract category</strong>. The scanner checks the available volatility markets and returns only a signal that belongs to that category: EVEN or ODD, MATCH or DIFFER, or OVER or UNDER. This version uses simulated scores and does not connect its scanner analysis to live Deriv ticks.
           </div>
 
           <label class="tz-s-label" for="tzScannerMarket">Market category</label>
           <select id="tzScannerMarket">
-            <option value="AUTO">Search all volatility markets</option>
-            <option value="Volatility 10 (1s)">Volatility 10 (1s)</option>
-            <option value="Volatility 25 (1s)">Volatility 25 (1s)</option>
-            <option value="Volatility 50 (1s)">Volatility 50 (1s)</option>
-            <option value="Volatility 75 (1s)">Volatility 75 (1s)</option>
-            <option value="Volatility 100 (1s)">Volatility 100 (1s)</option>
-            <option value="Volatility 10">Volatility 10</option>
-            <option value="Volatility 25">Volatility 25</option>
-            <option value="Volatility 50">Volatility 50</option>
-            <option value="Volatility 75">Volatility 75</option>
-            <option value="Volatility 100">Volatility 100</option>
+            <option value="even">EVEN / ODD</option>
+            <option value="match">MATCH / DIFFER</option>
+            <option value="over">OVER / UNDER</option>
           </select>
 
           <div class="tz-s-ready">
@@ -3222,7 +3214,7 @@ document.addEventListener("DOMContentLoaded", () => {
       $s('#tzReadyText').textContent = 'Ready to scan';
       $s('#tzScanCount').textContent = '0%';
       $s('#tzProgressBar').style.width = '0%';
-      $s('#tzScanStatus').textContent = 'Press Deep Scan to search for a simulated setup.';
+      $s('#tzScanStatus').textContent = 'Choose a contract category, then press Deep Scan.';
       $s('#tzResult').classList.remove('tz-show');
       $s('#tzLoadButton').disabled = true;
       $s('#tzScanButton').disabled = false;
@@ -3243,7 +3235,8 @@ document.addEventListener("DOMContentLoaded", () => {
       'Volatility 10', 'Volatility 25', 'Volatility 50',
       'Volatility 75', 'Volatility 100'
     ];
-    const signals = ['MATCH', 'DIFFER', 'EVEN', 'ODD', 'OVER', 'UNDER'];
+    const signalsByCategory = { even: ['EVEN', 'ODD'], match: ['MATCH', 'DIFFER'], over: ['OVER', 'UNDER'] };
+    const contractNames = { even: 'EVEN / ODD', match: 'MATCH / DIFFER', over: 'OVER / UNDER' };
 
     $s('#tzScanButton').onclick = async () => {
       if (scanRunning) return;
@@ -3257,13 +3250,15 @@ document.addEventListener("DOMContentLoaded", () => {
       const status = $s('#tzScanStatus');
       const resultBox = $s('#tzResult');
       const selectedCategory = $s('#tzScannerMarket').value;
+      const validSignals = signalsByCategory[selectedCategory] || signalsByCategory.even;
 
       scanButton.disabled = true;
       loadButton.disabled = true;
       resultBox.classList.remove('tz-show');
       readyText.textContent = 'Searching markets';
 
-      const marketsToCheck = selectedCategory === 'AUTO' ? marketOptions : [selectedCategory];
+      // Market category controls the contract signal; scan all 10 volatility markets.
+      const marketsToCheck = marketOptions;
       const marketScores = [];
       const totalSteps = 100;
 
@@ -3289,7 +3284,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
-      readyText.textContent = 'Best simulated market found';
+      readyText.textContent = `Best simulated ${contractNames[selectedCategory]} setup`; 
       status.textContent = 'Comparing simulated tick patterns…';
       await wait(700);
 
@@ -3300,17 +3295,17 @@ document.addEventListener("DOMContentLoaded", () => {
         market = (marketScores.sort((a, b) => b.score - a.score)[0] || { market: marketOptions[0] }).market;
       }
 
-      const signal = signals[Math.floor(Math.random() * signals.length)];
+      const signal = validSignals[Math.floor(Math.random() * validSignals.length)];
       const digit = Math.floor(Math.random() * 10);
       const confidence = 80 + Math.floor(Math.random() * 16);
-      scanResult = { market, signal, digit, confidence };
+      scanResult = { market, signal, digit, confidence, category: selectedCategory };
 
       $s('#tzResultMarket').textContent = market;
       $s('#tzResultSignal').textContent = signal;
       $s('#tzResultDigit').textContent = digit;
       $s('#tzResultConfidence').textContent = `${confidence}%`;
       resultBox.classList.add('tz-show');
-      status.textContent = 'Simulated contract ready to load.';
+      status.textContent = `${contractNames[selectedCategory]} signal ready (simulated).`; 
       readyText.textContent = 'Scan complete';
       loadButton.disabled = false;
       scanRunning = false;
