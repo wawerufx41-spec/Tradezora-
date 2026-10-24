@@ -128,11 +128,13 @@
 
     const currentState = getState();
     const selectedMultiplier = Math.min(10, Math.max(1, Number(position.multiplier || currentState.multiplier || 1)));
-    // recoveryStep 0 = base stake; 1 = first recovery; 2 = second recovery.
-    // A win resets immediately. After two recovery trades, another loss resets
-    // the next trade to base stake instead of continuing to compound forever.
-    const positionRecoveryStep = Math.max(0, Math.min(2, Number(position.recoveryStep ?? (position.recoveryApplied ? 1 : 0)) || 0));
-    const nextRecoveryStep = win ? 0 : (positionRecoveryStep < 2 ? positionRecoveryStep + 1 : 0);
+    // recoveryStep 0 = base stake; 1..selectedMultiplier = recovery attempts.
+    // The selected multiplier controls both stake growth and the number of
+    // recovery attempts. A win resets immediately; after the final recovery
+    // attempt loses, the next trade returns to the base stake.
+    const maxRecoveryAttempts = selectedMultiplier > 1 ? selectedMultiplier : 0;
+    const positionRecoveryStep = Math.max(0, Math.min(maxRecoveryAttempts, Number(position.recoveryStep ?? (position.recoveryApplied ? 1 : 0)) || 0));
+    const nextRecoveryStep = win ? 0 : (positionRecoveryStep < maxRecoveryAttempts ? positionRecoveryStep + 1 : 0);
     // Preserve session totals when each demo position settles.
     // Wins add net profit; losses subtract the stake already deducted at open.
     const tradePnl = win ? profit : -stake;
@@ -174,7 +176,8 @@
   function openContinuousTrade(state, now) {
     const baseStake = Number(state.baseStake ?? state.stake);
     const selectedMultiplier = Math.min(10, Math.max(1, Number(state.multiplier || 1)));
-    const recoveryStep = Math.max(0, Math.min(2, Number(state.recoveryStep || 0)));
+    const maxRecoveryAttempts = selectedMultiplier > 1 ? selectedMultiplier : 0;
+    const recoveryStep = Math.max(0, Math.min(maxRecoveryAttempts, Number(state.recoveryStep || 0)));
     const recoveryApplied = recoveryStep > 0 && selectedMultiplier > 1;
     const stake = recoveryApplied ? baseStake * Math.pow(selectedMultiplier, recoveryStep) : baseStake;
     let balance = Number(localStorage.getItem(BAL) || 10000);
