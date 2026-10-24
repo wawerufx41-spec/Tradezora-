@@ -132,7 +132,7 @@
     // The selected multiplier controls both stake growth and the number of
     // recovery attempts. A win resets immediately; after the final recovery
     // attempt loses, the next trade returns to the base stake.
-    const maxRecoveryAttempts = selectedMultiplier > 1 ? selectedMultiplier : 0;
+    const maxRecoveryAttempts = selectedMultiplier;
     const positionRecoveryStep = Math.max(0, Math.min(maxRecoveryAttempts, Number(position.recoveryStep ?? (position.recoveryApplied ? 1 : 0)) || 0));
     const nextRecoveryStep = win ? 0 : (positionRecoveryStep < maxRecoveryAttempts ? positionRecoveryStep + 1 : 0);
     // Preserve session totals when each demo position settles.
@@ -176,9 +176,9 @@
   function openContinuousTrade(state, now) {
     const baseStake = Number(state.baseStake ?? state.stake);
     const selectedMultiplier = Math.min(10, Math.max(1, Number(state.multiplier || 1)));
-    const maxRecoveryAttempts = selectedMultiplier > 1 ? selectedMultiplier : 0;
+    const maxRecoveryAttempts = selectedMultiplier;
     const recoveryStep = Math.max(0, Math.min(maxRecoveryAttempts, Number(state.recoveryStep || 0)));
-    const recoveryApplied = recoveryStep > 0 && selectedMultiplier > 1;
+    const recoveryApplied = recoveryStep > 0;
     const stake = recoveryApplied ? baseStake * Math.pow(selectedMultiplier, recoveryStep) : baseStake;
     let balance = Number(localStorage.getItem(BAL) || 10000);
     if (!Number.isFinite(stake) || stake <= 0 || stake > balance) {
