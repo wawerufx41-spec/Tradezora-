@@ -127,9 +127,12 @@
     write(HIST, history.slice(-100));
 
     const currentState = getState();
-    const positionWasRecovery = Boolean(position.recoveryApplied);
     const selectedMultiplier = Math.min(10, Math.max(1, Number(position.multiplier || currentState.multiplier || 1)));
-    const nextRecovery = !positionWasRecovery && !win && selectedMultiplier > 1;
+    // recoveryStep 0 = base stake; 1 = first recovery; 2 = second recovery.
+    // A win resets immediately. After two recovery trades, another loss resets
+    // the next trade to base stake instead of continuing to compound forever.
+    const positionRecoveryStep = Math.max(0, Math.min(2, Number(position.recoveryStep ?? (position.recoveryApplied ? 1 : 0)) || 0));
+    const nextRecoveryStep = win ? 0 : (positionRecoveryStep < 2 ? positionRecoveryStep + 1 : 0);
     // Preserve session totals when each demo position settles.
     // Wins add net profit; losses subtract the stake already deducted at open.
     const tradePnl = win ? profit : -stake;
@@ -139,7 +142,8 @@
     const sessionTrades = Number(currentState.sessionTrades || 0) + 1;
     write(KEY, {
       ...currentState,
-      recoveryPending: nextRecovery,
+      recoveryStep: nextRecoveryStep,
+      recoveryPending: nextRecoveryStep > 0,
       sessionPnl,
       sessionWins,
       sessionLosses,
@@ -170,8 +174,9 @@
   function openContinuousTrade(state, now) {
     const baseStake = Number(state.baseStake ?? state.stake);
     const selectedMultiplier = Math.min(10, Math.max(1, Number(state.multiplier || 1)));
-    const recoveryApplied = Boolean(state.recoveryPending) && selectedMultiplier > 1;
-    const stake = recoveryApplied ? baseStake * selectedMultiplier : baseStake;
+    const recoveryStep = Math.max(0, Math.min(2, Number(state.recoveryStep || 0)));
+    const recoveryApplied = recoveryStep > 0 && selectedMultiplier > 1;
+    const stake = recoveryApplied ? baseStake * Math.pow(selectedMultiplier, recoveryStep) : baseStake;
     let balance = Number(localStorage.getItem(BAL) || 10000);
     if (!Number.isFinite(stake) || stake <= 0 || stake > balance) {
       const stopped = { ...state, running:false, nextTradeAt:null, stoppedReason:'balance' };
@@ -184,6 +189,7 @@
       baseStake,
       stake: baseStake,
       multiplier: selectedMultiplier,
+      recoveryStep,
       recoveryPending: false
     };
 
@@ -205,6 +211,7 @@
       baseStake,
       multiplier: selectedMultiplier,
       recoveryApplied,
+      recoveryStep,
       digit: Number(state.digit),
       contract: state.contract,
       mode: state.mode || 'AUTO',
@@ -269,6 +276,7 @@
         stake:Number(config.stake || 1),
         baseStake:Number(config.baseStake ?? config.stake ?? 1),
         multiplier:Math.min(10, Math.max(1, Number(config.multiplier || 1))),
+        recoveryStep:0,
         recoveryPending:false,
         mode:config.mode || 'AUTO',
         market:config.market || null,
