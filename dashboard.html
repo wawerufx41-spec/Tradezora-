@@ -3191,7 +3191,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="tz-result-grid">
               <div class="tz-result-item"><small>Market</small><strong id="tzResultMarket">—</strong></div>
               <div class="tz-result-item"><small>Contract</small><strong id="tzResultSignal">—</strong></div>
-              <div class="tz-result-item"><small>Digit</small><strong id="tzResultDigit">—</strong></div>
+              <div class="tz-result-item" id="tzResultDigitItem"><small>Target digit</small><strong id="tzResultDigit">—</strong></div>
               <div class="tz-result-item"><small>Demo confidence</small><strong id="tzResultConfidence">—</strong></div>
             </div>
           </div>
@@ -3251,6 +3251,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const resultBox = $s('#tzResult');
       const selectedCategory = $s('#tzScannerMarket').value;
       const validSignals = signalsByCategory[selectedCategory] || signalsByCategory.even;
+      const digitItem = $s('#tzResultDigitItem');
+      if (digitItem) digitItem.style.display = selectedCategory === 'even' ? 'none' : ''; 
 
       scanButton.disabled = true;
       loadButton.disabled = true;
@@ -3288,12 +3290,7 @@ document.addEventListener("DOMContentLoaded", () => {
       status.textContent = 'Comparing simulated tick patterns…';
       await wait(700);
 
-      let market;
-      if (selectedCategory !== 'AUTO') {
-        market = selectedCategory;
-      } else {
-        market = (marketScores.sort((a, b) => b.score - a.score)[0] || { market: marketOptions[0] }).market;
-      }
+      const market = (marketScores.sort((a, b) => b.score - a.score)[0] || { market: marketOptions[0] }).market;
 
       const signal = validSignals[Math.floor(Math.random() * validSignals.length)];
       const digit = Math.floor(Math.random() * 10);
@@ -3303,9 +3300,12 @@ document.addEventListener("DOMContentLoaded", () => {
       $s('#tzResultMarket').textContent = market;
       $s('#tzResultSignal').textContent = signal;
       $s('#tzResultDigit').textContent = digit;
+      if (digitItem) digitItem.style.display = selectedCategory === 'even' ? 'none' : ''; 
       $s('#tzResultConfidence').textContent = `${confidence}%`;
       resultBox.classList.add('tz-show');
-      status.textContent = `${contractNames[selectedCategory]} signal ready (simulated).`; 
+      status.textContent = selectedCategory === 'even'
+        ? `${market} selected · Client to trade ${signal} (simulated).`
+        : `${market} selected · ${signal} signal ready (simulated).`; 
       readyText.textContent = 'Scan complete';
       loadButton.disabled = false;
       scanRunning = false;
@@ -3358,16 +3358,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (contractTab) contractTab.click();
 
-        selectedDigit = Number(loadedResult.digit);
-        renderDigitStatistics();
+        if (loadedResult.category !== 'even') {
+          selectedDigit = Number(loadedResult.digit);
+          renderDigitStatistics();
+        }
 
         const contractLabel = document.querySelector(
           '#selectedContract, #contractType, [data-selected-contract]'
         );
         if (contractLabel) contractLabel.textContent = loadedResult.signal;
 
-        showScannerToast(
-          `Loaded ${loadedResult.market} · ${loadedResult.signal} · Digit ${loadedResult.digit}`
+        showScannerToast(loadedResult.category === 'even'
+          ? `Loaded ${loadedResult.market} · Client to trade ${loadedResult.signal}`
+          : `Loaded ${loadedResult.market} · ${loadedResult.signal} · Target digit ${loadedResult.digit}`
         );
       } catch (error) {
         console.error('TradeZora scanner load error:', error);
