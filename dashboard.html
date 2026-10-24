@@ -2023,19 +2023,19 @@ document.addEventListener("DOMContentLoaded", () => {
       const fakeCount = illustrativePrior.values.length;
       if (fakeCount > 1) {
         const priorPoints = points.slice(0, fakeCount);
-        // Decorative prior path uses the same white/green visual treatment as the live line,
-        // regardless of bullish/bearish shape. It remains dashed to distinguish illustrative data.
+        // Keep the earlier plotted path visually continuous with the live trace.
+        // Rounded joins/caps and the same solid stroke prevent a dashed/broken appearance.
         ctx.save();ctx.beginPath();priorPoints.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
-        ctx.strokeStyle="rgba(22,229,138,.17)";ctx.lineWidth=7;ctx.lineJoin="round";ctx.stroke();ctx.restore();
+        ctx.strokeStyle="rgba(22,229,138,.22)";ctx.lineWidth=6;ctx.lineJoin="round";ctx.lineCap="round";ctx.stroke();ctx.restore();
         ctx.save();ctx.beginPath();priorPoints.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
-        ctx.strokeStyle="#f4f7f5";ctx.lineWidth=1.8;ctx.lineJoin="round";ctx.setLineDash([5,4]);ctx.stroke();ctx.restore();
+        ctx.strokeStyle="#f4f7f5";ctx.lineWidth=1.8;ctx.lineJoin="round";ctx.lineCap="round";ctx.stroke();ctx.restore();
         ctx.save();ctx.strokeStyle="rgba(255,255,255,.34)";ctx.setLineDash([3,4]);ctx.beginPath();ctx.moveTo(priorPoints[priorPoints.length-1].x,top+3);ctx.lineTo(priorPoints[priorPoints.length-1].x,top+plotHeight);ctx.stroke();ctx.restore();
       }
       const livePoints = points.slice(Math.max(0, fakeCount - 1));
       ctx.save();ctx.beginPath();livePoints.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
-      ctx.strokeStyle="rgba(22,229,138,.17)";ctx.lineWidth=7;ctx.lineJoin="round";ctx.stroke();ctx.restore();
+      ctx.strokeStyle="rgba(22,229,138,.22)";ctx.lineWidth=6;ctx.lineJoin="round";ctx.lineCap="round";ctx.stroke();ctx.restore();
       ctx.save();ctx.beginPath();livePoints.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
-      ctx.strokeStyle="#f4f7f5";ctx.lineWidth=1.8;ctx.lineJoin="round";ctx.stroke();ctx.restore();
+      ctx.strokeStyle="#f4f7f5";ctx.lineWidth=1.8;ctx.lineJoin="round";ctx.lineCap="round";ctx.stroke();ctx.restore();
     }
     // Market structure: mark recent local swing highs/lows and the latest direction from real chart data.
     const structure = chartMode === "candles" ? visible : visible.map(p=>({high:p.value,low:p.value,close:p.value}));
