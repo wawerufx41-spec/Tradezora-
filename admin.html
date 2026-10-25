@@ -1,4 +1,4 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,23 @@
 </section>
 <section class="section" id="trades"><div class="head"><h2>Trades</h2><button class="refresh" id="refreshTrades">Refresh</button></div><div class="notice" style="margin-bottom:12px"><strong>Demo records only:</strong> browser-simulated trades are recorded for audit and testing. They do not alter server balances. Real-account results are not adjustable and will appear here only after verified broker integration.</div><div id="tradesMessage" class="empty"><strong>Loading demo trade records…</strong></div><div id="tradesList" class="kyc-list"></div></section>
 <section class="section" id="ledger"><div class="head"><h2>Ledger</h2><span>Audit trail</span></div><div class="empty"><strong>Ledger endpoint is next.</strong>Balance changes should be recorded as auditable transactions rather than direct balance edits.</div></section>
-<section class="section" id="settings"><div class="head"><h2>Platform Settings</h2><span>Owner controls</span></div><div class="grid"><div class="action"><b>Platform mode</b><span>Standalone DEMO</span></div><div class="action"><b>Broker connection</b><span>Not connected</span></div><div class="action"><b>Payments</b><span>Not connected</span></div><div class="action"><b>Admin account</b><span>Owner-only access</span></div></div></section>
+<section class="section" id="settings"><div class="head"><h2>Platform Settings</h2><span>Owner controls</span></div><div class="grid"><div class="action"><b>Platform mode</b><span>Standalone DEMO</span></div><div class="action"><b>Broker connection</b><span>Not connected</span></div><div class="action"><b>Payments</b><span>Not connected</span></div><div class="action"><b>Admin account</b><span>Owner-only access</span></div></div>
+<div style="margin-top:16px;border:1px solid var(--border);border-radius:14px;padding:14px;background:#07100c">
+<h3 style="margin:0 0 6px;font-size:15px">Demo outcome test controls</h3><p style="font-size:11px;color:var(--muted);line-height:1.5;margin:0 0 12px">Persistent platform defaults for simulated trades only. These controls never apply to real-money execution or balances.</p>
+<label style="display:flex;gap:9px;align-items:center;font-size:12px;margin-bottom:12px"><input id="outcomeControlEnabled" type="checkbox" checked> Enable demo outcome testing</label>
+<div id="contractRateGrid" class="kyc-details"></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="refresh" id="loadContractRates">Reload settings</button><button class="refresh" id="saveContractRates" style="border-color:var(--green);color:var(--green)">Save six rates</button></div>
+<div id="contractRateStatus" class="status"></div>
+</div>
+<div style="margin-top:16px;border:1px solid #594521;border-radius:14px;padding:14px;background:#100e08">
+<h3 style="margin:0 0 6px;font-size:15px">Real Test Mode — sandbox only</h3>
+<p style="font-size:11px;color:var(--muted);line-height:1.5;margin:0 0 12px">Separate persistent settings for simulated testing only. This panel does not enable broker execution and cannot change real-money trades, balances, payouts or the ledger.</p>
+<label style="display:flex;gap:9px;align-items:center;font-size:12px;margin-bottom:12px"><input id="realTestOutcomeControlEnabled" type="checkbox"> Enable Real Test Mode outcome previews</label>
+<div id="realTestContractRateGrid" class="kyc-details"></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="refresh" id="loadRealTestContractRates">Reload test settings</button><button class="refresh" id="saveRealTestContractRates" style="border-color:#d9b95f;color:#d9b95f">Save test rates</button><button class="refresh" id="previewRealTestOutcomes">Run six previews</button></div>
+<div id="realTestContractRateStatus" class="status"></div>
+<div id="realTestPreviewResults" class="kyc-list" style="margin-top:10px"></div>
+</div></section>
 <div class="footer">TradeZora Admin Console • Protected owner area</div>
 </main>
 <script>
@@ -47,6 +63,66 @@ const $=s=>document.querySelector(s);
 function showSection(id){document.querySelectorAll(".section").forEach(x=>x.classList.toggle("active",x.id===id));document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.tab===id));window.scrollTo({top:0,behavior:"smooth"})}
 document.querySelectorAll(".nav button").forEach(b=>b.addEventListener("click",()=>showSection(b.dataset.tab)));
 document.querySelectorAll("[data-target]").forEach(b=>b.addEventListener("click",()=>showSection(b.dataset.target)));
+const CONTRACT_TYPES=["EVEN","ODD","MATCH","DIFFER","OVER","UNDER"];
+const defaultContractSettings=()=>Object.fromEntries(CONTRACT_TYPES.map(type=>[type,{enabled:true,target_win_rate:10}]));
+function renderContractRates(settings){
+ const grid=$("#contractRateGrid");
+ grid.innerHTML=CONTRACT_TYPES.map(type=>{const item=settings[type]||{enabled:true,target_win_rate:10};return `<div class="kyc-detail"><label style="display:block;font-size:11px;margin-bottom:8px;font-weight:800">${type}</label><label style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted);margin-bottom:8px"><input type="checkbox" data-contract-enabled="${type}" ${item.enabled?"checked":""}> Enabled</label><div style="display:flex;align-items:center;gap:6px"><input type="number" min="0" max="100" step="1" value="${Math.max(0,Math.min(100,Number(item.target_win_rate??10)))}" data-contract-rate="${type}" style="width:78px;background:#060b09;color:#edf7f2;border:1px solid var(--border);border-radius:7px;padding:7px"><span style="font-size:11px">%</span></div></div>`}).join("");
+}
+function contractRateMessage(message,ok=false){const el=$("#contractRateStatus");el.textContent=message;el.className="status "+(ok?"ok":"error");}
+async function loadContractRates(){
+ const token=localStorage.getItem("tradezoraAuthToken");
+ try{const r=await fetch(`${API_BASE}/api/admin/demo-contract-bulk-settings`,{headers:{Authorization:`Bearer ${token}`,Accept:"application/json"}});const data=await r.json().catch(()=>({}));if(!r.ok||!data.success)throw new Error(data.error||"Could not load settings.");renderContractRates(data.settings||defaultContractSettings());$("#outcomeControlEnabled").checked=Boolean(data.outcomeControlEnabled);contractRateMessage("Loaded saved platform defaults. Demo testing only.",true);}
+ catch(e){renderContractRates(defaultContractSettings());contractRateMessage(e.message||"Could not load settings.");}
+}
+async function saveContractRates(){
+ const settings={};
+ for(const type of CONTRACT_TYPES){const input=document.querySelector(`[data-contract-rate="${type}"]`);const enabled=document.querySelector(`[data-contract-enabled="${type}"]`);const rate=Number(input?.value);if(!Number.isInteger(rate)||rate<0||rate>100){contractRateMessage(`${type}: enter a whole-number rate from 0 to 100.`);return;}settings[type]={enabled:Boolean(enabled?.checked),target_win_rate:rate};}
+ const button=$("#saveContractRates");button.disabled=true;button.textContent="Saving…";
+ try{const token=localStorage.getItem("tradezoraAuthToken");const r=await fetch(`${API_BASE}/api/admin/demo-contract-bulk-settings`,{method:"PUT",headers:{"Content-Type":"application/json",Authorization:`Bearer ${token}`,Accept:"application/json"},body:JSON.stringify({scope:"all",outcomeControlEnabled:$("#outcomeControlEnabled").checked,settings})});const data=await r.json().catch(()=>({}));if(!r.ok||!data.success)throw new Error(data.error||"Could not save settings.");contractRateMessage(`Saved six demo rates for ${Number(data.updatedUsers||0)} users.`,true);}
+ catch(e){contractRateMessage(e.message||"Could not save settings.");}
+ finally{button.disabled=false;button.textContent="Save six rates";}
+}
+$("#loadContractRates").addEventListener("click",loadContractRates);$("#saveContractRates").addEventListener("click",saveContractRates);
+
+function defaultRealTestSettings(){return Object.fromEntries(CONTRACT_TYPES.map(type=>[type,{enabled:true,target_win_rate:10}]));}
+function renderRealTestRates(settings){
+ const grid=$("#realTestContractRateGrid");
+ grid.innerHTML=CONTRACT_TYPES.map(type=>{const item=settings[type]||{enabled:true,target_win_rate:10};return `<div class="kyc-detail"><label style="display:block;font-size:11px;margin-bottom:8px;font-weight:800">${type}</label><label style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted);margin-bottom:8px"><input type="checkbox" data-real-test-enabled="${type}" ${item.enabled?"checked":""}> Enabled</label><div style="display:flex;align-items:center;gap:6px"><input type="number" min="0" max="100" step="1" value="${Math.max(0,Math.min(100,Number(item.target_win_rate??10)))}" data-real-test-rate="${type}" style="width:78px;background:#060b09;color:#edf7f2;border:1px solid var(--border);border-radius:7px;padding:7px"><span style="font-size:11px">%</span></div></div>`}).join("");
+}
+function realTestMessage(message,ok=false){const el=$("#realTestContractRateStatus");el.textContent=message;el.className="status "+(ok?"ok":"error");}
+async function loadRealTestContractRates(){
+ const token=localStorage.getItem("tradezoraAuthToken");
+ try{const r=await fetch(`${API_BASE}/api/admin/real-test-contract-settings`,{headers:{Authorization:`Bearer ${token}`,Accept:"application/json"}});const data=await r.json().catch(()=>({}));if(!r.ok||!data.success)throw new Error(data.error||"Could not load Real Test Mode settings.");renderRealTestRates(data.settings||defaultRealTestSettings());$("#realTestOutcomeControlEnabled").checked=Boolean(data.outcomeControlEnabled);realTestMessage("Loaded saved Real Test Mode settings. Sandbox only; no real funds touched.",true);}
+ catch(e){renderRealTestRates(defaultRealTestSettings());realTestMessage(e.message||"Could not load Real Test Mode settings.");}
+}
+async function saveRealTestContractRates(){
+ const settings={};
+ for(const type of CONTRACT_TYPES){const input=document.querySelector(`[data-real-test-rate="${type}"]`);const enabled=document.querySelector(`[data-real-test-enabled="${type}"]`);const rate=Number(input?.value);if(!Number.isInteger(rate)||rate<0||rate>100){realTestMessage(`${type}: enter a whole-number rate from 0 to 100.`);return;}settings[type]={enabled:Boolean(enabled?.checked),target_win_rate:rate};}
+ const button=$("#saveRealTestContractRates");button.disabled=true;button.textContent="Saving…";
+ try{const token=localStorage.getItem("tradezoraAuthToken");const r=await fetch(`${API_BASE}/api/admin/real-test-contract-settings`,{method:"PUT",headers:{"Content-Type":"application/json",Authorization:`Bearer ${token}`,Accept:"application/json"},body:JSON.stringify({outcomeControlEnabled:$("#realTestOutcomeControlEnabled").checked,settings})});const data=await r.json().catch(()=>({}));if(!r.ok||!data.success)throw new Error(data.error||"Could not save Real Test Mode settings.");realTestMessage("Saved all six Real Test Mode rates separately. Sandbox only.",true);}
+ catch(e){realTestMessage(e.message||"Could not save Real Test Mode settings.");}
+ finally{button.disabled=false;button.textContent="Save test rates";}
+}
+async function previewRealTestOutcomes(){
+ const button=$("#previewRealTestOutcomes"),results=$("#realTestPreviewResults");button.disabled=true;button.textContent="Testing…";results.innerHTML="";
+ const mapping={EVEN:"even",ODD:"even",MATCH:"match",DIFFER:"match",OVER:"over",UNDER:"over"};
+ try{
+  const token=localStorage.getItem("tradezoraAuthToken");const rows=[];
+  for(const type of CONTRACT_TYPES){
+   const r=await fetch(`${API_BASE}/api/admin/real-test-outcome-preview`,{method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${token}`,Accept:"application/json"},body:JSON.stringify({mode:"real_test",contract:mapping[type],type,digit:5,naturalDigit:5})});
+   const data=await r.json().catch(()=>({}));if(!r.ok||!data.success)throw new Error(`${type}: ${data.error||"Preview failed."}`);
+   rows.push({type,data});
+  }
+  results.innerHTML=rows.map(({type,data})=>{const status=data.override?(data.win?"SIMULATED WIN":"SIMULATED LOSS"):"NATURAL DIGIT";return `<article class="kyc-card"><div class="kyc-card-head"><div><h3>${type} · ${status}</h3><div class="email">Final digit: ${escapeHtml(data.finalDigit)} · Target: ${data.targetWinRate===undefined?"—":escapeHtml(data.targetWinRate)+"%"}</div></div><span class="kyc-badge">SANDBOX</span></div></article>`;}).join("");
+  realTestMessage("Six sandbox previews completed. No trades, balances, payouts or ledger records were changed.",true);
+ }catch(e){realTestMessage(e.message||"Could not run Real Test Mode previews.");}
+ finally{button.disabled=false;button.textContent="Run six previews";}
+}
+$("#loadRealTestContractRates").addEventListener("click",loadRealTestContractRates);
+$("#saveRealTestContractRates").addEventListener("click",saveRealTestContractRates);
+$("#previewRealTestOutcomes").addEventListener("click",previewRealTestOutcomes);
+
 async function verifyAdmin(){
  const token=localStorage.getItem("tradezoraAuthToken");
  if(!token){location.href="auth.html";return}
@@ -247,7 +323,8 @@ $("#refreshBtn").addEventListener("click",()=>{verifyAdmin();loadStats();loadUse
 $("#refreshUsers").addEventListener("click",loadUsers);
 $("#userSearch").addEventListener("keydown",event=>{if(event.key==="Enter")loadUsers();});
 $("#userSearch").addEventListener("input",()=>{clearTimeout(window.__tzUserSearchTimer);window.__tzUserSearchTimer=setTimeout(loadUsers,350);});
-verifyAdmin();loadStats();loadUsers();loadKyc();loadWithdrawals();
+verifyAdmin();loadStats();loadUsers();loadKyc();loadWithdrawals();loadContractRates();
+loadRealTestContractRates();
 })();
 </script>
 </body>
