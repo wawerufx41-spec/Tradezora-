@@ -2520,23 +2520,17 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
 
+    const openedAt = Date.now();
     const position = {
-
-      id: Date.now() + Math.random(),
-
+      id: openedAt + Math.random(),
       type,
-
       stake: tradeStake,
-
       digit: tradeDigit,
-
       contract: tradeContract,
-
       mode: tradeMode,
-
-      openedAt: Date.now(),
-      settleAt: Date.now() + DEMO_SETTLEMENT_MS
-
+      openedAt,
+      // Enforce a full three seconds from the exact open timestamp.
+      settleAt: openedAt + DEMO_SETTLEMENT_MS
     };
 
 
