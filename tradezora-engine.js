@@ -7,6 +7,9 @@
   const HIST = 'tradezoraDemoHistory';
   const BAL = 'tradezoraDemoBalance';
   let busy = false;
+  const DEMO_SETTLEMENT_MS = 3000;
+  const AUTO_REOPEN_DELAY_MS = 3500;
+  const ENGINE_TICK_INTERVAL_MS = 100;
   const API_BASE = "https://tradezora-backend-1.onrender.com";
   function getAuthToken() {
     return localStorage.getItem("tradezoraAuthToken") ||
@@ -132,7 +135,7 @@
     // The selected multiplier controls both stake growth and the number of
     // recovery attempts. A win resets immediately; after the final recovery
     // attempt loses, the next trade returns to the base stake.
-    const maxRecoveryAttempts = selectedMultiplier;
+    const maxRecoveryAttempts = selectedMultiplier > 1 ? selectedMultiplier : 0;
     const positionRecoveryStep = Math.max(0, Math.min(maxRecoveryAttempts, Number(position.recoveryStep ?? (position.recoveryApplied ? 1 : 0)) || 0));
     const nextRecoveryStep = win ? 0 : (positionRecoveryStep < maxRecoveryAttempts ? positionRecoveryStep + 1 : 0);
     // Preserve session totals when each demo position settles.
@@ -176,9 +179,9 @@
   function openContinuousTrade(state, now) {
     const baseStake = Number(state.baseStake ?? state.stake);
     const selectedMultiplier = Math.min(10, Math.max(1, Number(state.multiplier || 1)));
-    const maxRecoveryAttempts = selectedMultiplier;
+    const maxRecoveryAttempts = selectedMultiplier > 1 ? selectedMultiplier : 0;
     const recoveryStep = Math.max(0, Math.min(maxRecoveryAttempts, Number(state.recoveryStep || 0)));
-    const recoveryApplied = recoveryStep > 0;
+    const recoveryApplied = recoveryStep > 0 && selectedMultiplier > 1;
     const stake = recoveryApplied ? baseStake * Math.pow(selectedMultiplier, recoveryStep) : baseStake;
     let balance = Number(localStorage.getItem(BAL) || 10000);
     if (!Number.isFinite(stake) || stake <= 0 || stake > balance) {
@@ -199,7 +202,7 @@
     localStorage.removeItem("tradezoraLastDigitResult");
     try {
       window.dispatchEvent(new CustomEvent("tradezora-trade-opened", {
-        detail: { mode: "AUTO", digit: Number(state.digit), type: state.type }
+        detail: { mode: "AUTO", contract: state.contract, digit: Number(state.digit), type: state.type }
       }));
     } catch (e) {}
 
@@ -219,12 +222,12 @@
       contract: state.contract,
       mode: state.mode || 'AUTO',
       openedAt: now,
-      settleAt: now + 5000,
+      settleAt: now + DEMO_SETTLEMENT_MS,
       continuous: true
     });
     write(POS, positions);
 
-    write(KEY, { ...nextState, running:true, nextTradeAt:now + 6500 });
+    write(KEY, { ...nextState, running:true, nextTradeAt:now + AUTO_REOPEN_DELAY_MS });
     return true;
   }
 
@@ -240,8 +243,10 @@
       for (const position of positions) {
         if (position.settleAt && Number(position.settleAt) <= now) {
           const settled = await settlePosition(position, now);
-          if (settled === false) remaining.push(position);
-          else changed = true;
+          if (settled === false) {
+            remaining.push({ ...position, settleAt: now + 1200 });
+            changed = true;
+          } else changed = true;
         } else {
           remaining.push(position);
         }
@@ -304,5 +309,5 @@
 
   window.TradeZoraContinuousEngine = api;
   tick();
-  setInterval(tick, 500);
+  setInterval(tick, ENGINE_TICK_INTERVAL_MS);
 })();
