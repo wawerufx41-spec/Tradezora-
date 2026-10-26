@@ -27,7 +27,7 @@
 .probability.lowest-digit .percent{color:#ff7084}
 .probability.current-digit{transform:translateY(-1px)}
 .probability.current-digit .digit-number{color:#fff}
-.current-digit-marker{position:absolute;left:50%;bottom:-12px;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #f4c542;filter:drop-shadow(0 0 5px rgba(244,197,66,.8));z-index:5;pointer-events:none}
+.trade-outcome-marker{position:absolute;left:50%;bottom:-12px;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #f4c542;filter:drop-shadow(0 0 5px rgba(244,197,66,.8));z-index:5;pointer-events:none}
 .probability.selected-digit{box-shadow:0 0 0 2px rgba(55,231,255,.22),0 0 12px rgba(55,231,255,.28),0 0 22px rgba(55,231,255,.12);filter:brightness(1.16)}
 .probability.trade-win{box-shadow:0 0 0 3px rgba(22,229,138,.98),0 0 18px rgba(22,229,138,.85),0 0 34px rgba(22,229,138,.42)!important;animation:tradeResultPulse 1.15s ease-in-out 3}
 .probability.trade-win::before{background:conic-gradient(#16e58a 0 var(--probability),#123c2a var(--probability) 100%)!important}
@@ -82,10 +82,10 @@
   .probability .percent{font-size:7px}
 }
 
-.current-digit-marker + *{pointer-events:none}
+.trade-outcome-marker + *{pointer-events:none}
 @media (max-width:650px){
   .probabilities{gap:3px;padding-bottom:9px}
-  .current-digit-marker{bottom:-11px}
+  .trade-outcome-marker{bottom:-11px}
 }
 
 /* ===== REAL-MONEY M-PESA DEPOSIT MODAL ===== */
@@ -1299,6 +1299,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const total = digitStats.reduce((sum, value) => sum + value, 0);
     const currentDigit = getLastDigit(price);
+    // The yellow pointer tracks the most recent settled trade outcome digit.
+    // Before the first settled trade, it falls back to the live quote digit.
+    const outcomeDigitValue = Number(lastTradeResult?.digit);
+    const hasOutcomeDigit = lastTradeResult !== null && Number.isInteger(outcomeDigitValue) && outcomeDigitValue >= 0 && outcomeDigitValue <= 9;
+    const markerDigit = hasOutcomeDigit ? outcomeDigitValue : currentDigit;
     const probabilities = digitStats.map(count => (count / total) * 100);
 
     // Pick exactly ONE highest and ONE lowest digit, even when percentages tie.
@@ -1342,13 +1347,13 @@ document.addEventListener("DOMContentLoaded", () => {
       element.setAttribute("tabindex", "0");
       element.setAttribute(
         "aria-label",
-        `Digit ${digit}, ${probability.toFixed(1)} percent${digit === selectedDigit ? ", selected" : ""}${digit === currentDigit ? ", current price last digit" : ""}`
+        `Digit ${digit}, ${probability.toFixed(1)} percent${digit === selectedDigit ? ", selected" : ""}${digit === currentDigit ? ", current price last digit" : ""}${digit === markerDigit ? (hasOutcomeDigit ? ", yellow marker: last trade outcome digit" : ", yellow marker: current price digit until first trade settles") : ""}`
       );
 
       element.innerHTML = `
         <span class="digit-number">${digit}</span>
         <span class="percent">${probability.toFixed(1)}%</span>
-        ${digit === currentDigit ? '<span class="current-digit-marker" aria-hidden="true"></span>' : ''}
+        ${digit === markerDigit ? '<span class="trade-outcome-marker" aria-hidden="true"></span>' : ''}
       `;
 
       const selectDigit = () => {
