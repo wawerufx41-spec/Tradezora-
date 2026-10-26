@@ -241,14 +241,35 @@
       let changed = false;
 
       for (const position of positions) {
-        if (position.settleAt && Number(position.settleAt) <= now) {
+        // This engine owns only continuous/AUTO positions. Manual positions
+        // are settled by dashboard.html's own 3-second timer, preventing
+        // the two handlers from settling/paying the same position twice.
+        if (!position.continuous) {
+          remaining.push(position);
+          continue;
+        }
+
+        const openedAt = Number(position.openedAt || 0);
+        const configuredSettleAt = Number(position.settleAt || 0);
+        const minimumSettleAt = openedAt > 0 ? openedAt + DEMO_SETTLEMENT_MS : configuredSettleAt;
+        const eligibleAt = Math.max(configuredSettleAt, minimumSettleAt);
+
+        if (eligibleAt > 0 && eligibleAt <= now) {
           const settled = await settlePosition(position, now);
           if (settled === false) {
             remaining.push({ ...position, settleAt: now + 1200 });
             changed = true;
-          } else changed = true;
+          } else {
+            changed = true;
+          }
         } else {
-          remaining.push(position);
+          // Repair older/legacy positions with an earlier-than-3-second timer.
+          if (eligibleAt > configuredSettleAt) {
+            remaining.push({ ...position, settleAt: eligibleAt });
+            changed = true;
+          } else {
+            remaining.push(position);
+          }
         }
       }
       if (changed) write(POS, remaining);
