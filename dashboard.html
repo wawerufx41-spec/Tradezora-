@@ -27,7 +27,7 @@
 .probability.lowest-digit .percent{color:#ff7084}
 .probability.current-digit{transform:translateY(-1px)}
 .probability.current-digit .digit-number{color:#fff}
-.trade-outcome-marker{position:absolute;left:50%;bottom:-12px;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #f4c542;filter:drop-shadow(0 0 5px rgba(244,197,66,.8));z-index:5;pointer-events:none}
+.current-digit-marker{position:absolute;left:50%;bottom:-12px;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #f4c542;filter:drop-shadow(0 0 5px rgba(244,197,66,.8));z-index:5;pointer-events:none}
 .probability.selected-digit{box-shadow:0 0 0 2px rgba(55,231,255,.22),0 0 12px rgba(55,231,255,.28),0 0 22px rgba(55,231,255,.12);filter:brightness(1.16)}
 .probability.trade-win{box-shadow:0 0 0 3px rgba(22,229,138,.98),0 0 18px rgba(22,229,138,.85),0 0 34px rgba(22,229,138,.42)!important;animation:tradeResultPulse 1.15s ease-in-out 3}
 .probability.trade-win::before{background:conic-gradient(#16e58a 0 var(--probability),#123c2a var(--probability) 100%)!important}
@@ -82,10 +82,10 @@
   .probability .percent{font-size:7px}
 }
 
-.trade-outcome-marker + *{pointer-events:none}
+.current-digit-marker + *{pointer-events:none}
 @media (max-width:650px){
   .probabilities{gap:3px;padding-bottom:9px}
-  .trade-outcome-marker{bottom:-11px}
+  .current-digit-marker{bottom:-11px}
 }
 
 /* ===== REAL-MONEY M-PESA DEPOSIT MODAL ===== */
@@ -535,11 +535,6 @@ document.addEventListener("DOMContentLoaded", () => {
   );
 
   let price = 1000;
-  // Deriv quote precision is updated from incoming tick metadata when available.
-  // Until then we use the quote's visible precision, with two decimals as fallback.
-  let activePipSize = 2;
-  // Declared here because the digit panel renders before the chart setup below.
-  let liveFeedReady = false;
 
   let history = JSON.parse(localStorage.getItem("tradezoraDemoHistory") || "[]");
   let positions = JSON.parse(localStorage.getItem("tradezoraDemoPositions") || "[]");
@@ -1292,23 +1287,11 @@ document.addEventListener("DOMContentLoaded", () => {
   let digitStats = [...(digitProfiles[document.querySelector("#marketSelect")?.value] || digitProfiles["Volatility 10 (1s)"])];
   let lastTradeResult = JSON.parse(localStorage.getItem("tradezoraLastDigitResult") || "null");
 
-  function getPriceDecimals(value) {
-    const precision = Number(activePipSize);
-    if (Number.isInteger(precision) && precision >= 0 && precision <= 10) return precision;
-    const text = String(Math.abs(Number(value)));
-    const decimalPart = text.includes(".") ? text.split(".")[1] : "";
-    return Math.max(2, Math.min(10, decimalPart.length));
-  }
-
   function getLastDigit(value) {
-    // Use the market's actual quote precision (from Deriv tick metadata when
-    // available), rather than multiplying every market by 100 unconditionally.
-    const numeric = Number(value);
-    if (!Number.isFinite(numeric)) return 0;
-    const decimals = getPriceDecimals(numeric);
-    const formatted = Math.abs(numeric).toFixed(decimals);
-    const digits = formatted.replace(/\D/g, "");
-    return digits ? Number(digits[digits.length - 1]) : 0;
+    // The contract digit follows the last visible decimal digit of the quote.
+    // Example: 1043.64 -> 4, 14166.41 -> 1.
+    const scaled = Math.round(Math.abs(Number(value)) * 100);
+    return scaled % 10;
   }
 
   function renderDigitStatistics() {
@@ -1316,11 +1299,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const total = digitStats.reduce((sum, value) => sum + value, 0);
     const currentDigit = getLastDigit(price);
-    // The yellow pointer follows the current quote on every market tick. The
-    // most recent settled trade remains separately shown by its win/loss ring.
-    const outcomeDigitValue = Number(lastTradeResult?.digit);
-    const hasOutcomeDigit = lastTradeResult !== null && Number.isInteger(outcomeDigitValue) && outcomeDigitValue >= 0 && outcomeDigitValue <= 9;
-    const markerDigit = currentDigit;
     const probabilities = digitStats.map(count => (count / total) * 100);
 
     // Pick exactly ONE highest and ONE lowest digit, even when percentages tie.
@@ -1364,13 +1342,13 @@ document.addEventListener("DOMContentLoaded", () => {
       element.setAttribute("tabindex", "0");
       element.setAttribute(
         "aria-label",
-        `Digit ${digit}, ${probability.toFixed(1)} percent${digit === selectedDigit ? ", selected" : ""}${digit === currentDigit ? ", current price last digit" : ""}${digit === markerDigit ? ", yellow marker: current market quote digit" : ""}`
+        `Digit ${digit}, ${probability.toFixed(1)} percent${digit === selectedDigit ? ", selected" : ""}${digit === currentDigit ? ", current price last digit" : ""}`
       );
 
       element.innerHTML = `
         <span class="digit-number">${digit}</span>
         <span class="percent">${probability.toFixed(1)}%</span>
-        ${digit === markerDigit ? '<span class="trade-outcome-marker" aria-hidden="true"></span>' : ''}
+        ${digit === currentDigit ? '<span class="current-digit-marker" aria-hidden="true"></span>' : ''}
       `;
 
       const selectDigit = () => {
@@ -1616,6 +1594,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (![60,120,300,900,1800,3600].includes(candleGranularity)) candleGranularity = 60;
   let previousLivePrice = null;
   let liveSocket = null;
+  let liveFeedReady = false;
   let activeMarketSymbol = "";
   let currentTickSubscription = null;
   const tickSubscriptions = new Set();
@@ -1832,12 +1811,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         const quote = Number(data.tick.quote);
         if (!Number.isFinite(quote)) return;
-        const rawPrecision = Number(data.tick.pip_size);
-        if (Number.isInteger(rawPrecision) && rawPrecision >= 0 && rawPrecision <= 10) {
-          activePipSize = rawPrecision;
-        } else if (Number.isFinite(rawPrecision) && rawPrecision > 0 && rawPrecision < 1) {
-          activePipSize = Math.max(0, Math.min(10, Math.round(-Math.log10(rawPrecision))));
-        }
         const oldPrice = previousLivePrice;
         price = quote;
         previousLivePrice = quote;
@@ -1989,24 +1962,6 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
-  function drawMarketDigitTag(x, y, digit, latest, minY, maxY) {
-    // Draw the actual quote digit directly on the price chart: no badge, box,
-    // marker panel or background shape. A subtle text outline keeps it readable.
-    const labelY = Math.max(minY + 10, Math.min(maxY - 3, y));
-    const labelX = Math.max(5, Math.min(chart.clientWidth - 5, x));
-    ctx.save();
-    ctx.font = latest ? "800 11px system-ui,sans-serif" : "700 9px system-ui,sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.lineJoin = "round";
-    ctx.lineWidth = 2.5;
-    ctx.strokeStyle = "rgba(3,9,6,.92)";
-    ctx.strokeText(String(digit), labelX, labelY);
-    ctx.fillStyle = latest ? "#f4c542" : "#f0f5f2";
-    ctx.fillText(String(digit), labelX, labelY);
-    ctx.restore();
-  }
-
   function drawChart() {
     const width = chart.clientWidth;
     const height = chart.clientHeight;
@@ -2063,12 +2018,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const y1=yFor(Math.max(c.open,c.close)), y2=yFor(Math.min(c.open,c.close));
         ctx.fillRect(x-candleWidth/2,y1,candleWidth,Math.max(1.5,y2-y1));
       });
-      // Show the actual last digit of recent candle closing quotes along the market.
-      const candleTagStart = Math.max(0, visible.length - 8);
-      for (let i = candleTagStart; i < visible.length; i++) {
-        const c = visible[i];
-        drawMarketDigitTag(xFor(i), yFor(c.close) + 11, getLastDigit(c.close), i === visible.length - 1, top, top + plotHeight);
-      }
     } else {
       const points=plottedValues.map((value,i)=>({x:xFor(i),y:yFor(value),value}));
       const fakeCount = illustrativePrior.values.length;
@@ -2087,15 +2036,6 @@ document.addEventListener("DOMContentLoaded", () => {
       ctx.strokeStyle="rgba(22,229,138,.22)";ctx.lineWidth=6;ctx.lineJoin="round";ctx.lineCap="round";ctx.stroke();ctx.restore();
       ctx.save();ctx.beginPath();livePoints.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
       ctx.strokeStyle="#f4f7f5";ctx.lineWidth=1.8;ctx.lineJoin="round";ctx.lineCap="round";ctx.stroke();ctx.restore();
-      // Label digits from genuine market ticks (not the illustrative prior segment).
-      // A sparse cadence keeps labels readable while making the observed digit sequence visible.
-      const actualPointCount = Math.max(0, points.length - fakeCount);
-      const recentStart = Math.max(fakeCount, points.length - 43);
-      for (let i = recentStart; i < points.length; i++) {
-        const latest = i === points.length - 1;
-        if (!latest && ((points.length - 1 - i) % 6 !== 0)) continue;
-        drawMarketDigitTag(points[i].x, points[i].y + 12, getLastDigit(points[i].value), latest, top, top + plotHeight);
-      }
     }
     // Market structure: mark recent local swing highs/lows and the latest direction from real chart data.
     const structure = chartMode === "candles" ? visible : visible.map(p=>({high:p.value,low:p.value,close:p.value}));
@@ -2113,9 +2053,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const lastPrice=chartMode === "candles" ? last.close : last.value;
     const currentY=yFor(lastPrice);
     ctx.save();ctx.setLineDash([4,4]);ctx.strokeStyle="rgba(255,255,255,.3)";ctx.beginPath();ctx.moveTo(left,currentY);ctx.lineTo(left+plotWidth,currentY);ctx.stroke();ctx.restore();
-    ctx.save();ctx.fillStyle="#f4f7f5";ctx.beginPath();ctx.roundRect(left+plotWidth+4,Math.max(top,Math.min(top+plotHeight-20,currentY-10)),right-7,20,4);ctx.fill();ctx.fillStyle="#08100c";ctx.font="700 9px system-ui,sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(`D${getLastDigit(price)}`,left+plotWidth+4+(right-7)/2,Math.max(top,Math.min(top+plotHeight-20,currentY-10))+10);ctx.restore();
+    ctx.save();ctx.fillStyle="#f4f7f5";ctx.beginPath();ctx.roundRect(left+plotWidth+4,Math.max(top,Math.min(top+plotHeight-20,currentY-10)),right-7,20,4);ctx.fill();ctx.fillStyle="#08100c";ctx.font="700 9px system-ui,sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(Number(price).toFixed(2),left+plotWidth+4+(right-7)/2,Math.max(top,Math.min(top+plotHeight-20,currentY-10))+10);ctx.restore();
     ctx.save();ctx.fillStyle="rgba(205,216,211,.72)";ctx.font="9px system-ui,sans-serif";ctx.textAlign="left";ctx.textBaseline="middle";
-    for(let i=0;i<=5;i++){const v=scaleMax-(scaleRange/5)*i;ctx.fillText(v.toFixed(getPriceDecimals(v)),left+plotWidth+5,top+(plotHeight/5)*i);}ctx.restore();
+    for(let i=0;i<=5;i++){const v=scaleMax-(scaleRange/5)*i;ctx.fillText(v.toFixed(2),left+plotWidth+5,top+(plotHeight/5)*i);}ctx.restore();
     ctx.save();ctx.fillStyle="rgba(155,171,164,.72)";ctx.font="8px system-ui,sans-serif";ctx.textBaseline="top";
     for(let i=0;i<5;i++){const idx=Math.round(i/4*(visible.length-1));const item=visible[idx];const epoch=chartMode==="candles"?item.epoch:item.epoch;const d=new Date((Number(epoch)||0)*1000);const label=Number.isFinite(d.getTime())?d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",hour12:false}):"";const x=left+(i/4)*plotWidth;ctx.textAlign=i===0?"left":i===4?"right":"center";ctx.fillText(label,x,height-bottom+8);}ctx.restore();
     // Basic structure summary uses the latest visible swing sequence, not a prediction.
@@ -2351,7 +2291,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // Save the market being left before changing the active symbol.
     if (activeMarketSymbol && activeMarketSymbol !== symbol) saveActiveMarketData();
     chartPanOffset = 0;
-    activePipSize = 2;
     localStorage.setItem("tradezoraActiveMarket", symbol);
     resetDigitProfile(activeMarket);
     // On an open socket the request helper first saves the outgoing market,
