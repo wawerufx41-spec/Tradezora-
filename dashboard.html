@@ -549,7 +549,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Demo-only selector state. While a trade is open, the yellow triangle follows
   // that trade's selected digit; briefly after settlement it follows the final
   // simulated result digit, then returns to the live quote digit when idle.
-  const DEMO_SETTLEMENT_MS = 3000;
+  const DEMO_SETTLEMENT_MS = 5000;
   const RESULT_MARKER_DWELL_MS = 1200;
   const validDigit = (value) => value !== null && value !== undefined && value !== "" && Number.isInteger(Number(value)) && Number(value) >= 0 && Number(value) <= 9;
   const initialOpenPosition = [...positions].reverse().find((item) => item && validDigit(item.digit));
@@ -2520,17 +2520,23 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
 
-    const openedAt = Date.now();
     const position = {
-      id: openedAt + Math.random(),
+
+      id: Date.now() + Math.random(),
+
       type,
+
       stake: tradeStake,
+
       digit: tradeDigit,
+
       contract: tradeContract,
+
       mode: tradeMode,
-      openedAt,
-      // Enforce a full three seconds from the exact open timestamp.
-      settleAt: openedAt + DEMO_SETTLEMENT_MS
+
+      openedAt: Date.now(),
+      settleAt: Date.now() + DEMO_SETTLEMENT_MS
+
     };
 
 
@@ -2550,7 +2556,7 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
 
-    // Settle this demo contract after the faster 3-second duration.
+    // Settle this demo contract after the original 5-second duration.
     setTimeout(async () => {
 
       const index =
