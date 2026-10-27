@@ -12,7 +12,7 @@
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.62);opacity:0;visibility:hidden;transition:.2s;z-index:80}.overlay.show{opacity:1;visibility:visible}
 .topbar{position:sticky;top:0;z-index:70;height:68px;display:flex;align-items:center;gap:12px;padding:0 18px;background:rgba(5,8,7,.97);border-bottom:1px solid var(--border);backdrop-filter:blur(12px)}
 .menu-btn{width:44px;height:44px;flex:0 0 44px;border:1px solid #244334;border-radius:10px;background:#0b1510;display:grid;place-content:center;gap:4px}.menu-btn span{width:20px;height:2px;display:block;background:var(--text);border-radius:2px}
-.mobile-logo{color:var(--green);text-decoration:none;font-weight:900;font-size:19px}.top-spacer{flex:1}.demo-badge{border:1px solid #4a3c74;background:#17112b;color:#bcaeff;border-radius:7px;padding:5px 8px;font-size:9px;font-weight:900}.account-mode-switch{display:flex;gap:3px;padding:3px;border:1px solid var(--border);border-radius:9px;background:#07100c;flex:0 0 auto}.account-mode-switch button{border:0;border-radius:6px;padding:7px 9px;background:transparent;color:var(--muted);font-size:9px;font-weight:900;white-space:nowrap}.account-mode-switch button.active[data-account-mode="demo"]{background:#211936;color:#c8baff}.account-mode-switch button.active[data-account-mode="real"]{background:#103622;color:var(--green)}.balance-box{min-width:145px;padding:7px 13px;border:1px solid var(--border);border-radius:11px;background:#08110d;text-align:right}.balance-box small{display:block;color:var(--muted);font-size:9px;letter-spacing:.7px}.balance-box strong{display:block;color:var(--green);font-size:17px}.notification-btn{position:relative;width:44px;height:44px;border:1px solid var(--border);border-radius:11px;background:#08110d;color:#fff;display:grid;place-items:center}.notification-bell-icon{display:block;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}.notification-btn:focus-visible,.notification-panel button:focus-visible{outline:2px solid var(--green);outline-offset:2px}.notification-count{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 4px;display:grid;place-items:center;border-radius:999px;background:var(--red);border:2px solid var(--bg);color:#fff;font-size:9px;font-weight:900}.notification-backdrop{position:fixed;inset:0;z-index:155;background:rgba(0,0,0,.42)}.notification-panel{position:fixed;z-index:160;top:76px;right:14px;width:min(420px,calc(100vw - 24px));max-height:calc(100dvh - 92px);overflow:hidden;display:flex;flex-direction:column;border:1px solid #244334;border-radius:16px;background:#07100c;box-shadow:0 22px 70px rgba(0,0,0,.55)}.notification-panel[hidden],.notification-backdrop[hidden],.notification-count[hidden]{display:none!important}.notification-panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px;border-bottom:1px solid var(--border)}.notification-panel-head h2{margin:0;font-size:16px}.notification-panel-head p{margin:4px 0 0;color:var(--muted);font-size:10px}.notification-panel-actions{display:flex;gap:7px}.notification-panel-actions button{border:1px solid var(--border);border-radius:8px;padding:7px 9px;background:#0b1510;color:#dce8e3;font-size:10px;font-weight:800}.notification-panel-actions button:disabled{opacity:.45;cursor:default}.notification-list{overflow:auto;padding:9px;overscroll-behavior:contain}.notification-empty{padding:25px 12px;color:var(--muted);text-align:center;font-size:12px;line-height:1.5}.notification-item{display:block;width:100%;margin:0 0 8px;padding:12px;border:1px solid #14291e;border-radius:11px;background:#09140f;color:var(--text);text-align:left}.notification-item:last-child{margin-bottom:0}.notification-item.unread{border-color:#246c47;background:#0b1d13}.notification-item-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.notification-item-title{font-size:12px;font-weight:850}.notification-item-dot{width:7px;height:7px;flex:0 0 7px;margin-top:4px;border-radius:50%;background:var(--green)}.notification-item-message{display:block;margin-top:7px;color:#c4d2ca;font-size:11px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}.notification-item-time{display:block;margin-top:8px;color:var(--muted);font-size:9px}
+.mobile-logo{color:var(--green);text-decoration:none;font-weight:900;font-size:19px}.top-spacer{flex:1}.demo-badge{border:1px solid #4a3c74;background:#17112b;color:#bcaeff;border-radius:7px;padding:5px 8px;font-size:9px;font-weight:900}.account-mode-switch{display:flex;gap:3px;padding:3px;border:1px solid var(--border);border-radius:9px;background:#07100c;flex:0 0 auto}.account-mode-switch button{border:0;border-radius:6px;padding:7px 9px;background:transparent;color:var(--muted);font-size:9px;font-weight:900;white-space:nowrap}.account-mode-switch button.active[data-account-mode="demo"]{background:#211936;color:#c8baff}.account-mode-switch button.active[data-account-mode="real"]{background:#103622;color:var(--green)}.balance-box{min-width:145px;padding:7px 13px;border:1px solid var(--border);border-radius:11px;background:#08110d;text-align:right}.balance-box small{display:block;color:var(--muted);font-size:9px;letter-spacing:.7px}.balance-box small.sandbox-balance-label{color:#ffd166}.balance-box strong{display:block;color:var(--green);font-size:17px}.notification-btn{position:relative;width:44px;height:44px;border:1px solid var(--border);border-radius:11px;background:#08110d;color:#fff;display:grid;place-items:center}.notification-bell-icon{display:block;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}.notification-btn:focus-visible,.notification-panel button:focus-visible{outline:2px solid var(--green);outline-offset:2px}.notification-count{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 4px;display:grid;place-items:center;border-radius:999px;background:var(--red);border:2px solid var(--bg);color:#fff;font-size:9px;font-weight:900}.notification-backdrop{position:fixed;inset:0;z-index:155;background:rgba(0,0,0,.42)}.notification-panel{position:fixed;z-index:160;top:76px;right:14px;width:min(420px,calc(100vw - 24px));max-height:calc(100dvh - 92px);overflow:hidden;display:flex;flex-direction:column;border:1px solid #244334;border-radius:16px;background:#07100c;box-shadow:0 22px 70px rgba(0,0,0,.55)}.notification-panel[hidden],.notification-backdrop[hidden],.notification-count[hidden]{display:none!important}.notification-panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px;border-bottom:1px solid var(--border)}.notification-panel-head h2{margin:0;font-size:16px}.notification-panel-head p{margin:4px 0 0;color:var(--muted);font-size:10px}.notification-panel-actions{display:flex;gap:7px}.notification-panel-actions button{border:1px solid var(--border);border-radius:8px;padding:7px 9px;background:#0b1510;color:#dce8e3;font-size:10px;font-weight:800}.notification-panel-actions button:disabled{opacity:.45;cursor:default}.notification-list{overflow:auto;padding:9px;overscroll-behavior:contain}.notification-empty{padding:25px 12px;color:var(--muted);text-align:center;font-size:12px;line-height:1.5}.notification-item{display:block;width:100%;margin:0 0 8px;padding:12px;border:1px solid #14291e;border-radius:11px;background:#09140f;color:var(--text);text-align:left}.notification-item:last-child{margin-bottom:0}.notification-item.unread{border-color:#246c47;background:#0b1d13}.notification-item-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.notification-item-title{font-size:12px;font-weight:850}.notification-item-dot{width:7px;height:7px;flex:0 0 7px;margin-top:4px;border-radius:50%;background:var(--green)}.notification-item-message{display:block;margin-top:7px;color:#c4d2ca;font-size:11px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}.notification-item-time{display:block;margin-top:8px;color:var(--muted);font-size:9px}
 .side-menu{position:fixed;top:0;left:0;width:min(330px,88vw);height:100vh;padding:18px;background:#060b08;border-right:1px solid var(--border);box-shadow:18px 0 50px rgba(0,0,0,.4);transform:translateX(-105%);transition:transform .24s ease;z-index:90;overflow-y:auto}.side-menu.open{transform:translateX(0)}.side-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}.side-brand{display:flex;align-items:center;gap:9px;color:var(--green);font-size:20px;font-weight:900}.brand-mark{width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--green);border-radius:9px;font-size:12px}.icon-btn{border:1px solid var(--border);background:#0b1510;color:#fff;border-radius:9px}.close-btn{width:38px;height:38px;font-size:24px}.profile{display:flex;gap:11px;align-items:center;padding:13px;border:1px solid var(--border);border-radius:12px;background:#09140f;margin-bottom:12px}.avatar{width:44px;height:44px;flex:0 0 44px;display:grid;place-items:center;border-radius:50%;background:#103622;border:1px solid #246c47;color:var(--green);font-weight:900}.profile-info{min-width:0}.profile-info strong,.profile-info span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.profile-info span{margin-top:3px;color:var(--muted);font-size:11px}.side-nav{display:grid;gap:4px}.side-link{width:100%;min-height:44px;display:flex;align-items:center;gap:11px;padding:10px 12px;border:0;border-radius:9px;background:transparent;color:#d7e0dc;text-decoration:none;text-align:left;font-size:13px}.side-link span{width:19px;text-align:center;color:#9aa9a2}.side-link:hover,.side-link.active{background:#0b2117;color:var(--green)}.admin-only{display:none!important}.admin-only.visible{display:flex!important}.logout-btn{width:100%;margin-top:16px;padding:12px;border:1px solid #4b2028;border-radius:9px;background:#1a0b0e;color:#ff7c88}
 .page{width:100%}.terminal{width:min(1100px,100%);margin:0 auto;padding:16px}.market-tabs{display:flex;gap:5px;padding:4px;margin-bottom:10px;border:1px solid var(--border);border-radius:10px;background:#07100c;overflow-x:auto}.market-tabs button{flex:1 0 auto;min-height:38px;padding:8px 14px;border:0;border-radius:7px;background:transparent;color:var(--muted);font-weight:700;font-size:12px;white-space:nowrap}.market-tabs button.active{background:#10301f;color:var(--green)}.market-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:10px}.eyebrow{display:block;margin-bottom:4px;color:var(--muted);font-size:9px;font-weight:800;letter-spacing:1px}.market-head select{min-width:190px;padding:9px 11px;border:1px solid var(--border);border-radius:8px;background:#09130f;color:#fff;outline:none}.price-change{text-align:right}.price-change span{display:block;color:var(--muted);font-size:8px}.price-change strong{display:block;color:var(--green);font-size:13px}
 .panel{border:1px solid var(--border);border-radius:14px;background:linear-gradient(180deg,#09110d,#07100c);box-shadow:var(--shadow)}.chart-panel{padding:13px}.chart-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px}.historical{padding:5px 8px;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:9px}.chart-tools{display:flex;gap:4px}.chart-tools button{min-width:31px;height:29px;padding:0 7px;border:1px solid var(--border);border-radius:6px;background:#0b1711;color:#dbe4df}.chart-wrap{position:relative;height:310px;margin-top:7px;overflow:hidden;border-radius:9px;background:linear-gradient(rgba(31,73,54,.15) 1px,transparent 1px),linear-gradient(90deg,rgba(31,73,54,.15) 1px,transparent 1px),#050a08;background-size:45px 45px}#priceChart{display:block;width:100%;height:100%}.chart-label{position:absolute;left:10px;bottom:8px;color:#4c6258;font-size:8px;pointer-events:none}.probability-title{display:flex;justify-content:space-between;gap:10px;margin-top:12px;color:#d9e3de;font-size:10px;font-weight:800}.probability-title small{color:var(--muted);font-size:8px;font-weight:500}.probabilities{display:grid;grid-template-columns:repeat(10,minmax(31px,1fr));gap:4px;margin-top:9px;align-items:start;overflow:visible}
@@ -522,6 +522,10 @@ document.addEventListener("DOMContentLoaded", () => {
   let accountMode = localStorage.getItem("tradezoraAccountMode") === "real" ? "real" : "demo";
   let realBalance = null;
   let realBalanceLoadStatus = "loading";
+  // Sandbox wallet state is distinct from the actual real-money account balance.
+  let realTestFundsBalanceValue = null;
+  let realTestFundsLoadStatus = "loading";
+  let realTestModeEnabled = false;
 
   // Show the Admin Dashboard shortcut only after the active backend confirms
   // this session belongs to the owner admin. The admin page still verifies access.
@@ -841,11 +845,29 @@ document.addEventListener("DOMContentLoaded", () => {
     const sessionLossesValue = Math.max(0, Number(sessionState.sessionLosses ?? 0) || 0);
     const sessionTradesValue = Math.max(0, Number(sessionState.sessionTrades ?? (sessionWinsValue + sessionLossesValue)) || 0);
 
-    if (balanceEl) balanceEl.textContent = accountMode === "real"
-      ? (realBalanceLoadStatus === "error" ? "Unavailable" : (realBalance === null ? "Loading…" : money(realBalance)))
-      : money(balance);
+    // In Real Test Mode, use the main Real-mode balance slot as a clearly labelled
+    // sandbox-test balance. The virtual wallet is never merged into the real-money
+    // account balance returned by /api/real-account.
+    const showRealTestBalanceInMainSlot = accountMode === "real" && realTestModeEnabled;
+    if (balanceEl) {
+      if (showRealTestBalanceInMainSlot) {
+        balanceEl.textContent = realTestFundsLoadStatus === "loaded"
+          ? formatUsd(realTestFundsBalanceValue)
+          : realTestFundsLoadStatus === "signed-out" ? "Sign in required"
+          : realTestFundsLoadStatus === "error" ? "Unavailable" : "Loading…";
+      } else {
+        balanceEl.textContent = accountMode === "real"
+          ? (realBalanceLoadStatus === "error" ? "Unavailable" : (realBalance === null ? "Loading…" : money(realBalance)))
+          : money(balance);
+      }
+    }
     const balanceLabel = $("#balanceLabel");
-    if (balanceLabel) balanceLabel.textContent = accountMode === "real" ? "REAL BALANCE" : "DEMO BALANCE";
+    if (balanceLabel) {
+      balanceLabel.textContent = showRealTestBalanceInMainSlot
+        ? "REAL TEST BALANCE · SANDBOX"
+        : accountMode === "real" ? "REAL BALANCE" : "DEMO BALANCE";
+      balanceLabel.classList.toggle("sandbox-balance-label", showRealTestBalanceInMainSlot);
+    }
     const demoModeButton = $("#accountModeDemo");
     const realModeButton = $("#accountModeReal");
     demoModeButton?.classList.toggle("active", accountMode === "demo");
@@ -854,7 +876,9 @@ document.addEventListener("DOMContentLoaded", () => {
     realModeButton?.setAttribute("aria-pressed", String(accountMode === "real"));
     const modeNotice = $("#accountModeNotice");
     if (modeNotice) modeNotice.textContent = accountMode === "real"
-      ? "REAL account selected. This shows your server-stored real USD balance. Real-money trading is not enabled yet; trade buttons cannot use or deduct real funds. Deposits are credited only after verified M-Pesa confirmation."
+      ? (showRealTestBalanceInMainSlot
+          ? "REAL TEST MODE is enabled. The main balance display shows virtual sandbox test funds only—not actual money. This balance cannot be withdrawn or used for real payouts. Your actual real-money account remains separate and is shown in the Deposit/Withdraw account details. Real-money trading remains disabled."
+          : "REAL account selected. This shows your server-stored real USD balance. Real-money trading is not enabled yet; trade buttons cannot use or deduct real funds. Deposits are credited only after verified M-Pesa confirmation.")
       : "Demo trading is simulated and uses your separate demo balance. Real-money deposits use a separate USD account and are credited only after verified M-Pesa confirmation.";
     if (stakeEl) stakeEl.textContent = money(stake);
     if (pnlElement) {
@@ -1013,8 +1037,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const realTestFundsBalanceEl = $("#realTestFundsBalance");
   const realTestFundsStatusEl = $("#realTestFundsStatus");
   const refreshRealTestFundsButton = $("#refreshRealTestFunds");
-  let realTestFundsBalanceValue = null;
-  let realTestFundsLoadStatus = "loading";
   let realTestFundsRefreshInFlight = null;
 
   function renderRealTestFundsWallet() {
@@ -1038,11 +1060,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!token) {
       realTestFundsLoadStatus = "signed-out";
       realTestFundsBalanceValue = null;
+      realTestModeEnabled = false;
       renderRealTestFundsWallet();
+      renderBalance();
       return;
     }
     realTestFundsLoadStatus = "loading";
     renderRealTestFundsWallet();
+    renderBalance();
     realTestFundsRefreshInFlight = (async () => {
       try {
         const data = await paymentApi("/api/real-test-funds", { headers: { "Cache-Control": "no-cache" } });
@@ -1052,14 +1077,17 @@ document.addEventListener("DOMContentLoaded", () => {
         const amount = Number(data.balanceUsd);
         if (!Number.isFinite(amount) || amount < 0) throw new Error("The sandbox wallet returned an invalid balance.");
         realTestFundsBalanceValue = amount;
+        realTestModeEnabled = data.realTestModeEnabled === true;
         realTestFundsLoadStatus = "loaded";
       } catch (error) {
         realTestFundsBalanceValue = null;
+        realTestModeEnabled = false;
         realTestFundsLoadStatus = "error";
         console.warn("Real Test Funds wallet could not be loaded:", error.message);
       } finally {
         realTestFundsRefreshInFlight = null;
         renderRealTestFundsWallet();
+        renderBalance();
       }
     })();
     return realTestFundsRefreshInFlight;
