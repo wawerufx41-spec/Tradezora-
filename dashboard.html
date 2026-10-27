@@ -12,7 +12,7 @@
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.62);opacity:0;visibility:hidden;transition:.2s;z-index:80}.overlay.show{opacity:1;visibility:visible}
 .topbar{position:sticky;top:0;z-index:70;height:68px;display:flex;align-items:center;gap:12px;padding:0 18px;background:rgba(5,8,7,.97);border-bottom:1px solid var(--border);backdrop-filter:blur(12px)}
 .menu-btn{width:44px;height:44px;flex:0 0 44px;border:1px solid #244334;border-radius:10px;background:#0b1510;display:grid;place-content:center;gap:4px}.menu-btn span{width:20px;height:2px;display:block;background:var(--text);border-radius:2px}
-.mobile-logo{color:var(--green);text-decoration:none;font-weight:900;font-size:19px}.top-spacer{flex:1}.demo-badge{border:1px solid #4a3c74;background:#17112b;color:#bcaeff;border-radius:7px;padding:5px 8px;font-size:9px;font-weight:900}.account-mode-switch{display:flex;gap:3px;padding:3px;border:1px solid var(--border);border-radius:9px;background:#07100c;flex:0 0 auto}.account-mode-switch button{border:0;border-radius:6px;padding:7px 9px;background:transparent;color:var(--muted);font-size:9px;font-weight:900;white-space:nowrap}.account-mode-switch button.active[data-account-mode="demo"]{background:#211936;color:#c8baff}.account-mode-switch button.active[data-account-mode="real"]{background:#103622;color:var(--green)}.balance-box{min-width:145px;padding:7px 13px;border:1px solid var(--border);border-radius:11px;background:#08110d;text-align:right}.balance-box small{display:block;color:var(--muted);font-size:9px;letter-spacing:.7px}.balance-box small.sandbox-balance-label{color:#ffd166}.balance-box strong{display:block;color:var(--green);font-size:17px}.notification-btn{position:relative;width:44px;height:44px;border:1px solid var(--border);border-radius:11px;background:#08110d;color:#fff;display:grid;place-items:center}.notification-bell-icon{display:block;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}.notification-btn:focus-visible,.notification-panel button:focus-visible{outline:2px solid var(--green);outline-offset:2px}.notification-count{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 4px;display:grid;place-items:center;border-radius:999px;background:var(--red);border:2px solid var(--bg);color:#fff;font-size:9px;font-weight:900}.notification-backdrop{position:fixed;inset:0;z-index:155;background:rgba(0,0,0,.42)}.notification-panel{position:fixed;z-index:160;top:76px;right:14px;width:min(420px,calc(100vw - 24px));max-height:calc(100dvh - 92px);overflow:hidden;display:flex;flex-direction:column;border:1px solid #244334;border-radius:16px;background:#07100c;box-shadow:0 22px 70px rgba(0,0,0,.55)}.notification-panel[hidden],.notification-backdrop[hidden],.notification-count[hidden]{display:none!important}.notification-panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px;border-bottom:1px solid var(--border)}.notification-panel-head h2{margin:0;font-size:16px}.notification-panel-head p{margin:4px 0 0;color:var(--muted);font-size:10px}.notification-panel-actions{display:flex;gap:7px}.notification-panel-actions button{border:1px solid var(--border);border-radius:8px;padding:7px 9px;background:#0b1510;color:#dce8e3;font-size:10px;font-weight:800}.notification-panel-actions button:disabled{opacity:.45;cursor:default}.notification-list{overflow:auto;padding:9px;overscroll-behavior:contain}.notification-empty{padding:25px 12px;color:var(--muted);text-align:center;font-size:12px;line-height:1.5}.notification-item{display:block;width:100%;margin:0 0 8px;padding:12px;border:1px solid #14291e;border-radius:11px;background:#09140f;color:var(--text);text-align:left}.notification-item:last-child{margin-bottom:0}.notification-item.unread{border-color:#246c47;background:#0b1d13}.notification-item-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.notification-item-title{font-size:12px;font-weight:850}.notification-item-dot{width:7px;height:7px;flex:0 0 7px;margin-top:4px;border-radius:50%;background:var(--green)}.notification-item-message{display:block;margin-top:7px;color:#c4d2ca;font-size:11px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}.notification-item-time{display:block;margin-top:8px;color:var(--muted);font-size:9px}
+.mobile-logo{color:var(--green);text-decoration:none;font-weight:900;font-size:19px}.top-spacer{flex:1}.demo-badge{border:1px solid #4a3c74;background:#17112b;color:#bcaeff;border-radius:7px;padding:5px 8px;font-size:9px;font-weight:900}.account-mode-switch{display:flex;gap:3px;padding:3px;border:1px solid var(--border);border-radius:9px;background:#07100c;flex:0 0 auto}.account-mode-switch button{border:0;border-radius:6px;padding:7px 9px;background:transparent;color:var(--muted);font-size:9px;font-weight:900;white-space:nowrap}.account-mode-switch button.active[data-account-mode="demo"]{background:#211936;color:#c8baff}.account-mode-switch button.active[data-account-mode="real"]{background:#103622;color:var(--green)}.balance-box{min-width:145px;padding:7px 13px;border:1px solid var(--border);border-radius:11px;background:#08110d;text-align:right}.balance-box small{display:block;color:var(--muted);font-size:9px;letter-spacing:.7px}.balance-box strong{display:block;color:var(--green);font-size:17px}.notification-btn{position:relative;width:44px;height:44px;border:1px solid var(--border);border-radius:11px;background:#08110d;color:#fff;display:grid;place-items:center}.notification-bell-icon{display:block;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}.notification-btn:focus-visible,.notification-panel button:focus-visible{outline:2px solid var(--green);outline-offset:2px}.notification-count{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 4px;display:grid;place-items:center;border-radius:999px;background:var(--red);border:2px solid var(--bg);color:#fff;font-size:9px;font-weight:900}.notification-backdrop{position:fixed;inset:0;z-index:155;background:rgba(0,0,0,.42)}.notification-panel{position:fixed;z-index:160;top:76px;right:14px;width:min(420px,calc(100vw - 24px));max-height:calc(100dvh - 92px);overflow:hidden;display:flex;flex-direction:column;border:1px solid #244334;border-radius:16px;background:#07100c;box-shadow:0 22px 70px rgba(0,0,0,.55)}.notification-panel[hidden],.notification-backdrop[hidden],.notification-count[hidden]{display:none!important}.notification-panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px;border-bottom:1px solid var(--border)}.notification-panel-head h2{margin:0;font-size:16px}.notification-panel-head p{margin:4px 0 0;color:var(--muted);font-size:10px}.notification-panel-actions{display:flex;gap:7px}.notification-panel-actions button{border:1px solid var(--border);border-radius:8px;padding:7px 9px;background:#0b1510;color:#dce8e3;font-size:10px;font-weight:800}.notification-panel-actions button:disabled{opacity:.45;cursor:default}.notification-list{overflow:auto;padding:9px;overscroll-behavior:contain}.notification-empty{padding:25px 12px;color:var(--muted);text-align:center;font-size:12px;line-height:1.5}.notification-item{display:block;width:100%;margin:0 0 8px;padding:12px;border:1px solid #14291e;border-radius:11px;background:#09140f;color:var(--text);text-align:left}.notification-item:last-child{margin-bottom:0}.notification-item.unread{border-color:#246c47;background:#0b1d13}.notification-item-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.notification-item-title{font-size:12px;font-weight:850}.notification-item-dot{width:7px;height:7px;flex:0 0 7px;margin-top:4px;border-radius:50%;background:var(--green)}.notification-item-message{display:block;margin-top:7px;color:#c4d2ca;font-size:11px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}.notification-item-time{display:block;margin-top:8px;color:var(--muted);font-size:9px}
 .side-menu{position:fixed;top:0;left:0;width:min(330px,88vw);height:100vh;padding:18px;background:#060b08;border-right:1px solid var(--border);box-shadow:18px 0 50px rgba(0,0,0,.4);transform:translateX(-105%);transition:transform .24s ease;z-index:90;overflow-y:auto}.side-menu.open{transform:translateX(0)}.side-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}.side-brand{display:flex;align-items:center;gap:9px;color:var(--green);font-size:20px;font-weight:900}.brand-mark{width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--green);border-radius:9px;font-size:12px}.icon-btn{border:1px solid var(--border);background:#0b1510;color:#fff;border-radius:9px}.close-btn{width:38px;height:38px;font-size:24px}.profile{display:flex;gap:11px;align-items:center;padding:13px;border:1px solid var(--border);border-radius:12px;background:#09140f;margin-bottom:12px}.avatar{width:44px;height:44px;flex:0 0 44px;display:grid;place-items:center;border-radius:50%;background:#103622;border:1px solid #246c47;color:var(--green);font-weight:900}.profile-info{min-width:0}.profile-info strong,.profile-info span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.profile-info span{margin-top:3px;color:var(--muted);font-size:11px}.side-nav{display:grid;gap:4px}.side-link{width:100%;min-height:44px;display:flex;align-items:center;gap:11px;padding:10px 12px;border:0;border-radius:9px;background:transparent;color:#d7e0dc;text-decoration:none;text-align:left;font-size:13px}.side-link span{width:19px;text-align:center;color:#9aa9a2}.side-link:hover,.side-link.active{background:#0b2117;color:var(--green)}.admin-only{display:none!important}.admin-only.visible{display:flex!important}.logout-btn{width:100%;margin-top:16px;padding:12px;border:1px solid #4b2028;border-radius:9px;background:#1a0b0e;color:#ff7c88}
 .page{width:100%}.terminal{width:min(1100px,100%);margin:0 auto;padding:16px}.market-tabs{display:flex;gap:5px;padding:4px;margin-bottom:10px;border:1px solid var(--border);border-radius:10px;background:#07100c;overflow-x:auto}.market-tabs button{flex:1 0 auto;min-height:38px;padding:8px 14px;border:0;border-radius:7px;background:transparent;color:var(--muted);font-weight:700;font-size:12px;white-space:nowrap}.market-tabs button.active{background:#10301f;color:var(--green)}.market-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:10px}.eyebrow{display:block;margin-bottom:4px;color:var(--muted);font-size:9px;font-weight:800;letter-spacing:1px}.market-head select{min-width:190px;padding:9px 11px;border:1px solid var(--border);border-radius:8px;background:#09130f;color:#fff;outline:none}.price-change{text-align:right}.price-change span{display:block;color:var(--muted);font-size:8px}.price-change strong{display:block;color:var(--green);font-size:13px}
 .panel{border:1px solid var(--border);border-radius:14px;background:linear-gradient(180deg,#09110d,#07100c);box-shadow:var(--shadow)}.chart-panel{padding:13px}.chart-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px}.historical{padding:5px 8px;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:9px}.chart-tools{display:flex;gap:4px}.chart-tools button{min-width:31px;height:29px;padding:0 7px;border:1px solid var(--border);border-radius:6px;background:#0b1711;color:#dbe4df}.chart-wrap{position:relative;height:310px;margin-top:7px;overflow:hidden;border-radius:9px;background:linear-gradient(rgba(31,73,54,.15) 1px,transparent 1px),linear-gradient(90deg,rgba(31,73,54,.15) 1px,transparent 1px),#050a08;background-size:45px 45px}#priceChart{display:block;width:100%;height:100%}.chart-label{position:absolute;left:10px;bottom:8px;color:#4c6258;font-size:8px;pointer-events:none}.probability-title{display:flex;justify-content:space-between;gap:10px;margin-top:12px;color:#d9e3de;font-size:10px;font-weight:800}.probability-title small{color:var(--muted);font-size:8px;font-weight:500}.probabilities{display:grid;grid-template-columns:repeat(10,minmax(31px,1fr));gap:4px;margin-top:9px;align-items:start;overflow:visible}
@@ -28,7 +28,6 @@
 .probability.current-digit{transform:translateY(-1px)}
 .probability.current-digit .digit-number{color:#fff}
 .current-digit-marker{position:absolute;left:50%;bottom:-12px;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #f4c542;filter:drop-shadow(0 0 5px rgba(244,197,66,.8));z-index:5;pointer-events:none}
-.trade-pnl-marker{position:absolute;left:50%;bottom:-21px;transform:translateX(-50%);z-index:6;pointer-events:none;white-space:nowrap;font-size:9px;line-height:1.1;font-weight:900;letter-spacing:-.1px;text-shadow:0 1px 4px rgba(0,0,0,.8)}.trade-pnl-marker.open{color:#f4c542}.trade-pnl-marker.positive{color:#16e58a}.trade-pnl-marker.negative{color:#ff5d6c}.probabilities{padding-bottom:15px}@media(max-width:650px){.trade-pnl-marker{bottom:-18px;font-size:7px}.probabilities{padding-bottom:13px}}
 .probability.selected-digit{box-shadow:0 0 0 2px rgba(55,231,255,.22),0 0 12px rgba(55,231,255,.28),0 0 22px rgba(55,231,255,.12);filter:brightness(1.16)}
 .probability.trade-win{box-shadow:0 0 0 3px rgba(22,229,138,.98),0 0 18px rgba(22,229,138,.85),0 0 34px rgba(22,229,138,.42)!important;animation:tradeResultPulse 1.15s ease-in-out 3}
 .probability.trade-win::before{background:conic-gradient(#16e58a 0 var(--probability),#123c2a var(--probability) 100%)!important}
@@ -43,7 +42,7 @@
 .probability.lowest-digit.selected-digit{box-shadow:0 0 0 2px rgba(255,77,103,.55),0 0 14px rgba(255,77,103,.3),0 0 24px rgba(255,77,103,.14)}
 
 .trade-card{margin-top:12px;padding:14px}.mode{display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:3px;border-radius:8px;background:#06100b}.mode button{padding:8px;border:0;border-radius:6px;background:transparent;color:var(--muted);font-weight:800;font-size:11px}.mode button.active{background:#10301f;color:var(--green)}.scanner{width:100%;margin:12px 0;padding:10px;display:flex;align-items:center;gap:9px;border:1px solid #392b67;border-radius:9px;background:#17112b;color:#c8baff;text-align:left}.scanner:disabled{opacity:.55;cursor:wait}.bot-icon{width:30px;height:30px;flex:0 0 30px;display:grid;place-items:center;border-radius:7px;background:#24194b;color:#b9a5ff}.bot-content{min-width:0;flex:1}.bot-content strong,.bot-content small{display:block}.bot-content strong{font-size:12px}.bot-content small{margin-top:2px;color:#9585c9;font-size:8px}.bot-badge{font-size:8px;opacity:.65}.control{margin-top:12px}.control label,.controls-grid label{display:block;color:var(--muted);font-size:9px;font-weight:700}.stake{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:5px;padding:4px;border:1px solid var(--border);border-radius:8px}.stake strong{font-size:14px}.stake button{width:36px;height:31px;border:0;border-radius:6px;background:#142019;color:#fff;font-size:18px}.controls-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:11px}.input-wrap,.controls-grid select{display:flex;align-items:center;width:100%;min-height:38px;margin-top:5px;border:1px solid var(--border);border-radius:7px;background:#07100c;overflow:hidden}.input-wrap span{padding-left:8px;color:var(--muted);font-size:10px}.controls-grid input,.controls-grid select{width:100%;padding:8px;border:0;outline:0;background:transparent;color:#fff;font-size:11px}.controls-grid select{padding:0 8px}.controls-grid option{background:#0b120f;color:#fff}
-.session{margin-top:10px;min-height:46px;padding:0 12px;border:1px solid var(--border);border-radius:9px;background:#07100c;display:flex;align-items:center;gap:8px;overflow:hidden}.session-dot{width:8px;height:8px;border-radius:50%;background:#f4c542;box-shadow:0 0 8px rgba(244,197,66,.45);flex:0 0 auto}.session-label{color:#e9f0ed;font-size:12px;font-weight:800}.session-record{color:var(--muted);font-size:11px;font-weight:700;white-space:nowrap}.session-pnl{margin-left:auto;color:var(--green);font-size:15px;font-weight:900;white-space:nowrap}.session-pnl.negative{color:#ff5d6c}.session-open-status{display:flex;flex-direction:column;gap:5px;margin-top:6px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:#07100c;font-size:10px}.session-open-count{font-weight:800;color:#e9f0ed}.session-open-summary{color:var(--muted);line-height:1.4}.session-open-summary.positive{color:var(--green)}.session-open-summary.negative{color:#ff5d6c}.session-open-summary.neutral{color:var(--muted)}.trade-run-lights{display:none;align-items:center;gap:7px;min-height:16px;margin-bottom:2px}.trade-run-lights.visible{display:flex}.trade-run-lights-label{color:var(--muted);font-size:9px;font-weight:900;letter-spacing:.7px}.trade-run-light{display:inline-block;width:9px;height:9px;flex:0 0 9px;border-radius:50%;opacity:.98}.trade-run-light.green{background:#16e58a;box-shadow:0 0 6px rgba(22,229,138,.9),0 0 13px rgba(22,229,138,.55);animation:tradeRunGreen 1.15s ease-in-out infinite}.trade-run-light.red{background:#ff4f61;box-shadow:0 0 6px rgba(255,79,97,.9),0 0 13px rgba(255,79,97,.55);animation:tradeRunRed 1.15s ease-in-out infinite}@keyframes tradeRunGreen{0%,100%{opacity:1}50%{opacity:.45}}@keyframes tradeRunRed{0%,100%{opacity:.45}50%{opacity:1}}@media(max-width:390px){.session-open-status{font-size:9px}.session-open-count{font-size:10px}}
+.session{margin-top:10px;min-height:46px;padding:0 12px;border:1px solid var(--border);border-radius:9px;background:#07100c;display:flex;align-items:center;gap:8px;overflow:hidden}.session-dot{width:8px;height:8px;border-radius:50%;background:#f4c542;box-shadow:0 0 8px rgba(244,197,66,.45);flex:0 0 auto}.session-label{color:#e9f0ed;font-size:12px;font-weight:800}.session-record{color:var(--muted);font-size:11px;font-weight:700;white-space:nowrap}.session-pnl{margin-left:auto;color:var(--green);font-size:15px;font-weight:900;white-space:nowrap}.session-pnl.negative{color:#ff5d6c}.session-open-status{display:flex;flex-direction:column;gap:5px;margin-top:6px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:#07100c;font-size:10px}.session-open-count{font-weight:800;color:#e9f0ed}.session-open-summary{color:var(--muted);line-height:1.4}.session-open-summary.positive{color:var(--green)}.session-open-summary.negative{color:#ff5d6c}.session-open-summary.neutral{color:var(--muted)}@media(max-width:390px){.session-open-status{font-size:9px}.session-open-count{font-size:10px}}
 .contract-title{margin-top:12px;color:var(--muted);font-size:10px;font-weight:800}.contract-digits{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;margin-top:7px;padding:8px;border:1px solid var(--border);border-radius:9px;background:#07100c}.contract-digits button{min-width:0;padding:8px 0;border:0;border-radius:6px;background:#4d4f50;color:#fff;font-size:12px;font-weight:800}.contract-digits button.active{background:var(--green);color:#041008}
 .trade-buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.trade-buttons button{min-height:62px;border:0;border-radius:12px;color:#fff;font-size:16px;font-weight:900}.trade-buttons strong{display:block}.trade-buttons span{display:none}.match-btn{background:linear-gradient(135deg,#11df86,#16c978)}.differ-btn{background:linear-gradient(135deg,#ff5265,#f33f56)}
 .data-section{margin-top:12px;padding:14px}.section-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.section-head h2{margin:0;font-size:21px}.section-head button{padding:7px 12px;border:0;border-radius:6px;background:#4d4f50;color:#fff}.position,.history-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);font-size:11px}.position:last-child,.history-item:last-child{border-bottom:0}.win{color:var(--green)}.loss{color:var(--red)}.empty{padding:25px 5px;color:var(--muted);text-align:center;font-size:12px}.demo-note{margin:14px 4px 0;color:#62736b;text-align:center;font-size:9px;line-height:1.5}.toast{position:fixed;left:50%;bottom:25px;z-index:120;max-width:min(90vw,360px);padding:10px 13px;border:1px solid #20543b;border-radius:8px;background:#102019;color:#e8fff3;font-size:11px;opacity:0;pointer-events:none;transform:translate(-50%,12px);transition:.2s}.toast.show{opacity:1;transform:translate(-50%,0)}.bottom-nav{display:none}
@@ -106,8 +105,6 @@
 .money-conversion strong{color:#fff}.money-submit{width:100%;min-height:46px;border:0;border-radius:10px;background:var(--green);color:#041008;font-weight:900}.money-submit:disabled{opacity:.55;cursor:wait}
 .money-history{margin-top:18px;border-top:1px solid var(--border);padding-top:14px}.money-history h3{font-size:13px;margin:0 0 8px}.money-history-item{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #14251c;font-size:11px}.money-history-item:last-child{border-bottom:0}.money-status{color:var(--muted);text-align:right}.money-status.success{color:var(--green)}.money-status.failed{color:var(--red)}
 @media(max-width:500px){.money-modal-card{padding:17px;border-radius:15px}.money-modal-head h2{font-size:18px}}
-
-
 
 </style>
 </head>
@@ -220,7 +217,8 @@
       <svg class="notification-bell-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg><span id="notificationCount" class="notification-count" hidden>0</span>
     </button>
   </header>
-<div id="notificationBackdrop" class="notification-backdrop" hidden></div>
+
+  <div id="notificationBackdrop" class="notification-backdrop" hidden></div>
   <section id="notificationPanel" class="notification-panel" role="dialog" aria-modal="false" aria-labelledby="notificationTitle" hidden>
     <div class="notification-panel-head">
       <div><h2 id="notificationTitle">Notifications</h2><p id="notificationSummary">Your account updates appear here.</p></div>
@@ -343,11 +341,6 @@
           <span id="sessionPnl" class="session-pnl">+$0.00</span>
         </div>
         <div id="sessionOpenStatus" class="session-open-status" aria-live="polite">
-          <div id="tradeRunLights" class="trade-run-lights" aria-hidden="true">
-            <span class="trade-run-light green" title="Trade execution active"></span>
-            <span class="trade-run-light red" title="Trade execution active"></span>
-            <span class="trade-run-lights-label">TRADING</span>
-          </div>
           <span class="session-open-count">Open trades: 0</span>
           <span class="session-open-summary">No trades currently running</span>
         </div>
@@ -493,15 +486,11 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  // Account selection is only a view switch. REAL mode reads the server balance,
-  // but cannot trade until server-side real-trade execution and settlement exist.
+  // REAL mode displays the separate sandbox test wallet in the familiar REAL BALANCE slot.
+  // Sandbox executions settle server-side; actual real-money balance and withdrawal routes stay separate.
   let accountMode = localStorage.getItem("tradezoraAccountMode") === "real" ? "real" : "demo";
   let realBalance = null;
   let realBalanceLoadStatus = "loading";
-  // Sandbox wallet state is distinct from the actual real-money account balance.
-  let realTestFundsBalanceValue = null;
-  let realTestFundsLoadStatus = "loading";
-  let realTestModeEnabled = false;
 
   // Show the Admin Dashboard shortcut only after the active backend confirms
   // this session belongs to the owner admin. The admin page still verifies access.
@@ -547,12 +536,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let price = 1000;
 
-  let history = JSON.parse(localStorage.getItem("tradezoraDemoHistory") || "[]");
-  let positions = JSON.parse(localStorage.getItem("tradezoraDemoPositions") || "[]");
+  const tradeHistoryKey = () => accountMode === "real" ? "tradezoraSandboxHistory" : "tradezoraDemoHistory";
+  const tradePositionsKey = () => accountMode === "real" ? "tradezoraSandboxPositions" : "tradezoraDemoPositions";
+  let history = JSON.parse(localStorage.getItem(tradeHistoryKey()) || "[]");
+  let positions = JSON.parse(localStorage.getItem(tradePositionsKey()) || "[]");
 
   function saveTradeState() {
-    localStorage.setItem("tradezoraDemoHistory", JSON.stringify(history));
-    localStorage.setItem("tradezoraDemoPositions", JSON.stringify(positions));
+    localStorage.setItem(tradeHistoryKey(), JSON.stringify(history));
+    localStorage.setItem(tradePositionsKey(), JSON.stringify(positions));
   }
 
   let selectedDigit = 0;
@@ -821,36 +812,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const sessionLossesValue = Math.max(0, Number(sessionState.sessionLosses ?? 0) || 0);
     const sessionTradesValue = Math.max(0, Number(sessionState.sessionTrades ?? (sessionWinsValue + sessionLossesValue)) || 0);
 
-    // In Real Test Mode, use the main Real-mode balance slot as a clearly labelled
-    // sandbox-test balance. The virtual wallet is never merged into the real-money
-    // account balance returned by /api/real-account.
-    const hasFundedRealTestWallet = realTestFundsLoadStatus === "loaded" &&
-      Number.isFinite(Number(realTestFundsBalanceValue)) && Number(realTestFundsBalanceValue) > 0;
-    // A funded wallet is surfaced in the existing slot even if the admin's mode toggle
-    // was saved globally rather than per-user. The explicit sandbox label prevents confusion.
-    const showRealTestBalanceInMainSlot = accountMode === "real" && (realTestModeEnabled || hasFundedRealTestWallet);
-    if (balanceEl) {
-      if (showRealTestBalanceInMainSlot) {
-        balanceEl.textContent = realTestFundsLoadStatus === "loaded"
-          ? formatUsd(realTestFundsBalanceValue)
-          : realTestFundsLoadStatus === "signed-out" ? "Sign in required"
-          : realTestFundsLoadStatus === "error" ? "Unavailable" : "Loading…";
-      } else {
-        balanceEl.textContent = accountMode === "real"
-          ? (realBalanceLoadStatus === "error" ? "Unavailable" : (realBalance === null ? "Loading…" : money(realBalance)))
-          : money(balance);
-      }
-    }
+    if (balanceEl) balanceEl.textContent = accountMode === "real"
+      ? (realBalanceLoadStatus === "error" ? "Unavailable" : (realBalance === null ? "Loading…" : money(realBalance)))
+      : money(balance);
     const balanceLabel = $("#balanceLabel");
-    if (balanceLabel) {
-      balanceLabel.textContent = showRealTestBalanceInMainSlot
-        ? "TEST BALANCE · SANDBOX"
-        : accountMode === "real" ? "REAL BALANCE" : "DEMO BALANCE";
-      balanceLabel.classList.toggle("sandbox-balance-label", showRealTestBalanceInMainSlot);
-      balanceLabel.title = showRealTestBalanceInMainSlot
-        ? "Virtual Real Test Mode funds only. Not actual money and not withdrawable."
-        : (accountMode === "real" ? "Actual real-account balance from the backend." : "Demo account balance.");
-    }
+    if (balanceLabel) balanceLabel.textContent = accountMode === "real" ? "REAL BALANCE" : "DEMO BALANCE";
     const demoModeButton = $("#accountModeDemo");
     const realModeButton = $("#accountModeReal");
     demoModeButton?.classList.toggle("active", accountMode === "demo");
@@ -859,10 +825,8 @@ document.addEventListener("DOMContentLoaded", () => {
     realModeButton?.setAttribute("aria-pressed", String(accountMode === "real"));
     const modeNotice = $("#accountModeNotice");
     if (modeNotice) modeNotice.textContent = accountMode === "real"
-      ? (showRealTestBalanceInMainSlot
-          ? "REAL TEST MODE is enabled. The main balance display shows virtual sandbox test funds only—not actual money. This balance cannot be withdrawn or used for real payouts. Your actual real-money account remains separate and is shown in the Deposit/Withdraw account details. Real-money trading remains disabled."
-          : "REAL account selected. This shows your server-stored real USD balance. Real-money trading is not enabled yet; trade buttons cannot use or deduct real funds. Deposits are credited only after verified M-Pesa confirmation.")
-      : "Demo trading is simulated and uses your separate demo balance. Real-money deposits use a separate USD account and are credited only after verified M-Pesa confirmation.";
+      ? "REAL BALANCE interface is connected to the funded sandbox trading wallet. Test trades settle on the server; test funds are not withdrawable and genuine deposits/withdrawals remain separate."
+      : "Demo trading is simulated and uses your separate demo balance. Real-money deposits and withdrawals use a separate ledger.";
     if (stakeEl) stakeEl.textContent = money(stake);
     if (pnlElement) {
       pnlElement.textContent = (sessionPnlValue >= 0 ? "+" : "") + money(sessionPnlValue);
@@ -1015,51 +979,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return data;
   }
 
-  // Real Test Funds are fetched from the user's authenticated sandbox wallet endpoint.
-  // This balance is display-only here and is never merged into Demo or Real balances.
-  let realTestFundsRefreshInFlight = null;
-
-  async function refreshRealTestFundsBalance() {
-    if (realTestFundsRefreshInFlight) return realTestFundsRefreshInFlight;
-    const token = localStorage.getItem("tradezoraAuthToken") || localStorage.getItem("session_token") || localStorage.getItem("sessionToken");
-    if (!token) {
-      realTestFundsLoadStatus = "signed-out";
-      realTestFundsBalanceValue = null;
-      realTestModeEnabled = false;
-      renderBalance();
-      return;
-    }
-    realTestFundsLoadStatus = "loading";
-    renderBalance();
-    realTestFundsRefreshInFlight = (async () => {
-      try {
-        const data = await paymentApi(`/api/real-test-funds?_=${Date.now()}`);
-        if (data.sandboxOnly !== true || data.walletType !== "real_test_funds") {
-          throw new Error("The backend did not identify this as the sandbox test wallet.");
-        }
-        const amount = Number(data.balanceUsd);
-        if (!Number.isFinite(amount) || amount < 0) throw new Error("The sandbox wallet returned an invalid balance.");
-        realTestFundsBalanceValue = amount;
-        realTestModeEnabled = data.realTestModeEnabled === true;
-        realTestFundsLoadStatus = "loaded";
-      } catch (error) {
-        realTestFundsBalanceValue = null;
-        realTestFundsLoadStatus = "error";
-        console.warn("Real Test Funds wallet could not be loaded:", error.message);
-      } finally {
-        realTestFundsRefreshInFlight = null;
-          renderBalance();
-      }
-    })();
-    return realTestFundsRefreshInFlight;
-  }
-
-  refreshRealTestFundsBalance();
-  // Admin funding is performed on a separate screen/device; refresh periodically and when the user returns.
-  window.setInterval(() => { if (!document.hidden) refreshRealTestFundsBalance(); }, 30000);
-  window.addEventListener("focus", () => refreshRealTestFundsBalance());
-  document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshRealTestFundsBalance(); });
-
   async function refreshActiveRealBalance() {
     if (!localStorage.getItem("tradezoraAuthToken") && !localStorage.getItem("session_token") && !localStorage.getItem("sessionToken")) {
       realBalance = null;
@@ -1071,10 +990,9 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       realBalanceLoadStatus = "loading";
       renderBalance();
-      const data = await paymentApi("/api/real-account");
-      const account = data.account || data;
-      const parsed = Number(account.balance);
-      if (!Number.isFinite(parsed) || parsed < 0) throw new Error("The server returned an invalid real-account balance.");
+      const data = await paymentApi("/api/real-test-funds");
+      const parsed = Number(data.balance);
+      if (data.sandbox_only !== true || !Number.isFinite(parsed) || parsed < 0) throw new Error("The server returned an invalid sandbox trading balance.");
       realBalance = parsed;
       realBalanceLoadStatus = "loaded";
       renderBalance();
@@ -1083,17 +1001,15 @@ document.addEventListener("DOMContentLoaded", () => {
       realBalanceLoadStatus = "error";
       renderBalance();
       console.warn("Active real-account balance could not be loaded:", error.message);
-      if (accountMode === "real") toast("Real balance unavailable. No real funds were changed.");
+      if (accountMode === "real") toast("Sandbox trading balance unavailable. No funds were changed.");
     }
   }
 
   function setAccountMode(nextMode) {
     if (nextMode !== "demo" && nextMode !== "real") return;
-    if (nextMode === accountMode) {
-      if (nextMode === "real") {
-        refreshRealTestFundsBalance();
-        refreshActiveRealBalance();
-      }
+    if (nextMode === accountMode) return;
+    if (positions.length) {
+      toast("Settle or close the open position before switching account modes.");
       return;
     }
     if (nextMode === "real" && window.TradeZoraContinuousEngine?.getState?.().running) {
@@ -1101,10 +1017,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     accountMode = nextMode;
     localStorage.setItem("tradezoraAccountMode", accountMode);
+    history = JSON.parse(localStorage.getItem(tradeHistoryKey()) || "[]");
+    positions = JSON.parse(localStorage.getItem(tradePositionsKey()) || "[]");
     renderBalance();
+    renderLists();
     if (accountMode === "real") {
-      toast("REAL view selected. Test funds, if displayed, are virtual sandbox funds; real-money trading remains disabled.");
-      refreshRealTestFundsBalance();
+      toast("REAL BALANCE selected. Sandbox trading is ready when a test credit is active.");
       refreshActiveRealBalance();
     } else {
       toast("DEMO account selected.");
@@ -1377,98 +1295,18 @@ document.addEventListener("DOMContentLoaded", () => {
   let digitStats = [...(digitProfiles[document.querySelector("#marketSelect")?.value] || digitProfiles["Volatility 10 (1s)"])];
   let lastTradeResult = JSON.parse(localStorage.getItem("tradezoraLastDigitResult") || "null");
 
-  // During execution, replace the yellow live-digit triangle with OPEN and
-  // show settled P/L while continuous AUTO trading is still running. Once the
-  // run is stopped and all positions are settled, return to the live selector.
-  // After a stopped/manual run, leave P/L visible briefly before restoring it.
-  const isDigitValue = (value) => value !== null && value !== undefined && value !== "" && Number.isInteger(Number(value)) && Number(value) >= 0 && Number(value) <= 9;
-  const SETTLED_PNL_PREVIEW_MS = 2200;
-  let activeTradeDisplay = null;
-  const restoredOpenPosition = [...positions].reverse().find((item) => item && isDigitValue(item.digit));
-  if (restoredOpenPosition) {
-    activeTradeDisplay = { status: "open", digit: Number(restoredOpenPosition.digit), at: Number(restoredOpenPosition.openedAt || Date.now()) };
-  } else if (lastTradeResult && isDigitValue(lastTradeResult.digit) && Number.isFinite(Number(lastTradeResult.tradePnl))) {
-    activeTradeDisplay = { status: "settled", digit: Number(lastTradeResult.digit), pnl: Number(lastTradeResult.tradePnl), win: Boolean(lastTradeResult.win), at: Number(lastTradeResult.at || Date.now()) };
-  }
-
-  function isContinuousDemoRunActive() {
-    try {
-      return Boolean(window.TradeZoraContinuousEngine?.getState?.()?.running);
-    } catch (_) {
-      return false;
-    }
-  }
-
-  function isAnyDemoTradeRunning() {
-    const hasOpenPositions = Array.isArray(positions) && positions.length > 0;
-    return hasOpenPositions || isContinuousDemoRunActive();
-  }
-
-  function updateTradeRunLights() {
-    const lights = document.getElementById("tradeRunLights");
-    if (!lights) return;
-    const running = isAnyDemoTradeRunning();
-    lights.classList.toggle("visible", running);
-    lights.setAttribute("aria-hidden", running ? "false" : "true");
-  }
-
-  function reconcileActiveTradeDisplay() {
-    if (!activeTradeDisplay) return;
-    const hasOpenPositions = Array.isArray(positions) && positions.length > 0;
-    const continuousRunActive = isContinuousDemoRunActive();
-
-    // If an OPEN marker has no actual position and the stream is stopped,
-    // clear stale UI state so the yellow live-digit selector can return.
-    if (activeTradeDisplay.status === "open" && !hasOpenPositions && !continuousRunActive) {
-      activeTradeDisplay = null;
-      return;
-    }
-
-    // Keep a settled P/L marker while AUTO execution continues. After the
-    // user stops trading (and no position remains), show that result briefly,
-    // then restore the yellow live-digit selector.
-    if (activeTradeDisplay.status === "settled" && !hasOpenPositions && !continuousRunActive) {
-      const settledAt = Number(activeTradeDisplay.at || Date.now());
-      if (Date.now() - settledAt >= SETTLED_PNL_PREVIEW_MS) activeTradeDisplay = null;
-    }
-  }
-
-  function scheduleSelectorRestoreAfterStoppedSettlement() {
-    if (!activeTradeDisplay || activeTradeDisplay.status !== "settled") return;
-    const settledAt = Number(activeTradeDisplay.at || Date.now());
-    const delay = Math.max(0, SETTLED_PNL_PREVIEW_MS - (Date.now() - settledAt)) + 25;
-    window.setTimeout(() => {
-      reconcileActiveTradeDisplay();
-      renderDigitStatistics();
-    }, delay);
-  }
-
-  function formatTradePnl(value) {
-    const amount = Number(value) || 0;
-    return `${amount >= 0 ? "+" : "−"}$${Math.abs(amount).toFixed(2)}`;
-  }
-
   function getLastDigit(value) {
-    // Keep contract digits consistent with the existing displayed quote format.
+    // The contract digit follows the last visible decimal digit of the quote.
+    // Example: 1043.64 -> 4, 14166.41 -> 1.
     const scaled = Math.round(Math.abs(Number(value)) * 100);
     return scaled % 10;
   }
 
-  function getChartLineLastDigit(value) {
-    // Match the existing price-line label exactly: Number(price).toFixed(2).
-    const numeric = Number(value);
-    if (!Number.isFinite(numeric)) return 0;
-    const displayedPrice = Math.abs(numeric).toFixed(2);
-    return Number(displayedPrice.charAt(displayedPrice.length - 1));
-  }
-
   function renderDigitStatistics() {
-    updateTradeRunLights();
     if (!probabilityContainer) return;
-    reconcileActiveTradeDisplay();
 
     const total = digitStats.reduce((sum, value) => sum + value, 0);
-    const currentDigit = getChartLineLastDigit(price);
+    const currentDigit = getLastDigit(price);
     const probabilities = digitStats.map(count => (count / total) * 100);
 
     // Pick exactly ONE highest and ONE lowest digit, even when percentages tie.
@@ -1515,23 +1353,10 @@ document.addEventListener("DOMContentLoaded", () => {
         `Digit ${digit}, ${probability.toFixed(1)} percent${digit === selectedDigit ? ", selected" : ""}${digit === currentDigit ? ", current price last digit" : ""}`
       );
 
-      const markerIsSuppressed = Boolean(activeTradeDisplay && isDigitValue(activeTradeDisplay.digit));
-      let markerMarkup = "";
-      if (markerIsSuppressed && digit === Number(activeTradeDisplay.digit)) {
-        if (activeTradeDisplay.status === "open") {
-          markerMarkup = '<span class="trade-pnl-marker open" aria-label="Trade open">OPEN</span>';
-        } else if (Number.isFinite(Number(activeTradeDisplay.pnl))) {
-          const pnlClass = Number(activeTradeDisplay.pnl) >= 0 ? "positive" : "negative";
-          markerMarkup = `<span class="trade-pnl-marker ${pnlClass}" aria-label="Trade profit or loss">${formatTradePnl(activeTradeDisplay.pnl)}</span>`;
-        }
-      } else if (!markerIsSuppressed && digit === currentDigit) {
-        markerMarkup = '<span class="current-digit-marker" aria-hidden="true"></span>';
-      }
-
       element.innerHTML = `
         <span class="digit-number">${digit}</span>
         <span class="percent">${probability.toFixed(1)}%</span>
-        ${markerMarkup}
+        ${digit === currentDigit ? '<span class="current-digit-marker" aria-hidden="true"></span>' : ''}
       `;
 
       const selectDigit = () => {
@@ -2206,19 +2031,19 @@ document.addEventListener("DOMContentLoaded", () => {
       const fakeCount = illustrativePrior.values.length;
       if (fakeCount > 1) {
         const priorPoints = points.slice(0, fakeCount);
-        // Decorative prior path uses the same white/green visual treatment as the live line,
-        // regardless of bullish/bearish shape. It remains dashed to distinguish illustrative data.
+        // Keep the earlier plotted path visually continuous with the live trace.
+        // Rounded joins/caps and the same solid stroke prevent a dashed/broken appearance.
         ctx.save();ctx.beginPath();priorPoints.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
-        ctx.strokeStyle="rgba(22,229,138,.17)";ctx.lineWidth=7;ctx.lineJoin="round";ctx.stroke();ctx.restore();
+        ctx.strokeStyle="rgba(22,229,138,.22)";ctx.lineWidth=6;ctx.lineJoin="round";ctx.lineCap="round";ctx.stroke();ctx.restore();
         ctx.save();ctx.beginPath();priorPoints.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
-        ctx.strokeStyle="#f4f7f5";ctx.lineWidth=1.8;ctx.lineJoin="round";ctx.setLineDash([5,4]);ctx.stroke();ctx.restore();
+        ctx.strokeStyle="#f4f7f5";ctx.lineWidth=1.8;ctx.lineJoin="round";ctx.lineCap="round";ctx.stroke();ctx.restore();
         ctx.save();ctx.strokeStyle="rgba(255,255,255,.34)";ctx.setLineDash([3,4]);ctx.beginPath();ctx.moveTo(priorPoints[priorPoints.length-1].x,top+3);ctx.lineTo(priorPoints[priorPoints.length-1].x,top+plotHeight);ctx.stroke();ctx.restore();
       }
       const livePoints = points.slice(Math.max(0, fakeCount - 1));
       ctx.save();ctx.beginPath();livePoints.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
-      ctx.strokeStyle="rgba(22,229,138,.17)";ctx.lineWidth=7;ctx.lineJoin="round";ctx.stroke();ctx.restore();
+      ctx.strokeStyle="rgba(22,229,138,.22)";ctx.lineWidth=6;ctx.lineJoin="round";ctx.lineCap="round";ctx.stroke();ctx.restore();
       ctx.save();ctx.beginPath();livePoints.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
-      ctx.strokeStyle="#f4f7f5";ctx.lineWidth=1.8;ctx.lineJoin="round";ctx.stroke();ctx.restore();
+      ctx.strokeStyle="#f4f7f5";ctx.lineWidth=1.8;ctx.lineJoin="round";ctx.lineCap="round";ctx.stroke();ctx.restore();
     }
     // Market structure: mark recent local swing highs/lows and the latest direction from real chart data.
     const structure = chartMode === "candles" ? visible : visible.map(p=>({high:p.value,low:p.value,close:p.value}));
@@ -2608,11 +2433,63 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (_) { return { error: true }; }
   }
 
+  async function openSandboxTrade(type, options = {}) {
+    const tradeStake = Number(options.stake ?? stake);
+    const tradeContract = String(options.contract || contractType).toLowerCase();
+    const tradeDigit = Number(options.digit ?? selectedDigit);
+    const tradeMode = options.mode || mode;
+    if (!Number.isFinite(tradeStake) || tradeStake < 1) { toast("Enter a valid stake of at least $1.00."); return false; }
+    if (realBalance === null || realBalanceLoadStatus !== "loaded") { await refreshActiveRealBalance(); }
+    if (realBalance === null || realBalanceLoadStatus !== "loaded") { toast("Sandbox trading balance unavailable. No funds were changed."); return false; }
+    if (tradeStake > realBalance) { toast("Not enough REAL BALANCE sandbox funds."); return false; }
+    if (tradeContract === "over" && ((type === "OVER" && tradeDigit === 9) || (type === "UNDER" && tradeDigit === 0))) {
+      toast(type === "OVER" ? "Over 9 cannot be traded." : "Under 0 cannot be traded."); return false;
+    }
+    if (tradeMode === "MANUAL" && positions.some(item => String(item.mode).toUpperCase() === "MANUAL")) {
+      toast("Finish the current manual trade before placing another."); return false;
+    }
+    const token = localStorage.getItem("tradezoraAuthToken") || localStorage.getItem("session_token") || localStorage.getItem("sessionToken") || "";
+    const api = "https://tradezora-backend-1.onrender.com";
+    try {
+      const response = await fetch(`${api}/api/sandbox/trades/open`, { method:"POST", headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`,"Accept":"application/json"}, body:JSON.stringify({contract:tradeContract,type,digit:tradeDigit,stake:tradeStake}) });
+      const data = await response.json().catch(()=>({}));
+      if (!response.ok || !data.success || !data.trade?.id) throw new Error(data.error || `Trade could not open (${response.status}).`);
+      realBalance = Number(data.balance); realBalanceLoadStatus = "loaded";
+      const position = { id:`sandbox-${data.trade.id}`, serverTradeId:Number(data.trade.id), accountMode:"real", type, stake:tradeStake, digit:tradeDigit, contract:tradeContract, mode:tradeMode, openedAt:Date.now(), settleAt:Date.now()+5000 };
+      positions.push(position); saveTradeState(); renderBalance(); renderLists(); toast(`${type} sandbox position opened.`);
+      setTimeout(async () => {
+        const index = positions.findIndex(item => item.id === position.id);
+        if (index < 0) return;
+        const closingPrice = Number(localStorage.getItem("tradezoraDemoLastPrice") || price);
+        const naturalDigit = getLastDigit(closingPrice);
+        try {
+          const settleResponse = await fetch(`${api}/api/sandbox/trades/${position.serverTradeId}/settle`, { method:"POST", headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`,"Accept":"application/json"}, body:JSON.stringify({naturalDigit}) });
+          const settled = await settleResponse.json().catch(()=>({}));
+          if (!settleResponse.ok || !settled.success) throw new Error(settled.error || `Settlement failed (${settleResponse.status}).`);
+          const actualIndex = positions.findIndex(item => item.id === position.id);
+          if (actualIndex < 0) return;
+          positions.splice(actualIndex,1);
+          const finalTrade = {...position, finalDigit:Number(settled.finalDigit), win:Boolean(settled.win), profit:Number(settled.profit || 0), settledAt:Date.now(), sandboxOnly:true};
+          history.push(finalTrade); if (history.length>100) history.shift(); saveTradeState();
+          realBalance=Number(settled.balance); realBalanceLoadStatus="loaded";
+          showTradeDigitResult(finalTrade.finalDigit, finalTrade.win);
+          try { window.dispatchEvent(new CustomEvent("tradezora-trade-settled", {detail:{digit:finalTrade.finalDigit,win:finalTrade.win,profit:finalTrade.profit,accountMode:"real",sandboxOnly:true}})); } catch(_) {}
+          renderBalance(); renderLists();
+          toast(finalTrade.win ? `Sandbox trade won — digit ${finalTrade.finalDigit}` : `Sandbox trade lost — digit ${finalTrade.finalDigit}`);
+        } catch(error) {
+          toast(`Trade settlement needs attention: ${error.message}`);
+          refreshActiveRealBalance();
+        }
+      }, 5000);
+      return true;
+    } catch(error) { toast(error.message || "Sandbox trade could not open."); await refreshActiveRealBalance(); return false; }
+  }
+
   function trade(type, options = {}) {
 
     if (accountMode === "real") {
-      toast("Real-money trading is not enabled yet. Your real balance is protected.");
-      return false;
+      openSandboxTrade(type, options);
+      return true;
     }
 
     const tradeStake = Number(
@@ -2702,9 +2579,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     positions.push(position);
     saveTradeState();
-    window.dispatchEvent(new CustomEvent("tradezora-trade-opened", {
-      detail: { mode: tradeMode, contract: tradeContract, digit: tradeDigit, type, stake: tradeStake }
-    }));
 
 
     renderBalance();
@@ -2849,15 +2723,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       try {
         window.dispatchEvent(new CustomEvent("tradezora-trade-settled", {
-          detail: {
-            digit: finalDigit,
-            win: Boolean(win),
-            profit: profit,
-            tradePnl: win ? profit : -tradeStake,
-            stake: tradeStake,
-            contract: tradeContract,
-            type
-          }
+          detail: { digit: finalDigit, win: Boolean(win), profit: profit }
         }));
       } catch (e) {}
 
@@ -2991,7 +2857,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function startOrStopContinuous(type) {
     if (accountMode === "real") {
-      toast("Real-money trading is not enabled yet. Your real balance is protected.");
+      toast("Use MANUAL mode for funded sandbox trades. Continuous trading remains demo-only in this upgrade.");
       return;
     }
     if (mode === "MANUAL") return;
@@ -3063,15 +2929,10 @@ document.addEventListener("DOMContentLoaded", () => {
     startOrStopContinuous(pair.right);
   };
 
-  window.addEventListener("tradezora-trade-opened", (event) => {
-    const detail = event.detail || {};
+  window.addEventListener("tradezora-trade-opened", () => {
+    // Hide any previous result. Do not light a digit merely because a trade
+    // was opened.
     lastTradeResult = null;
-    activeTradeDisplay = {
-      status: "open",
-      digit: isDigitValue(detail.digit) ? Number(detail.digit) : Number(selectedDigit),
-      at: Date.now()
-    };
-    localStorage.removeItem("tradezoraLastDigitResult");
     renderDigitStatistics();
   });
 
@@ -3079,42 +2940,21 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       positions = JSON.parse(localStorage.getItem("tradezoraDemoPositions") || "[]");
       history = JSON.parse(localStorage.getItem("tradezoraDemoHistory") || "[]");
-      const openPosition = [...positions].reverse().find((item) => item && isDigitValue(item.digit));
-      if (openPosition && (!activeTradeDisplay || activeTradeDisplay.status === "open")) {
-        activeTradeDisplay = { status: "open", digit: Number(openPosition.digit), at: Number(openPosition.openedAt || Date.now()) };
-      }
     } catch (error) {}
     renderBalance();
     renderLists();
-    updateTradeRunLights();
-    renderDigitStatistics();
   });
 
   window.addEventListener("tradezora-trade-settled", (event) => {
     const result = event.detail || {};
-    if (isDigitValue(result.digit)) {
-      const settledPnl = Number.isFinite(Number(result.tradePnl))
-        ? Number(result.tradePnl)
-        : (Boolean(result.win) ? (Number(result.profit) || 0) : -(Number(result.stake ?? stake) || 0));
+    if (Number.isFinite(Number(result.digit))) {
       lastTradeResult = {
         digit: Number(result.digit),
         win: Boolean(result.win),
-        tradePnl: settledPnl,
         at: Date.now()
-      };
-      activeTradeDisplay = {
-        status: "settled",
-        digit: Number(result.digit),
-        pnl: settledPnl,
-        win: Boolean(result.win),
-        at: lastTradeResult.at
       };
       localStorage.setItem("tradezoraLastDigitResult", JSON.stringify(lastTradeResult));
       renderDigitStatistics();
-      // If the user has stopped the run, bring the live selector back after
-      // the short P/L preview. If AUTO is still active, the P/L stays until
-      // the next trade-opened event replaces it with OPEN.
-      scheduleSelectorRestoreAfterStoppedSettlement();
     }
   });
 
@@ -3174,8 +3014,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.addEventListener("tradezora-state-changed", () => {
     balance = Number(localStorage.getItem("tradezoraDemoBalance") || balance);
-    history = JSON.parse(localStorage.getItem("tradezoraDemoHistory") || "[]");
-    positions = JSON.parse(localStorage.getItem("tradezoraDemoPositions") || "[]");
+    if (accountMode !== "real") {
+      history = JSON.parse(localStorage.getItem("tradezoraDemoHistory") || "[]");
+      positions = JSON.parse(localStorage.getItem("tradezoraDemoPositions") || "[]");
+    }
     wins = history.filter(t => t.win).length;
     losses = history.filter(t => !t.win).length;
     pnl = history.reduce(
