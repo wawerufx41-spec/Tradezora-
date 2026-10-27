@@ -37,10 +37,10 @@
 <section class="section" id="ledger"><div class="head"><h2>Ledger</h2><span>Audit trail</span></div><div class="empty"><strong>Ledger endpoint is next.</strong>Balance changes should be recorded as auditable transactions rather than direct balance edits.</div></section>
 <section class="section" id="settings"><div class="head"><h2>Platform Settings</h2><span>Owner controls</span></div><div class="grid"><div class="action"><b>Platform mode</b><span>Standalone DEMO</span></div><div class="action"><b>Broker connection</b><span>Not connected</span></div><div class="action"><b>Payments</b><span>Not connected</span></div><div class="action"><b>Admin account</b><span>Owner-only access</span></div></div>
 <div style="margin-top:16px;border:1px solid var(--border);border-radius:14px;padding:14px;background:#07100c">
-<h3 style="margin:0 0 6px;font-size:15px">Demo outcome test controls</h3><p style="font-size:11px;color:var(--muted);line-height:1.5;margin:0 0 12px">Persistent platform defaults for simulated trades only. These controls never apply to real-money execution or balances.</p>
+<h3 style="margin:0 0 6px;font-size:15px">Demo outcome test controls</h3><p style="font-size:11px;color:var(--muted);line-height:1.5;margin:0 0 12px">Set six demo contract rates for all users at once. Saving here overwrites per-user demo rates for existing non-admin accounts; new users inherit these platform defaults. Demo simulation only; never applies to real-money execution or balances.</p>
 <label style="display:flex;gap:9px;align-items:center;font-size:12px;margin-bottom:12px"><input id="outcomeControlEnabled" type="checkbox" checked> Enable demo outcome testing</label>
 <div id="contractRateGrid" class="kyc-details"></div>
-<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="refresh" id="loadContractRates">Reload settings</button><button class="refresh" id="saveContractRates" style="border-color:var(--green);color:var(--green)">Save six rates</button></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="refresh" id="loadContractRates">Reload settings</button><button class="refresh" id="saveContractRates" style="border-color:var(--green);color:var(--green)">Apply rates to all users</button></div>
 <div id="contractRateStatus" class="status"></div>
 </div>
 <div style="margin-top:16px;border:1px solid #594521;border-radius:14px;padding:14px;background:#100e08">
@@ -72,7 +72,7 @@ function renderContractRates(settings){
 function contractRateMessage(message,ok=false){const el=$("#contractRateStatus");el.textContent=message;el.className="status "+(ok?"ok":"error");}
 async function loadContractRates(){
  const token=localStorage.getItem("tradezoraAuthToken");
- try{const r=await fetch(`${API_BASE}/api/admin/demo-contract-bulk-settings`,{headers:{Authorization:`Bearer ${token}`,Accept:"application/json"}});const data=await r.json().catch(()=>({}));if(!r.ok||!data.success)throw new Error(data.error||"Could not load settings.");renderContractRates(data.settings||defaultContractSettings());$("#outcomeControlEnabled").checked=Boolean(data.outcomeControlEnabled);contractRateMessage("Loaded saved platform defaults. Demo testing only.",true);}
+ try{const r=await fetch(`${API_BASE}/api/admin/demo-contract-bulk-settings`,{headers:{Authorization:`Bearer ${token}`,Accept:"application/json"}});const data=await r.json().catch(()=>({}));if(!r.ok||!data.success)throw new Error(data.error||"Could not load settings.");renderContractRates(data.settings||defaultContractSettings());$("#outcomeControlEnabled").checked=Boolean(data.outcomeControlEnabled);contractRateMessage("Loaded global defaults for all users. Demo testing only.",true);}
  catch(e){renderContractRates(defaultContractSettings());contractRateMessage(e.message||"Could not load settings.");}
 }
 async function saveContractRates(){
@@ -164,25 +164,50 @@ async function loadUsers(){
   const rows=Array.isArray(data.users)?data.users:[];
   if(!rows.length){message.innerHTML="<strong>No users found.</strong>";return;}
   message.style.display="none";
-  list.innerHTML=rows.map(u=>`<article class="kyc-card"><div class="kyc-card-head"><div><h3>${escapeHtml(u.name||"Unnamed user")}</h3><div class="email">${escapeHtml(u.email||"")}</div></div><span class="kyc-badge ${String(u.status||"active").toLowerCase()==="active"?"approved":""}">${escapeHtml(String(u.status||"unknown").toUpperCase())}</span></div><div class="kyc-details"><div class="kyc-detail"><small>User ID</small><span>${escapeHtml(u.id??"—")}</span></div><div class="kyc-detail"><small>Role</small><span>${escapeHtml(u.role||"user")}</span></div><div class="kyc-detail"><small>Demo balance</small><span>$${Number(u.balance??0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div><div class="kyc-detail"><small>Registered</small><span>${escapeHtml(formatKycDate(u.created_at))}</span></div><div class="kyc-detail"><small>KYC</small><span>${escapeHtml(u.kyc_status||"pending")}</span></div><div class="kyc-detail"><small>Demo win-rate target (testing only)</small><span><input type="number" min="0" max="100" step="1" value="${Math.max(0,Math.min(100,Number(u.demo_win_rate_target??50)))}" data-win-rate-input="${Number(u.id)}" style="width:76px;background:#060b09;color:#edf7f2;border:1px solid var(--border);border-radius:7px;padding:7px"> % <button class="refresh" data-save-win-rate="${Number(u.id)}">Save</button></span></div></div></article>`).join("");
+  list.innerHTML=rows.map(u=>{const id=Number(u.id);const isAdmin=String(u.role||"user").toLowerCase()==="admin";return `<article class="kyc-card"><div class="kyc-card-head"><div><h3>${escapeHtml(u.name||"Unnamed user")}</h3><div class="email">${escapeHtml(u.email||"")}</div></div><span class="kyc-badge ${String(u.status||"active").toLowerCase()==="active"?"approved":""}">${escapeHtml(String(u.status||"unknown").toUpperCase())}</span></div><div class="kyc-details"><div class="kyc-detail"><small>User ID</small><span>${escapeHtml(u.id??"—")}</span></div><div class="kyc-detail"><small>Role</small><span>${escapeHtml(u.role||"user")}</span></div><div class="kyc-detail"><small>Demo balance</small><span>$${Number(u.balance??0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div><div class="kyc-detail"><small>Registered</small><span>${escapeHtml(formatKycDate(u.created_at))}</span></div><div class="kyc-detail"><small>KYC</small><span>${escapeHtml(u.kyc_status||"pending")}</span></div></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px"><button class="refresh" ${isAdmin?'disabled title="Admin accounts are not included in user outcome controls"':`data-open-user-contract-rates="${id}"`}>Configure six demo rates</button><span style="font-size:11px;color:var(--muted)">EVEN · ODD · MATCH · DIFFER · OVER · UNDER</span></div><div id="userContractEditor-${id}" style="display:none;margin-top:12px;border:1px solid var(--border);border-radius:12px;padding:12px;background:#07100c"><div data-user-contract-grid="${id}" class="kyc-details"></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px"><button class="refresh" data-save-user-contract-rates="${id}">Save six user rates</button><span id="userContractStatus-${id}" class="status" style="margin:0"></span></div><p style="font-size:10px;color:var(--muted);margin:8px 0 0">Demo simulation only. These settings do not control real-money trades, payouts, balances or ledger entries.</p></div></article>`;}).join(" ");
  }catch(e){console.error("Load admin users:",e);message.innerHTML=`<strong>${escapeHtml(e.message||"Could not load users.")}</strong>Check the admin session and backend response.`;}
 }
 
 
-async function saveDemoWinRate(userId){
- const token=localStorage.getItem("tradezoraAuthToken");
- const input=document.querySelector(`[data-win-rate-input="${userId}"]`);
- const target=Number(input?.value);
- if(!Number.isInteger(target)||target<0||target>100){alert("Enter a whole-number demo target from 0 to 100.");return;}
- const button=document.querySelector(`[data-save-win-rate="${userId}"]`);
- if(button){button.disabled=true;button.textContent="Saving…";}
- try{
-  const r=await fetch(`${API_BASE}/api/admin/users/${encodeURIComponent(userId)}/demo-win-rate`,{method:"PATCH",headers:{"Content-Type":"application/json",Authorization:`Bearer ${token}`,Accept:"application/json"},body:JSON.stringify({demo_win_rate_target:target})});
-  const data=await r.json().catch(()=>({}));if(!r.ok||!data.success)throw new Error(data.error||"Could not save demo target.");
-  if(button){button.textContent="Saved";}
- }catch(e){alert(e.message||"Could not save demo target.");if(button){button.disabled=false;button.textContent="Save";}}
+const USER_CONTRACT_TYPES=["EVEN","ODD","MATCH","DIFFER","OVER","UNDER"];
+function userContractStatus(userId,message,ok=false){const el=document.querySelector(`#userContractStatus-${Number(userId)}`);if(!el)return;el.textContent=message;el.className="status "+(ok?"ok":"error");}
+function renderUserContractSettings(userId,settings){
+ const grid=document.querySelector(`[data-user-contract-grid="${Number(userId)}"]`);
+ if(!grid)return;
+ grid.innerHTML=USER_CONTRACT_TYPES.map(type=>{const item=settings[type]||{enabled:true,target_win_rate:10};const rate=Math.max(0,Math.min(100,Number(item.target_win_rate??10)));return `<div class="kyc-detail"><label style="display:block;font-size:11px;margin-bottom:8px;font-weight:800">${type}</label><label style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted);margin-bottom:8px"><input type="checkbox" data-user-contract-enabled="${type}" ${item.enabled?"checked":""}> Enabled</label><div style="display:flex;align-items:center;gap:6px"><input type="number" min="0" max="100" step="1" value="${rate}" data-user-contract-rate="${type}" style="width:78px;background:#060b09;color:#edf7f2;border:1px solid var(--border);border-radius:7px;padding:7px"><span style="font-size:11px">%</span></div></div>`}).join("");
 }
-$("#usersList").addEventListener("click",event=>{const button=event.target.closest("button[data-save-win-rate]");if(button)saveDemoWinRate(button.dataset.saveWinRate);});
+async function loadUserContractSettings(userId,force=false){
+ const editor=document.querySelector(`#userContractEditor-${Number(userId)}`);if(!editor)return;
+ if(editor.style.display==="block"&&!force){editor.style.display="none";return;}
+ editor.style.display="block";
+ const button=document.querySelector(`[data-open-user-contract-rates="${Number(userId)}"]`);if(button){button.disabled=true;button.textContent="Loading rates…";}
+ userContractStatus(userId,"Loading saved user settings…");
+ try{
+  const token=localStorage.getItem("tradezoraAuthToken");
+  const r=await fetch(`${API_BASE}/api/admin/users/${encodeURIComponent(userId)}/demo-contract-settings`,{headers:{Authorization:`Bearer ${token}`,Accept:"application/json"}});
+  const data=await r.json().catch(()=>({}));if(!r.ok||!data.success)throw new Error(data.error||"Could not load this user's contract rates.");
+  renderUserContractSettings(userId,data.settings||{});
+  userContractStatus(userId,"Loaded saved rates for "+String(data.user?.name||data.user?.email||("user "+userId))+".",true);
+ }catch(e){userContractStatus(userId,e.message||"Could not load user settings.");}
+ finally{if(button){button.disabled=false;button.textContent="Configure six demo rates";}}
+}
+async function saveUserContractSettings(userId){
+ const editor=document.querySelector(`#userContractEditor-${Number(userId)}`);if(!editor)return;
+ const settings={};
+ for(const type of USER_CONTRACT_TYPES){const input=editor.querySelector(`[data-user-contract-rate="${type}"]`);const enabled=editor.querySelector(`[data-user-contract-enabled="${type}"]`);const rate=Number(input?.value);if(!Number.isInteger(rate)||rate<0||rate>100){userContractStatus(userId,`${type}: enter a whole-number rate from 0 to 100.`);return;}settings[type]={enabled:Boolean(enabled?.checked),target_win_rate:rate};}
+ const button=editor.querySelector(`[data-save-user-contract-rates="${Number(userId)}"]`);if(button){button.disabled=true;button.textContent="Saving…";}
+ try{
+  const token=localStorage.getItem("tradezoraAuthToken");
+  const r=await fetch(`${API_BASE}/api/admin/users/${encodeURIComponent(userId)}/demo-contract-settings`,{method:"PUT",headers:{"Content-Type":"application/json",Authorization:`Bearer ${token}`,Accept:"application/json"},body:JSON.stringify({settings})});
+  const data=await r.json().catch(()=>({}));if(!r.ok||!data.success)throw new Error(data.error||"Could not save user contract rates.");
+  userContractStatus(userId,"Saved all six demo contract rates for this user.",true);if(button)button.textContent="Saved";
+ }catch(e){userContractStatus(userId,e.message||"Could not save user settings.");if(button)button.textContent="Save six user rates";}
+ finally{if(button)button.disabled=false;}
+}
+$("#usersList").addEventListener("click",event=>{
+ const open=event.target.closest("button[data-open-user-contract-rates]");if(open){loadUserContractSettings(open.dataset.openUserContractRates);return;}
+ const save=event.target.closest("button[data-save-user-contract-rates]");if(save)saveUserContractSettings(save.dataset.saveUserContractRates);
+});
 
 async function loadTrades(){
  const token=localStorage.getItem("tradezoraAuthToken");if(!token){location.href="auth.html";return;}
