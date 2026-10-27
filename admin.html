@@ -22,11 +22,11 @@
 <nav class="nav"><button class="active" data-tab="overview">Overview</button><button data-tab="users">Users</button><button data-tab="kyc">KYC</button><button data-tab="deposits">Deposits</button><button data-tab="withdrawals">Withdrawals</button><button data-tab="trades">Trades</button><button data-tab="ledger">Ledger</button><button data-tab="settings">Settings</button></nav>
 <section class="section active" id="overview"><div class="head"><h2>Overview</h2><button class="refresh" id="refreshBtn">Refresh</button></div><div class="profile"><div class="avatar" id="avatar">D</div><div><strong id="adminName">Checking admin session…</strong><small id="adminEmail">—</small></div></div><div class="grid" style="margin-top:12px"><button class="action" data-target="users"><b>👥 Users</b><span>View registered accounts, status and account information.</span></button><button class="action" data-target="kyc"><b>🪪 KYC</b><span>Review verification records when the KYC system is connected.</span></button><button class="action" data-target="deposits"><b>↓ Deposits</b><span>Monitor deposit requests and transaction records.</span></button><button class="action" data-target="withdrawals"><b>↑ Withdrawals</b><span>Monitor withdrawal requests and their status.</span></button><button class="action" data-target="trades"><b>📈 Trades</b><span>Review demo trade activity, outcomes and P/L.</span></button><button class="action" data-target="ledger"><b>▤ Ledger</b><span>Track balance movements and audit records.</span></button><button class="action" data-target="settings"><b>⚙ Settings</b><span>Platform controls and administrative configuration.</span></button></div><div id="sessionStatus" class="status"></div></section>
 <section class="section" id="users"><div class="head"><h2>Users</h2><button class="refresh" id="refreshUsers">Refresh</button></div><input id="userSearch" class="search" placeholder="Search by name or email…"><div id="usersMessage" class="empty"><strong>Loading users…</strong></div><div id="usersList" class="kyc-list"></div></section>
-<section class="section" id="kyc"><div class="head"><h2>KYC Applications</h2><button class="refresh" id="refreshKyc">Refresh</button></div><div class="kyc-tools"><select id="kycStatusFilter" class="search"><option value="">All statuses</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select><input id="kycSearch" class="search" placeholder="Search name or email…"><button class="refresh" id="searchKyc">Search</button></div><div id="kycMessage" class="empty"><strong>Loading identity applications…</strong>Only owner-admin accounts can review applications.</div><div id="kycList" class="kyc-list"></div></section>
+<section class="section" id="kyc"><div class="head"><h2>KYC Applications</h2><button class="refresh" id="refreshKyc">Refresh</button></div><div class="kyc-tools"><select id="kycStatusFilter" class="search"><option value="">All statuses</option><option value="pending">Pending review</option><option value="initiating">Initiating</option><option value="processing">Processing</option><option value="payout_review">Needs reconciliation</option><option value="completed">Completed</option><option value="sandbox_completed">Sandbox completed</option><option value="failed">Failed/refunded</option><option value="approved">Legacy approved</option><option value="rejected">Rejected</option></select><input id="kycSearch" class="search" placeholder="Search name or email…"><button class="refresh" id="searchKyc">Search</button></div><div id="kycMessage" class="empty"><strong>Loading identity applications…</strong>Only owner-admin accounts can review applications.</div><div id="kycList" class="kyc-list"></div></section>
 <section class="section" id="deposits"><div class="head"><h2>Deposits</h2><span>Transaction control</span></div><div class="empty"><strong>No live deposit processor is connected.</strong>Deposit requests and transaction statuses will populate this section after payment infrastructure is implemented.</div></section>
 <section class="section" id="withdrawals">
   <div class="head"><h2>Withdrawals</h2><button class="refresh" id="refreshWithdrawals">Refresh</button></div>
-  <div class="notice" style="margin-bottom:12px"><strong>Review carefully:</strong> Rejection should refund the reserved amount. Never approve a sandbox/test withdrawal or claim a payout was sent unless it was actually sent and verified.</div>
+  <div class="notice" style="margin-bottom:12px"><strong>IntaSend payouts:</strong> Approve &amp; send starts an M-Pesa B2C payout from the configured IntaSend wallet. With a test key, IntaSend uses its sandbox recipient and TradeZora restores the held balance after verified test completion. With a live key, real money is sent. Do not enable payouts until the correct environment and provider wallet are ready.</div>
   <select id="withdrawalStatusFilter" class="search" style="margin-bottom:12px">
     <option value="">All statuses</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option>
   </select>
@@ -54,17 +54,15 @@
 </div>
 <div style="margin-top:16px;border:1px solid #425a8a;border-radius:14px;padding:14px;background:#0a101c">
 <h3 style="margin:0 0 6px;font-size:15px;color:#9fbcff">Real Test Funds — sandbox only</h3>
-<p style="font-size:11px;color:var(--muted);line-height:1.5;margin:0 0 12px">Manage one user's virtual USD test wallet at a time. These funds are isolated from demo balances, real balances, deposits, withdrawals, payouts and the production ledger. Each grant or reversal is limited to $10–$1,000.</p>
+<p style="font-size:11px;color:var(--muted);line-height:1.5;margin:0 0 12px">Virtual USD balances for testing only. These funds are stored in a separate sandbox wallet and never change demo balances, real balances, payments, payouts, or the production ledger. Amounts are limited to $10–$1,000 per action.</p>
 <div class="kyc-details" style="align-items:end">
-<div class="kyc-detail"><label for="realTestFundsUserId" style="display:block;font-size:11px;font-weight:800;margin-bottom:8px">Target User ID</label><input id="realTestFundsUserId" type="number" min="1" step="1" placeholder="Enter user ID" style="width:100%;max-width:200px;background:#060b09;color:#edf7f2;border:1px solid var(--border);border-radius:7px;padding:9px"></div>
 <div class="kyc-detail"><label for="realTestFundsActionAmount" style="display:block;font-size:11px;font-weight:800;margin-bottom:8px">Action amount (USD)</label><input id="realTestFundsActionAmount" type="number" min="10" max="1000" step="1" value="100" style="width:100%;max-width:200px;background:#060b09;color:#edf7f2;border:1px solid var(--border);border-radius:7px;padding:9px"></div>
-<div class="kyc-detail"><small>Selected user</small><strong id="realTestFundsTargetUser">Not loaded</strong></div>
-<div class="kyc-detail"><small>Sandbox balance</small><strong id="realTestFundsTargetBalance">$—</strong></div>
+<div class="kyc-detail"><small>Funded users</small><strong id="realTestFundsFundedUsers">—</strong></div>
+<div class="kyc-detail"><small>Total sandbox balance</small><strong id="realTestFundsTotalBalance">$—</strong></div>
 </div>
-<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="refresh" id="loadRealTestFundsTarget">Load user wallet</button><button class="refresh" id="saveRealTestFundsSettings">Save action amount</button><button class="refresh" id="grantRealTestFundsUser" style="border-color:#86a8ff;color:#9fbcff">Grant to this user</button><button class="refresh" id="reverseRealTestFundsUser" style="border-color:#e7a5a5;color:#e7a5a5">Reverse from this user</button></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="refresh" id="loadRealTestFundsSettings">Reload fund stats</button><button class="refresh" id="saveRealTestFundsSettings">Save action amount</button><button class="refresh" id="grantRealTestFundsAll" style="border-color:#86a8ff;color:#9fbcff">Grant to all users</button><button class="refresh" id="reverseRealTestFundsAll" style="border-color:#e7a5a5;color:#e7a5a5">Reverse from all users</button></div>
 <div id="realTestFundsStatus" class="status"></div>
-<div id="realTestFundsTargetHistory" class="kyc-list" style="margin-top:10px"></div>
-<p style="font-size:10px;color:var(--muted);line-height:1.5;margin:8px 0 0">Admin users cannot receive test funds. Reversal is capped at the selected user's available sandbox balance and will never make the balance negative.</p>
+<p style="font-size:10px;color:var(--muted);line-height:1.5;margin:8px 0 0">Grant adds the selected amount to every non-admin user's sandbox wallet. Reverse subtracts up to the selected amount from each wallet, capped at each user's available balance, and never permits a negative balance.</p>
 </div></section>
 <div class="footer">TradeZora Admin Console • Protected owner area</div>
 </main>
@@ -140,38 +138,26 @@ $("#previewRealTestOutcomes").addEventListener("click",previewRealTestOutcomes);
 function realTestFundsStatus(message,ok=false){const el=$("#realTestFundsStatus");if(!el)return;el.textContent=message;el.className="status "+(ok?"ok":"error");}
 function readRealTestFundsAmount(selector){const el=$(selector);const amount=Number(el?.value);if(!Number.isInteger(amount)||amount<10||amount>1000){return null;}return amount;}
 async function loadRealTestFundsSettings(){
- try{const token=localStorage.getItem("tradezoraAuthToken");const r=await fetch(`${API_BASE}/api/admin/real-test-funds/settings`,{headers:{Authorization:`Bearer ${token}`,Accept:"application/json"}});const data=await r.json().catch(()=>({}));if(!r.ok||!data.success)throw new Error(data.error||"Could not load Real Test Funds settings. If this says Endpoint not found, deploy the matching server.js first.");$("#realTestFundsActionAmount").value=Number(data.settings?.actionAmountUsd??100);realTestFundsStatus("Loaded sandbox funding amount. Enter a User ID to manage only that user's virtual wallet.",true);}
- catch(e){realTestFundsStatus(e.message||"Could not load Real Test Funds settings.");}
+ const token=localStorage.getItem("tradezoraAuthToken");
+ try{const r=await fetch(`${API_BASE}/api/admin/real-test-funds/settings`,{headers:{Authorization:`Bearer ${token}`,Accept:"application/json"}});const data=await r.json().catch(()=>({}));if(!r.ok||!data.success)throw new Error(data.error||"Could not load Real Test Funds stats.");$("#realTestFundsActionAmount").value=Number(data.settings?.actionAmountUsd??100);$("#realTestFundsFundedUsers").textContent=Number(data.totals?.fundedUsers??0).toLocaleString();$("#realTestFundsTotalBalance").textContent="$"+Number(data.totals?.totalBalanceUsd??0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});realTestFundsStatus("Loaded sandbox wallet statistics. No real funds are affected.",true);}
+ catch(e){realTestFundsStatus(e.message||"Could not load Real Test Funds.");}
 }
-function readRealTestFundsAmount(selector){const amount=Number($(selector)?.value);return Number.isInteger(amount)&&amount>=10&&amount<=1000?amount:null;}
-function readRealTestFundsUserId(){const id=Number($("#realTestFundsUserId")?.value);return Number.isSafeInteger(id)&&id>0?id:null;}
 async function saveRealTestFundsSettings(){
  const amount=readRealTestFundsAmount("#realTestFundsActionAmount");if(amount===null){realTestFundsStatus("Enter a whole USD amount from $10 to $1,000.");return;}
- try{const token=localStorage.getItem("tradezoraAuthToken");const r=await fetch(`${API_BASE}/api/admin/real-test-funds/settings`,{method:"PUT",headers:{"Content-Type":"application/json",Authorization:`Bearer ${token}`,Accept:"application/json"},body:JSON.stringify({actionAmountUsd:amount})});const data=await r.json().catch(()=>({}));if(!r.ok||!data.success)throw new Error(data.error||"Could not save the action amount. If this says Endpoint not found, deploy the matching server.js first.");realTestFundsStatus(`Saved $${amount} as the default amount per individual sandbox-wallet action.`,true);}
+ try{const token=localStorage.getItem("tradezoraAuthToken");const r=await fetch(`${API_BASE}/api/admin/real-test-funds/settings`,{method:"PUT",headers:{"Content-Type":"application/json",Authorization:`Bearer ${token}`,Accept:"application/json"},body:JSON.stringify({actionAmountUsd:amount})});const data=await r.json().catch(()=>({}));if(!r.ok||!data.success)throw new Error(data.error||"Could not save the action amount.");realTestFundsStatus(`Saved $${amount} as the default sandbox-fund action amount.`,true);}
  catch(e){realTestFundsStatus(e.message||"Could not save the amount.");}
 }
-function renderSettingsTargetWallet(userId,data){
- const u=data.user||{};$("#realTestFundsTargetUser").textContent=`#${u.id??userId} · ${u.name||u.email||"User"}`;$("#realTestFundsTargetBalance").textContent="$"+Number(data.balanceUsd||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
- const history=$("#realTestFundsTargetHistory");const events=Array.isArray(data.events)?data.events:[];
- history.innerHTML=events.length?events.map(e=>`<article class="kyc-card"><div class="kyc-card-head"><div><h3>${String(e.event_type||"").toUpperCase()==="CREDIT"?"Sandbox credit":"Sandbox reversal"} · $${Number(e.amountUsd||e.amount_usd||0).toFixed(2)}</h3><div class="email">Balance after action: $${Number(e.balanceAfterUsd||e.balance_after_usd||0).toFixed(2)}</div></div><span class="kyc-badge">SANDBOX</span></div><p style="font-size:10px;color:var(--muted);margin:6px 0 0">${escapeHtml(e.note||"")} · ${escapeHtml(formatKycDate(e.created_at))}</p></article>`).join(""):"<div class=\"empty\"><strong>No sandbox funding events for this user yet.</strong></div>";
-}
-async function loadSettingsTargetWallet(showStatus=true){
- const userId=readRealTestFundsUserId();if(userId===null){realTestFundsStatus("Enter a valid positive User ID first.");return null;}
- try{const token=localStorage.getItem("tradezoraAuthToken");const r=await fetch(`${API_BASE}/api/admin/users/${encodeURIComponent(userId)}/real-test-funds`,{headers:{Authorization:`Bearer ${token}`,Accept:"application/json"}});const data=await r.json().catch(()=>({}));if(!r.ok||!data.success)throw new Error(data.error||`Could not load wallet for User ID ${userId}. If this says Endpoint not found, deploy the matching server.js first.`);renderSettingsTargetWallet(userId,data);if(showStatus)realTestFundsStatus(`Loaded sandbox wallet for User ID ${userId}. Only this user's test funds can be changed from this panel.`,true);return data;}
- catch(e){realTestFundsStatus(e.message||"Could not load user's sandbox wallet.");return null;}
-}
-async function operateSettingsTargetWallet(action){
- const userId=readRealTestFundsUserId();if(userId===null){realTestFundsStatus("Enter a valid positive User ID first.");return;}
+async function operateAllRealTestFunds(action){
  const amount=readRealTestFundsAmount("#realTestFundsActionAmount");if(amount===null){realTestFundsStatus("Enter a whole USD amount from $10 to $1,000.");return;}
- const reverse=action==="reverse";if(!window.confirm(reverse?`Reverse up to $${amount} from sandbox wallet for User ID ${userId}? The user's available balance limits the reversal.`:`Grant $${amount} in virtual sandbox test funds to User ID ${userId}? This does not add real money.`))return;
- try{const token=localStorage.getItem("tradezoraAuthToken");const r=await fetch(`${API_BASE}/api/admin/users/${encodeURIComponent(userId)}/real-test-funds/${action}`,{method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${token}`,Accept:"application/json"},body:JSON.stringify({amountUsd:amount})});const data=await r.json().catch(()=>({}));if(!r.ok||!data.success)throw new Error(data.error||`Sandbox fund ${action} failed. If this says Endpoint not found, deploy the matching server.js first.`);realTestFundsStatus(reverse?`Reversed $${Number(data.actualAmountUsd||0).toFixed(2)} from User ID ${userId}; new sandbox balance $${Number(data.balanceUsd||0).toFixed(2)}.`:`Granted $${Number(data.actualAmountUsd||0).toFixed(2)} to User ID ${userId}; new sandbox balance $${Number(data.balanceUsd||0).toFixed(2)}.`,true);await loadSettingsTargetWallet(false);}
+ const reverse=action==="reverse-all";const warning=reverse?`Reverse up to $${amount} from each non-admin user's sandbox wallet? Available balance limits apply.`:`Grant $${amount} in virtual test funds to every non-admin user? This is not real money.`;
+ if(!window.confirm(warning))return;
+ try{const token=localStorage.getItem("tradezoraAuthToken");const r=await fetch(`${API_BASE}/api/admin/real-test-funds/${action}`,{method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${token}`,Accept:"application/json"},body:JSON.stringify({amountUsd:amount})});const data=await r.json().catch(()=>({}));if(!r.ok||!data.success)throw new Error(data.error||"Sandbox fund operation failed.");if(reverse)realTestFundsStatus(`Reversed $${Number(data.totalReversedUsd||0).toFixed(2)} total across ${Number(data.usersReversed||0)} users. No wallet was made negative.`,true);else realTestFundsStatus(`Granted $${amount.toFixed(2)} each to ${Number(data.usersCredited||0)} users; total virtual credit $${Number(data.totalGrantedUsd||0).toFixed(2)}.`,true);await loadRealTestFundsSettings();}
  catch(e){realTestFundsStatus(e.message||"Sandbox fund operation failed.");}
 }
-$("#loadRealTestFundsSettings");
-$("#loadRealTestFundsTarget").addEventListener("click",()=>loadSettingsTargetWallet(true));
+$("#loadRealTestFundsSettings").addEventListener("click",loadRealTestFundsSettings);
 $("#saveRealTestFundsSettings").addEventListener("click",saveRealTestFundsSettings);
-$("#grantRealTestFundsUser").addEventListener("click",()=>operateSettingsTargetWallet("grant"));
-$("#reverseRealTestFundsUser").addEventListener("click",()=>operateSettingsTargetWallet("reverse"));
+$("#grantRealTestFundsAll").addEventListener("click",()=>operateAllRealTestFunds("grant-all"));
+$("#reverseRealTestFundsAll").addEventListener("click",()=>operateAllRealTestFunds("reverse-all"));
 
 async function verifyAdmin(){
  const token=localStorage.getItem("tradezoraAuthToken");
@@ -355,8 +341,10 @@ async function loadWithdrawals(){
       const state=String(w.status||"unknown").toLowerCase();
       const amount=Number(w.amount||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
       const actions=state==="pending"
-        ? `<div class="kyc-actions"><button class="reject-kyc" data-withdrawal-reject="${Number(w.id)}">Reject &amp; refund</button></div>`
-        : "";
+        ? `<div class="kyc-actions"><button class="approve-kyc" data-withdrawal-send="${Number(w.id)}">Approve &amp; send via IntaSend</button><button class="reject-kyc" data-withdrawal-reject="${Number(w.id)}">Reject &amp; refund</button></div>`
+        : (["initiating","processing","payout_review"].includes(state) && w.intasend_tracking_id
+          ? `<div class="kyc-actions"><button class="refresh" data-withdrawal-refresh="${Number(w.id)}">Refresh IntaSend status</button></div>`
+          : "");
       return `<article class="kyc-card">
         <div class="kyc-card-head"><div><h3>Withdrawal #${escapeHtml(w.id)}</h3><div class="email">${escapeHtml(w.user_name||"User")} · ${escapeHtml(w.user_email||"")}</div></div><span class="kyc-badge ${escapeHtml(state)}">${escapeHtml(state.toUpperCase())}</span></div>
         <div class="kyc-details">
@@ -366,6 +354,8 @@ async function loadWithdrawals(){
           <div class="kyc-detail"><small>Created</small><span>${escapeHtml(formatKycDate(w.created_at))}</span></div>
           <div class="kyc-detail"><small>Reviewed</small><span>${escapeHtml(formatKycDate(w.reviewed_at))}</span></div>
           <div class="kyc-detail"><small>Provider reference</small><span>${escapeHtml(w.provider_reference||"—")}</span></div>
+          <div class="kyc-detail"><small>IntaSend status</small><span>${escapeHtml(w.intasend_status||"—")}${w.intasend_env?` · ${escapeHtml(w.intasend_env)}`:""}</span></div>
+          <div class="kyc-detail"><small>Tracking ID</small><span>${escapeHtml(w.intasend_tracking_id||"—")}</span></div>
         </div>
         ${w.review_note?`<div class="kyc-notes"><strong>Review note:</strong> ${escapeHtml(w.review_note)}</div>`:""}
         ${actions}
@@ -374,6 +364,43 @@ async function loadWithdrawals(){
   }catch(e){
     console.error("Load admin withdrawals:",e);
     message.innerHTML=`<strong>${escapeHtml(e.message||"Could not load withdrawals.")}</strong>Confirm the latest backend deployment is live and the admin withdrawals route is present.`;
+  }
+}
+async function sendWithdrawal(id){
+  const token=localStorage.getItem("tradezoraAuthToken");
+  const warning="Start an IntaSend M-Pesa B2C payout for this withdrawal?\n\nThe configured IntaSend key determines sandbox vs live. Sandbox payouts use IntaSend's test recipient and the reserved balance is restored after verified test completion. Live payouts send real money. Continue only if the Render key and INTASEND_PAYOUTS_ENABLED setting are correct.";
+  if(!confirm(warning))return;
+  const button=document.querySelector(`[data-withdrawal-send="${id}"]`);
+  if(button){button.disabled=true;button.textContent="Starting payout…";}
+  try{
+    const r=await fetch(`${API_BASE}/api/admin/withdrawals/${encodeURIComponent(id)}/intasend-payout`,{
+      method:"POST",headers:{Authorization:`Bearer ${token}`,Accept:"application/json"}
+    });
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok||!data.success)throw new Error(data.error||`Could not start IntaSend payout (HTTP ${r.status}).`);
+    alert(data.message||"IntaSend payout started. Refresh status to confirm settlement.");
+    await loadWithdrawals();await loadStats();
+  }catch(e){
+    alert(e.message||"Could not start payout.");
+    if(button){button.disabled=false;button.textContent="Approve & send via IntaSend";}
+    await loadWithdrawals();
+  }
+}
+async function refreshIntaSendWithdrawal(id){
+  const token=localStorage.getItem("tradezoraAuthToken");
+  const button=document.querySelector(`[data-withdrawal-refresh="${id}"]`);
+  if(button){button.disabled=true;button.textContent="Checking…";}
+  try{
+    const r=await fetch(`${API_BASE}/api/admin/withdrawals/${encodeURIComponent(id)}/intasend-refresh`,{
+      method:"POST",headers:{Authorization:`Bearer ${token}`,Accept:"application/json"}
+    });
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok||!data.success)throw new Error(data.error||`Could not refresh payout (HTTP ${r.status}).`);
+    alert(data.message||"Payout status refreshed.");
+    await loadWithdrawals();await loadStats();
+  }catch(e){
+    alert(e.message||"Could not refresh payout status.");
+    if(button){button.disabled=false;button.textContent="Refresh IntaSend status";}
   }
 }
 async function rejectWithdrawal(id){
@@ -400,8 +427,12 @@ async function rejectWithdrawal(id){
   }
 }
 $("#withdrawalsList").addEventListener("click",event=>{
-  const button=event.target.closest("button[data-withdrawal-reject]");
-  if(button)rejectWithdrawal(button.dataset.withdrawalReject);
+  const send=event.target.closest("button[data-withdrawal-send]");
+  if(send){sendWithdrawal(send.dataset.withdrawalSend);return;}
+  const refresh=event.target.closest("button[data-withdrawal-refresh]");
+  if(refresh){refreshIntaSendWithdrawal(refresh.dataset.withdrawalRefresh);return;}
+  const reject=event.target.closest("button[data-withdrawal-reject]");
+  if(reject)rejectWithdrawal(reject.dataset.withdrawalReject);
 });
 $("#refreshWithdrawals").addEventListener("click",loadWithdrawals);
 $("#withdrawalStatusFilter").addEventListener("change",loadWithdrawals);
