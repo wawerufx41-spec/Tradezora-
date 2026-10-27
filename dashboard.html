@@ -1033,7 +1033,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderBalance();
     realTestFundsRefreshInFlight = (async () => {
       try {
-        const data = await paymentApi(`/api/real-test-funds?_=${Date.now()}`, { headers: { "Cache-Control": "no-cache", "Pragma": "no-cache" } });
+        const data = await paymentApi(`/api/real-test-funds?_=${Date.now()}`);
         if (data.sandboxOnly !== true || data.walletType !== "real_test_funds") {
           throw new Error("The backend did not identify this as the sandbox test wallet.");
         }
