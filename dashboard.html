@@ -824,7 +824,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // In Real Test Mode, use the main Real-mode balance slot as a clearly labelled
     // sandbox-test balance. The virtual wallet is never merged into the real-money
     // account balance returned by /api/real-account.
-    const showRealTestBalanceInMainSlot = accountMode === "real" && realTestModeEnabled;
+    const hasFundedRealTestWallet = realTestFundsLoadStatus === "loaded" &&
+      Number.isFinite(Number(realTestFundsBalanceValue)) && Number(realTestFundsBalanceValue) > 0;
+    // A funded wallet is surfaced in the existing slot even if the admin's mode toggle
+    // was saved globally rather than per-user. The explicit sandbox label prevents confusion.
+    const showRealTestBalanceInMainSlot = accountMode === "real" && (realTestModeEnabled || hasFundedRealTestWallet);
     if (balanceEl) {
       if (showRealTestBalanceInMainSlot) {
         balanceEl.textContent = realTestFundsLoadStatus === "loaded"
@@ -1029,7 +1033,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderBalance();
     realTestFundsRefreshInFlight = (async () => {
       try {
-        const data = await paymentApi("/api/real-test-funds", { headers: { "Cache-Control": "no-cache" } });
+        const data = await paymentApi(`/api/real-test-funds?_=${Date.now()}`, { headers: { "Cache-Control": "no-cache", "Pragma": "no-cache" } });
         if (data.sandboxOnly !== true || data.walletType !== "real_test_funds") {
           throw new Error("The backend did not identify this as the sandbox test wallet.");
         }
@@ -1085,7 +1089,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function setAccountMode(nextMode) {
     if (nextMode !== "demo" && nextMode !== "real") return;
-    if (nextMode === accountMode) return;
+    if (nextMode === accountMode) {
+      if (nextMode === "real") {
+        refreshRealTestFundsBalance();
+        refreshActiveRealBalance();
+      }
+      return;
+    }
     if (nextMode === "real" && window.TradeZoraContinuousEngine?.getState?.().running) {
       window.TradeZoraContinuousEngine.stop();
     }
@@ -1093,7 +1103,8 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("tradezoraAccountMode", accountMode);
     renderBalance();
     if (accountMode === "real") {
-      toast("REAL account selected. Trading is locked until secure server-side real trading is implemented.");
+      toast("REAL view selected. Test funds, if displayed, are virtual sandbox funds; real-money trading remains disabled.");
+      refreshRealTestFundsBalance();
       refreshActiveRealBalance();
     } else {
       toast("DEMO account selected.");
