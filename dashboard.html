@@ -107,6 +107,20 @@
 .money-history{margin-top:18px;border-top:1px solid var(--border);padding-top:14px}.money-history h3{font-size:13px;margin:0 0 8px}.money-history-item{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #14251c;font-size:11px}.money-history-item:last-child{border-bottom:0}.money-status{color:var(--muted);text-align:right}.money-status.success{color:var(--green)}.money-status.failed{color:var(--red)}
 @media(max-width:500px){.money-modal-card{padding:17px;border-radius:15px}.money-modal-head h2{font-size:18px}}
 
+
+/* Isolated Real Test Funds wallet display; never presented as a real-money balance. */
+.real-test-funds-strip{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:9px 18px;border-bottom:1px solid #234536;background:linear-gradient(90deg,rgba(18,49,35,.92),rgba(6,15,10,.98));}
+.real-test-funds-copy{min-width:0;display:flex;flex-direction:column;gap:3px;}
+.real-test-funds-title{font-size:10px;font-weight:950;letter-spacing:.7px;color:#73f4b2;}
+.real-test-funds-note{font-size:10px;color:#9aaca3;line-height:1.35;}
+.real-test-funds-value{display:flex;align-items:center;gap:10px;flex:0 0 auto;}
+.real-test-funds-value strong{color:#73f4b2;font-size:16px;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.real-test-funds-value small{display:block;color:#9aaca3;font-size:8px;text-align:right;margin-bottom:2px;}
+.real-test-funds-refresh{border:1px solid #285d43;border-radius:8px;background:#0b2015;color:#baf8d5;padding:6px 8px;font-size:10px;font-weight:850;}
+.real-test-funds-refresh:disabled{opacity:.55;cursor:wait;}
+@media(max-width:650px){.real-test-funds-strip{padding:8px 10px;gap:8px}.real-test-funds-title{font-size:9px}.real-test-funds-note{font-size:9px}.real-test-funds-value{gap:6px}.real-test-funds-value strong{font-size:14px}.real-test-funds-refresh{padding:6px 7px}}
+@media(max-width:390px){.real-test-funds-note{max-width:185px}.real-test-funds-value strong{font-size:12px}}
+
 </style>
 </head>
 
@@ -218,6 +232,17 @@
       <svg class="notification-bell-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg><span id="notificationCount" class="notification-count" hidden>0</span>
     </button>
   </header>
+
+  <section id="realTestFundsStrip" class="real-test-funds-strip" aria-label="Real Test Funds sandbox wallet">
+    <div class="real-test-funds-copy">
+      <span class="real-test-funds-title">REAL TEST FUNDS · SANDBOX ONLY</span>
+      <span class="real-test-funds-note">Virtual test wallet · separate from Demo and Real balances</span>
+    </div>
+    <div class="real-test-funds-value">
+      <div><small id="realTestFundsStatus" aria-live="polite">Loading wallet…</small><strong id="realTestFundsBalance">Loading…</strong></div>
+      <button id="refreshRealTestFunds" class="real-test-funds-refresh" type="button" aria-label="Refresh sandbox test funds">↻ Refresh</button>
+    </div>
+  </section>
 
   <div id="notificationBackdrop" class="notification-backdrop" hidden></div>
   <section id="notificationPanel" class="notification-panel" role="dialog" aria-modal="false" aria-labelledby="notificationTitle" hidden>
@@ -982,6 +1007,70 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     return data;
   }
+
+  // Real Test Funds are fetched from the user's authenticated sandbox wallet endpoint.
+  // This balance is display-only here and is never merged into Demo or Real balances.
+  const realTestFundsBalanceEl = $("#realTestFundsBalance");
+  const realTestFundsStatusEl = $("#realTestFundsStatus");
+  const refreshRealTestFundsButton = $("#refreshRealTestFunds");
+  let realTestFundsBalanceValue = null;
+  let realTestFundsLoadStatus = "loading";
+  let realTestFundsRefreshInFlight = null;
+
+  function renderRealTestFundsWallet() {
+    if (realTestFundsBalanceEl) {
+      realTestFundsBalanceEl.textContent = realTestFundsLoadStatus === "loaded"
+        ? formatUsd(realTestFundsBalanceValue)
+        : realTestFundsLoadStatus === "loading" ? "Loading…"
+        : realTestFundsLoadStatus === "signed-out" ? "Sign in required" : "Unavailable";
+    }
+    if (realTestFundsStatusEl) {
+      realTestFundsStatusEl.textContent = realTestFundsLoadStatus === "loaded" ? "AVAILABLE TEST FUNDS"
+        : realTestFundsLoadStatus === "loading" ? "CHECKING WALLET"
+        : realTestFundsLoadStatus === "signed-out" ? "SANDBOX WALLET" : "WALLET UNAVAILABLE";
+    }
+    if (refreshRealTestFundsButton) refreshRealTestFundsButton.disabled = realTestFundsLoadStatus === "loading";
+  }
+
+  async function refreshRealTestFundsBalance() {
+    if (realTestFundsRefreshInFlight) return realTestFundsRefreshInFlight;
+    const token = localStorage.getItem("tradezoraAuthToken") || localStorage.getItem("session_token") || localStorage.getItem("sessionToken");
+    if (!token) {
+      realTestFundsLoadStatus = "signed-out";
+      realTestFundsBalanceValue = null;
+      renderRealTestFundsWallet();
+      return;
+    }
+    realTestFundsLoadStatus = "loading";
+    renderRealTestFundsWallet();
+    realTestFundsRefreshInFlight = (async () => {
+      try {
+        const data = await paymentApi("/api/real-test-funds", { headers: { "Cache-Control": "no-cache" } });
+        if (data.sandboxOnly !== true || data.walletType !== "real_test_funds") {
+          throw new Error("The backend did not identify this as the sandbox test wallet.");
+        }
+        const amount = Number(data.balanceUsd);
+        if (!Number.isFinite(amount) || amount < 0) throw new Error("The sandbox wallet returned an invalid balance.");
+        realTestFundsBalanceValue = amount;
+        realTestFundsLoadStatus = "loaded";
+      } catch (error) {
+        realTestFundsBalanceValue = null;
+        realTestFundsLoadStatus = "error";
+        console.warn("Real Test Funds wallet could not be loaded:", error.message);
+      } finally {
+        realTestFundsRefreshInFlight = null;
+        renderRealTestFundsWallet();
+      }
+    })();
+    return realTestFundsRefreshInFlight;
+  }
+
+  refreshRealTestFundsButton?.addEventListener("click", refreshRealTestFundsBalance);
+  refreshRealTestFundsBalance();
+  // Admin funding is performed on a separate screen/device; refresh periodically and when the user returns.
+  window.setInterval(() => { if (!document.hidden) refreshRealTestFundsBalance(); }, 30000);
+  window.addEventListener("focus", () => refreshRealTestFundsBalance());
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshRealTestFundsBalance(); });
 
   async function refreshActiveRealBalance() {
     if (!localStorage.getItem("tradezoraAuthToken") && !localStorage.getItem("session_token") && !localStorage.getItem("sessionToken")) {
