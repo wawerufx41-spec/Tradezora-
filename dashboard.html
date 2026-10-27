@@ -467,7 +467,7 @@
   };
 })();
 </script>
-<script src="tradezora-engine.js?v=6"></script>
+<script src="tradezora-engine.js?v=5"></script>
   <script>
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -545,14 +545,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   let selectedDigit = 0;
-
-  // Demo timing stays at the original 5 seconds. The yellow probability
-  // selector is linked to the chart price-line digit (see renderDigitStatistics).
-  const DEMO_SETTLEMENT_MS = 5000;
-  const RESULT_MARKER_DWELL_MS = 1200;
-  const validDigit = (value) => value !== null && value !== undefined && value !== "" && Number.isInteger(Number(value)) && Number(value) >= 0 && Number(value) <= 9;
-  const initialOpenPosition = [...positions].reverse().find((item) => item && validDigit(item.digit));
-  let activeTradeMarkerDigit = initialOpenPosition ? Number(initialOpenPosition.digit) : null;
 
   let pnl = 0;
   let wins = 0;
@@ -1296,17 +1288,13 @@ document.addEventListener("DOMContentLoaded", () => {
   let lastTradeResult = JSON.parse(localStorage.getItem("tradezoraLastDigitResult") || "null");
 
   function getLastDigit(value) {
-    // Contract/settlement digit: the last visible hundredths digit.
-    // Example: 1043.64 -> 4, 14166.41 -> 1.
+    // Keep contract digits consistent with the existing displayed quote format.
     const scaled = Math.round(Math.abs(Number(value)) * 100);
     return scaled % 10;
   }
 
   function getChartLineLastDigit(value) {
-    // Keep the yellow selector tied to the exact text drawn on the chart's
-    // right-hand price line (drawChart uses Number(price).toFixed(2)).
-    // Read the final character from that same formatted number to avoid
-    // floating-point/rounding differences between the label and selector.
+    // Match the existing price-line label exactly: Number(price).toFixed(2).
     const numeric = Number(value);
     if (!Number.isFinite(numeric)) return 0;
     const displayedPrice = Math.abs(numeric).toFixed(2);
@@ -1317,11 +1305,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!probabilityContainer) return;
 
     const total = digitStats.reduce((sum, value) => sum + value, 0);
-    // The yellow triangle follows the last digit on the chart's live price
-    // number line at all times. Selected-contract and settled-result styling
-    // remain independent and cannot pin the yellow marker to an old digit.
     const currentDigit = getChartLineLastDigit(price);
-    const selectorDigit = currentDigit;
     const probabilities = digitStats.map(count => (count / total) * 100);
 
     // Pick exactly ONE highest and ONE lowest digit, even when percentages tie.
@@ -1350,7 +1334,7 @@ document.addEventListener("DOMContentLoaded", () => {
       element.className = "probability";
       if (digit === highestDigit) element.classList.add("highest-digit");
       if (digit === lowestDigit) element.classList.add("lowest-digit");
-      if (digit === selectorDigit) element.classList.add("current-digit");
+      if (digit === currentDigit) element.classList.add("current-digit");
       if (digit === selectedDigit) element.classList.add("selected-digit");
       if (lastTradeResult && digit === Number(lastTradeResult.digit)) {
         element.classList.add(lastTradeResult.win ? "trade-win" : "trade-loss");
@@ -1365,13 +1349,13 @@ document.addEventListener("DOMContentLoaded", () => {
       element.setAttribute("tabindex", "0");
       element.setAttribute(
         "aria-label",
-        `Digit ${digit}, ${probability.toFixed(1)} percent${digit === selectedDigit ? ", selected contract digit" : ""}${digit === currentDigit ? ", current market quote digit" : ""}${digit === selectorDigit ? ", yellow trade selector" : ""}`
+        `Digit ${digit}, ${probability.toFixed(1)} percent${digit === selectedDigit ? ", selected" : ""}${digit === currentDigit ? ", current price last digit" : ""}`
       );
 
       element.innerHTML = `
         <span class="digit-number">${digit}</span>
         <span class="percent">${probability.toFixed(1)}%</span>
-        ${digit === selectorDigit ? '<span class="current-digit-marker" aria-hidden="true"></span>' : ''}
+        ${digit === currentDigit ? '<span class="current-digit-marker" aria-hidden="true"></span>' : ''}
       `;
 
       const selectDigit = () => {
@@ -2046,19 +2030,19 @@ document.addEventListener("DOMContentLoaded", () => {
       const fakeCount = illustrativePrior.values.length;
       if (fakeCount > 1) {
         const priorPoints = points.slice(0, fakeCount);
-        // Keep the earlier plotted path visually continuous with the live trace.
-        // Rounded joins/caps and the same solid stroke prevent a dashed/broken appearance.
+        // Decorative prior path uses the same white/green visual treatment as the live line,
+        // regardless of bullish/bearish shape. It remains dashed to distinguish illustrative data.
         ctx.save();ctx.beginPath();priorPoints.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
-        ctx.strokeStyle="rgba(22,229,138,.22)";ctx.lineWidth=6;ctx.lineJoin="round";ctx.lineCap="round";ctx.stroke();ctx.restore();
+        ctx.strokeStyle="rgba(22,229,138,.17)";ctx.lineWidth=7;ctx.lineJoin="round";ctx.stroke();ctx.restore();
         ctx.save();ctx.beginPath();priorPoints.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
-        ctx.strokeStyle="#f4f7f5";ctx.lineWidth=1.8;ctx.lineJoin="round";ctx.lineCap="round";ctx.stroke();ctx.restore();
+        ctx.strokeStyle="#f4f7f5";ctx.lineWidth=1.8;ctx.lineJoin="round";ctx.setLineDash([5,4]);ctx.stroke();ctx.restore();
         ctx.save();ctx.strokeStyle="rgba(255,255,255,.34)";ctx.setLineDash([3,4]);ctx.beginPath();ctx.moveTo(priorPoints[priorPoints.length-1].x,top+3);ctx.lineTo(priorPoints[priorPoints.length-1].x,top+plotHeight);ctx.stroke();ctx.restore();
       }
       const livePoints = points.slice(Math.max(0, fakeCount - 1));
       ctx.save();ctx.beginPath();livePoints.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
-      ctx.strokeStyle="rgba(22,229,138,.22)";ctx.lineWidth=6;ctx.lineJoin="round";ctx.lineCap="round";ctx.stroke();ctx.restore();
+      ctx.strokeStyle="rgba(22,229,138,.17)";ctx.lineWidth=7;ctx.lineJoin="round";ctx.stroke();ctx.restore();
       ctx.save();ctx.beginPath();livePoints.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
-      ctx.strokeStyle="#f4f7f5";ctx.lineWidth=1.8;ctx.lineJoin="round";ctx.lineCap="round";ctx.stroke();ctx.restore();
+      ctx.strokeStyle="#f4f7f5";ctx.lineWidth=1.8;ctx.lineJoin="round";ctx.stroke();ctx.restore();
     }
     // Market structure: mark recent local swing highs/lows and the latest direction from real chart data.
     const structure = chartMode === "candles" ? visible : visible.map(p=>({high:p.value,low:p.value,close:p.value}));
@@ -2426,12 +2410,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   async function requestDemoOutcome(position, naturalDigit) {
-    const contract = String(position.contract || "").toLowerCase();
-    const type = String(position.type || "").toUpperCase();
-    const supportedPair = (contract === "even" && ["EVEN", "ODD"].includes(type)) ||
-      (contract === "match" && ["MATCH", "DIFFER"].includes(type)) ||
-      (contract === "over" && ["OVER", "UNDER"].includes(type));
-    if (!supportedPair) return null;
+    if (String(position.contract || "").toLowerCase() !== "even" || !["EVEN", "ODD"].includes(String(position.type || "").toUpperCase())) return null;
     const token = localStorage.getItem("tradezoraAuthToken") || localStorage.getItem("session_token") || localStorage.getItem("sessionToken") || "";
     const api = "https://tradezora-backend-1.onrender.com";
     if (!token) return { error: true };
@@ -2442,16 +2421,12 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify({ accountMode: "demo", mode: String(position.mode || "MANUAL").toUpperCase(), contract: position.contract, type: position.type, digit: Number(position.digit), naturalDigit })
       });
       const data = await response.json().catch(() => ({}));
-      if (response.ok && data.success && data.override === false) return null;
+      if (response.ok && data.success && data.override === false) return null; // explicitly disabled by admin
       if (!response.ok || !data.success || data.override !== true) return { error: true };
       const finalDigit = Number(data.finalDigit);
       if (!Number.isInteger(finalDigit) || finalDigit < 0 || finalDigit > 9) return { error: true };
-      const selected = Number(position.digit);
-      const actualWin = contract === "even"
-        ? ((finalDigit % 2 === 0 && type === "EVEN") || (finalDigit % 2 !== 0 && type === "ODD"))
-        : contract === "match"
-          ? ((finalDigit === selected && type === "MATCH") || (finalDigit !== selected && type === "DIFFER"))
-          : (type === "OVER" ? finalDigit > selected : finalDigit < selected);
+      const type = String(position.type || "").toUpperCase();
+      const actualWin = (finalDigit % 2 === 0 && type === "EVEN") || (finalDigit % 2 !== 0 && type === "ODD");
       if (actualWin !== Boolean(data.win)) return { error: true };
       return { finalDigit, win: actualWin };
     } catch (_) { return { error: true }; }
@@ -2544,16 +2519,14 @@ document.addEventListener("DOMContentLoaded", () => {
       mode: tradeMode,
 
       openedAt: Date.now(),
-      settleAt: Date.now() + DEMO_SETTLEMENT_MS
+      settleAt: Date.now() + 5000
 
     };
 
 
     positions.push(position);
     saveTradeState();
-    window.dispatchEvent(new CustomEvent("tradezora-trade-opened", {
-      detail: { mode: tradeMode, contract: tradeContract, digit: tradeDigit, type }
-    }));
+
 
     renderBalance();
 
@@ -2565,7 +2538,7 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
 
-    // Settle this demo contract after the original 5-second duration.
+    // Simulate the contract result after 5 seconds.
     setTimeout(async () => {
 
       const index =
@@ -2728,7 +2701,7 @@ document.addEventListener("DOMContentLoaded", () => {
       );
 
 
-    }, DEMO_SETTLEMENT_MS);
+    }, 5000);
 
     return true;
 
@@ -2903,11 +2876,10 @@ document.addEventListener("DOMContentLoaded", () => {
     startOrStopContinuous(pair.right);
   };
 
-  window.addEventListener("tradezora-trade-opened", (event) => {
-    const detail = event.detail || {};
+  window.addEventListener("tradezora-trade-opened", () => {
+    // Hide any previous result. Do not light a digit merely because a trade
+    // was opened.
     lastTradeResult = null;
-    localStorage.removeItem("tradezoraLastDigitResult");
-    activeTradeMarkerDigit = validDigit(detail.digit) ? Number(detail.digit) : null;
     renderDigitStatistics();
   });
 
@@ -2915,26 +2887,22 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       positions = JSON.parse(localStorage.getItem("tradezoraDemoPositions") || "[]");
       history = JSON.parse(localStorage.getItem("tradezoraDemoHistory") || "[]");
-      const active = [...positions].reverse().find((item) => item && validDigit(item.digit));
-      activeTradeMarkerDigit = active ? Number(active.digit) : null;
     } catch (error) {}
     renderBalance();
     renderLists();
-    renderDigitStatistics();
   });
 
   window.addEventListener("tradezora-trade-settled", (event) => {
     const result = event.detail || {};
-    activeTradeMarkerDigit = null;
-    if (validDigit(result.digit)) {
+    if (Number.isFinite(Number(result.digit))) {
       lastTradeResult = {
         digit: Number(result.digit),
         win: Boolean(result.win),
         at: Date.now()
       };
       localStorage.setItem("tradezoraLastDigitResult", JSON.stringify(lastTradeResult));
+      renderDigitStatistics();
     }
-    renderDigitStatistics();
   });
 
   function showRiskResultModal(state) {
