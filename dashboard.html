@@ -28,6 +28,7 @@
 .probability.current-digit{transform:translateY(-1px)}
 .probability.current-digit .digit-number{color:#fff}
 .current-digit-marker{position:absolute;left:50%;bottom:-12px;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #f4c542;filter:drop-shadow(0 0 5px rgba(244,197,66,.8));z-index:5;pointer-events:none}
+.trade-pnl-marker{position:absolute;left:50%;bottom:-21px;transform:translateX(-50%);z-index:6;pointer-events:none;white-space:nowrap;font-size:9px;line-height:1.1;font-weight:900;letter-spacing:-.1px;text-shadow:0 1px 4px rgba(0,0,0,.8)}.trade-pnl-marker.open{color:#f4c542}.trade-pnl-marker.positive{color:#16e58a}.trade-pnl-marker.negative{color:#ff5d6c}.probabilities{padding-bottom:15px}@media(max-width:650px){.trade-pnl-marker{bottom:-18px;font-size:7px}.probabilities{padding-bottom:13px}}
 .probability.selected-digit{box-shadow:0 0 0 2px rgba(55,231,255,.22),0 0 12px rgba(55,231,255,.28),0 0 22px rgba(55,231,255,.12);filter:brightness(1.16)}
 .probability.trade-win{box-shadow:0 0 0 3px rgba(22,229,138,.98),0 0 18px rgba(22,229,138,.85),0 0 34px rgba(22,229,138,.42)!important;animation:tradeResultPulse 1.15s ease-in-out 3}
 .probability.trade-win::before{background:conic-gradient(#16e58a 0 var(--probability),#123c2a var(--probability) 100%)!important}
@@ -1287,6 +1288,23 @@ document.addEventListener("DOMContentLoaded", () => {
   let digitStats = [...(digitProfiles[document.querySelector("#marketSelect")?.value] || digitProfiles["Volatility 10 (1s)"])];
   let lastTradeResult = JSON.parse(localStorage.getItem("tradezoraLastDigitResult") || "null");
 
+  // During an open trade, replace the yellow live-digit triangle with OPEN at
+  // the trade's selected digit. After settlement, keep the realized net P/L in
+  // that same marker position until the next trade starts.
+  const isDigitValue = (value) => value !== null && value !== undefined && value !== "" && Number.isInteger(Number(value)) && Number(value) >= 0 && Number(value) <= 9;
+  let activeTradeDisplay = null;
+  const restoredOpenPosition = [...positions].reverse().find((item) => item && isDigitValue(item.digit));
+  if (restoredOpenPosition) {
+    activeTradeDisplay = { status: "open", digit: Number(restoredOpenPosition.digit), at: Number(restoredOpenPosition.openedAt || Date.now()) };
+  } else if (lastTradeResult && isDigitValue(lastTradeResult.digit) && Number.isFinite(Number(lastTradeResult.tradePnl))) {
+    activeTradeDisplay = { status: "settled", digit: Number(lastTradeResult.digit), pnl: Number(lastTradeResult.tradePnl), win: Boolean(lastTradeResult.win), at: Number(lastTradeResult.at || Date.now()) };
+  }
+
+  function formatTradePnl(value) {
+    const amount = Number(value) || 0;
+    return `${amount >= 0 ? "+" : "−"}$${Math.abs(amount).toFixed(2)}`;
+  }
+
   function getLastDigit(value) {
     // Keep contract digits consistent with the existing displayed quote format.
     const scaled = Math.round(Math.abs(Number(value)) * 100);
@@ -1352,10 +1370,23 @@ document.addEventListener("DOMContentLoaded", () => {
         `Digit ${digit}, ${probability.toFixed(1)} percent${digit === selectedDigit ? ", selected" : ""}${digit === currentDigit ? ", current price last digit" : ""}`
       );
 
+      const markerIsSuppressed = Boolean(activeTradeDisplay && isDigitValue(activeTradeDisplay.digit));
+      let markerMarkup = "";
+      if (markerIsSuppressed && digit === Number(activeTradeDisplay.digit)) {
+        if (activeTradeDisplay.status === "open") {
+          markerMarkup = '<span class="trade-pnl-marker open" aria-label="Trade open">OPEN</span>';
+        } else if (Number.isFinite(Number(activeTradeDisplay.pnl))) {
+          const pnlClass = Number(activeTradeDisplay.pnl) >= 0 ? "positive" : "negative";
+          markerMarkup = `<span class="trade-pnl-marker ${pnlClass}" aria-label="Trade profit or loss">${formatTradePnl(activeTradeDisplay.pnl)}</span>`;
+        }
+      } else if (!markerIsSuppressed && digit === currentDigit) {
+        markerMarkup = '<span class="current-digit-marker" aria-hidden="true"></span>';
+      }
+
       element.innerHTML = `
         <span class="digit-number">${digit}</span>
         <span class="percent">${probability.toFixed(1)}%</span>
-        ${digit === currentDigit ? '<span class="current-digit-marker" aria-hidden="true"></span>' : ''}
+        ${markerMarkup}
       `;
 
       const selectDigit = () => {
@@ -2526,6 +2557,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     positions.push(position);
     saveTradeState();
+    window.dispatchEvent(new CustomEvent("tradezora-trade-opened", {
+      detail: { mode: tradeMode, contract: tradeContract, digit: tradeDigit, type, stake: tradeStake }
+    }));
 
 
     renderBalance();
@@ -2670,7 +2704,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
       try {
         window.dispatchEvent(new CustomEvent("tradezora-trade-settled", {
-          detail: { digit: finalDigit, win: Boolean(win), profit: profit }
+          detail: {
+            digit: finalDigit,
+            win: Boolean(win),
+            profit: profit,
+            tradePnl: win ? profit : -tradeStake,
+            stake: tradeStake,
+            contract: tradeContract,
+            type
+          }
         }));
       } catch (e) {}
 
@@ -2876,10 +2918,15 @@ document.addEventListener("DOMContentLoaded", () => {
     startOrStopContinuous(pair.right);
   };
 
-  window.addEventListener("tradezora-trade-opened", () => {
-    // Hide any previous result. Do not light a digit merely because a trade
-    // was opened.
+  window.addEventListener("tradezora-trade-opened", (event) => {
+    const detail = event.detail || {};
     lastTradeResult = null;
+    activeTradeDisplay = {
+      status: "open",
+      digit: isDigitValue(detail.digit) ? Number(detail.digit) : Number(selectedDigit),
+      at: Date.now()
+    };
+    localStorage.removeItem("tradezoraLastDigitResult");
     renderDigitStatistics();
   });
 
@@ -2887,18 +2934,34 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       positions = JSON.parse(localStorage.getItem("tradezoraDemoPositions") || "[]");
       history = JSON.parse(localStorage.getItem("tradezoraDemoHistory") || "[]");
+      const openPosition = [...positions].reverse().find((item) => item && isDigitValue(item.digit));
+      if (openPosition && (!activeTradeDisplay || activeTradeDisplay.status === "open")) {
+        activeTradeDisplay = { status: "open", digit: Number(openPosition.digit), at: Number(openPosition.openedAt || Date.now()) };
+      }
     } catch (error) {}
     renderBalance();
     renderLists();
+    renderDigitStatistics();
   });
 
   window.addEventListener("tradezora-trade-settled", (event) => {
     const result = event.detail || {};
-    if (Number.isFinite(Number(result.digit))) {
+    if (isDigitValue(result.digit)) {
+      const settledPnl = Number.isFinite(Number(result.tradePnl))
+        ? Number(result.tradePnl)
+        : (Boolean(result.win) ? (Number(result.profit) || 0) : -(Number(result.stake ?? stake) || 0));
       lastTradeResult = {
         digit: Number(result.digit),
         win: Boolean(result.win),
+        tradePnl: settledPnl,
         at: Date.now()
+      };
+      activeTradeDisplay = {
+        status: "settled",
+        digit: Number(result.digit),
+        pnl: settledPnl,
+        win: Boolean(result.win),
+        at: lastTradeResult.at
       };
       localStorage.setItem("tradezoraLastDigitResult", JSON.stringify(lastTradeResult));
       renderDigitStatistics();
