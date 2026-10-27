@@ -1227,7 +1227,7 @@ document.addEventListener("DOMContentLoaded", () => {
         })
       });
       showWithdrawFeedback(
-        `${data.message || "Withdrawal request submitted for review."} Amount requested: ${formatUsd(amount)}. The amount is reserved from your real-money balance; payout is not automatic.`
+        `${data.message || "Withdrawal request submitted for review."} Amount requested: ${formatUsd(amount)}. The amount is reserved from your genuine balance; after admin approval, the payout status is tracked through IntaSend.`
       );
       await loadWithdrawBalance();
       await loadRealAccountAndDeposits();
@@ -1261,7 +1261,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     depositSubmit.disabled = true;
     depositSubmit.textContent = "Sending prompt…";
-    showDepositFeedback("Contacting M-Pesa. Please wait and do not submit the same payment repeatedly.");
+    showDepositFeedback("Contacting IntaSend to send the M-Pesa prompt. Please wait and do not submit the same payment repeatedly.");
     try {
       const data = await paymentApi("/api/payments/mpesa/deposit", {
         method: "POST",
@@ -1270,7 +1270,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const deposit = data.deposit || {};
       const kes = Number(deposit.amount_kes || Math.round(amount * USD_TO_KES));
       showDepositFeedback(
-        `${data.message || "M-Pesa prompt requested."} Amount: ${formatUsd(deposit.amount_usd ?? amount)} (KSh ${kes.toLocaleString("en-KE")}). Status: ${(deposit.status || "pending").toUpperCase()}. Check your phone and approve the prompt if the details are correct. Your real balance will update only after M-Pesa confirms payment.`
+        `${data.message || "IntaSend M-Pesa prompt requested."} Amount: ${formatUsd(deposit.amount_usd ?? amount)} (KSh ${kes.toLocaleString("en-KE")}). Status: ${(deposit.status || "pending").toUpperCase()}. Check your phone and approve the prompt if the details are correct. Your genuine-money balance will update only after IntaSend verifies payment.`
       );
       await loadRealAccountAndDeposits();
     } catch (error) {
