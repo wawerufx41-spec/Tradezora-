@@ -546,9 +546,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let selectedDigit = 0;
 
-  // Demo-only selector state. While a trade is open, the yellow triangle follows
-  // that trade's selected digit; briefly after settlement it follows the final
-  // simulated result digit, then returns to the live quote digit when idle.
+  // Demo timing stays at the original 5 seconds. The yellow probability
+  // selector is linked to the chart price-line digit (see renderDigitStatistics).
   const DEMO_SETTLEMENT_MS = 5000;
   const RESULT_MARKER_DWELL_MS = 1200;
   const validDigit = (value) => value !== null && value !== undefined && value !== "" && Number.isInteger(Number(value)) && Number(value) >= 0 && Number(value) <= 9;
@@ -1297,22 +1296,32 @@ document.addEventListener("DOMContentLoaded", () => {
   let lastTradeResult = JSON.parse(localStorage.getItem("tradezoraLastDigitResult") || "null");
 
   function getLastDigit(value) {
-    // The contract digit follows the last visible decimal digit of the quote.
+    // Contract/settlement digit: the last visible hundredths digit.
     // Example: 1043.64 -> 4, 14166.41 -> 1.
     const scaled = Math.round(Math.abs(Number(value)) * 100);
     return scaled % 10;
+  }
+
+  function getChartLineLastDigit(value) {
+    // Keep the yellow selector tied to the exact text drawn on the chart's
+    // right-hand price line (drawChart uses Number(price).toFixed(2)).
+    // Read the final character from that same formatted number to avoid
+    // floating-point/rounding differences between the label and selector.
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) return 0;
+    const displayedPrice = Math.abs(numeric).toFixed(2);
+    return Number(displayedPrice.charAt(displayedPrice.length - 1));
   }
 
   function renderDigitStatistics() {
     if (!probabilityContainer) return;
 
     const total = digitStats.reduce((sum, value) => sum + value, 0);
-    const currentDigit = getLastDigit(price);
-    const resultMarkerIsFresh = lastTradeResult && validDigit(lastTradeResult.digit) &&
-      (Date.now() - Number(lastTradeResult.at || 0)) <= RESULT_MARKER_DWELL_MS;
-    const selectorDigit = validDigit(activeTradeMarkerDigit)
-      ? Number(activeTradeMarkerDigit)
-      : resultMarkerIsFresh ? Number(lastTradeResult.digit) : currentDigit;
+    // The yellow triangle follows the last digit on the chart's live price
+    // number line at all times. Selected-contract and settled-result styling
+    // remain independent and cannot pin the yellow marker to an old digit.
+    const currentDigit = getChartLineLastDigit(price);
+    const selectorDigit = currentDigit;
     const probabilities = digitStats.map(count => (count / total) * 100);
 
     // Pick exactly ONE highest and ONE lowest digit, even when percentages tie.
