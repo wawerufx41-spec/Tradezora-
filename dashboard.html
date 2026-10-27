@@ -1288,16 +1288,57 @@ document.addEventListener("DOMContentLoaded", () => {
   let digitStats = [...(digitProfiles[document.querySelector("#marketSelect")?.value] || digitProfiles["Volatility 10 (1s)"])];
   let lastTradeResult = JSON.parse(localStorage.getItem("tradezoraLastDigitResult") || "null");
 
-  // During an open trade, replace the yellow live-digit triangle with OPEN at
-  // the trade's selected digit. After settlement, keep the realized net P/L in
-  // that same marker position until the next trade starts.
+  // During execution, replace the yellow live-digit triangle with OPEN and
+  // show settled P/L while continuous AUTO trading is still running. Once the
+  // run is stopped and all positions are settled, return to the live selector.
+  // After a stopped/manual run, leave P/L visible briefly before restoring it.
   const isDigitValue = (value) => value !== null && value !== undefined && value !== "" && Number.isInteger(Number(value)) && Number(value) >= 0 && Number(value) <= 9;
+  const SETTLED_PNL_PREVIEW_MS = 2200;
   let activeTradeDisplay = null;
   const restoredOpenPosition = [...positions].reverse().find((item) => item && isDigitValue(item.digit));
   if (restoredOpenPosition) {
     activeTradeDisplay = { status: "open", digit: Number(restoredOpenPosition.digit), at: Number(restoredOpenPosition.openedAt || Date.now()) };
   } else if (lastTradeResult && isDigitValue(lastTradeResult.digit) && Number.isFinite(Number(lastTradeResult.tradePnl))) {
     activeTradeDisplay = { status: "settled", digit: Number(lastTradeResult.digit), pnl: Number(lastTradeResult.tradePnl), win: Boolean(lastTradeResult.win), at: Number(lastTradeResult.at || Date.now()) };
+  }
+
+  function isContinuousDemoRunActive() {
+    try {
+      return Boolean(window.TradeZoraContinuousEngine?.getState?.()?.running);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function reconcileActiveTradeDisplay() {
+    if (!activeTradeDisplay) return;
+    const hasOpenPositions = Array.isArray(positions) && positions.length > 0;
+    const continuousRunActive = isContinuousDemoRunActive();
+
+    // If an OPEN marker has no actual position and the stream is stopped,
+    // clear stale UI state so the yellow live-digit selector can return.
+    if (activeTradeDisplay.status === "open" && !hasOpenPositions && !continuousRunActive) {
+      activeTradeDisplay = null;
+      return;
+    }
+
+    // Keep a settled P/L marker while AUTO execution continues. After the
+    // user stops trading (and no position remains), show that result briefly,
+    // then restore the yellow live-digit selector.
+    if (activeTradeDisplay.status === "settled" && !hasOpenPositions && !continuousRunActive) {
+      const settledAt = Number(activeTradeDisplay.at || Date.now());
+      if (Date.now() - settledAt >= SETTLED_PNL_PREVIEW_MS) activeTradeDisplay = null;
+    }
+  }
+
+  function scheduleSelectorRestoreAfterStoppedSettlement() {
+    if (!activeTradeDisplay || activeTradeDisplay.status !== "settled") return;
+    const settledAt = Number(activeTradeDisplay.at || Date.now());
+    const delay = Math.max(0, SETTLED_PNL_PREVIEW_MS - (Date.now() - settledAt)) + 25;
+    window.setTimeout(() => {
+      reconcileActiveTradeDisplay();
+      renderDigitStatistics();
+    }, delay);
   }
 
   function formatTradePnl(value) {
@@ -1321,6 +1362,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderDigitStatistics() {
     if (!probabilityContainer) return;
+    reconcileActiveTradeDisplay();
 
     const total = digitStats.reduce((sum, value) => sum + value, 0);
     const currentDigit = getChartLineLastDigit(price);
@@ -2965,6 +3007,10 @@ document.addEventListener("DOMContentLoaded", () => {
       };
       localStorage.setItem("tradezoraLastDigitResult", JSON.stringify(lastTradeResult));
       renderDigitStatistics();
+      // If the user has stopped the run, bring the live selector back after
+      // the short P/L preview. If AUTO is still active, the P/L stays until
+      // the next trade-opened event replaces it with OPEN.
+      scheduleSelectorRestoreAfterStoppedSettlement();
     }
   });
 
