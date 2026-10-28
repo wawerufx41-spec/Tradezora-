@@ -573,23 +573,6 @@ document.addEventListener("DOMContentLoaded", () => {
     timer: null
   };
 
-  // Isolated REAL BALANCE AUTO session; never shares DEMO engine state or funds.
-  const SANDBOX_AUTO_KEY = "tradezoraSandboxContinuousState";
-  function readSandboxAutoState() {
-    const fallback = { running:false, type:null, contract:null, digit:null, stake:null, baseStake:null,
-      multiplier:1, recoveryStep:0, sessionPnl:0, sessionWins:0, sessionLosses:0, sessionTrades:0,
-      takeProfit:0, stopLoss:0, nextTradeAt:null };
-    try {
-      const value = JSON.parse(localStorage.getItem(SANDBOX_AUTO_KEY) || "null");
-      return value && typeof value === "object" ? { ...fallback, ...value } : fallback;
-    } catch (_) { return fallback; }
-  }
-  let sandboxContinuousState = readSandboxAutoState();
-  let sandboxAutoBusy = false;
-  function saveSandboxAutoState() {
-    localStorage.setItem(SANDBOX_AUTO_KEY, JSON.stringify(sandboxContinuousState));
-  }
-
 
   /* =========================
      PROFILE
@@ -922,7 +905,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   $("#logout").onclick = () => {
 
-    if (accountMode === "real" && sandboxContinuousState.running) stopSandboxContinuous("logout");
     localStorage.removeItem("tradezoraDemoUser");
 
     location.href = "auth.html";
@@ -1010,7 +992,7 @@ document.addEventListener("DOMContentLoaded", () => {
       renderBalance();
       const data = await paymentApi("/api/real-test-funds");
       const parsed = Number(data.balance);
-      if (data.sandbox_only !== true || !Number.isFinite(parsed) || parsed < 0) throw new Error("The server returned an invalid sandbox trading balance.");
+      if (data.account_type !== "shared_real_account" || !Number.isFinite(parsed) || parsed < 0) throw new Error("The server returned an invalid shared real-account balance.");
       realBalance = parsed;
       realBalanceLoadStatus = "loaded";
       renderBalance();
@@ -1019,7 +1001,7 @@ document.addEventListener("DOMContentLoaded", () => {
       realBalanceLoadStatus = "error";
       renderBalance();
       console.warn("Active real-account balance could not be loaded:", error.message);
-      if (accountMode === "real") toast("Sandbox trading balance unavailable. No funds were changed.");
+      if (accountMode === "real") toast("Real-account balance unavailable. No funds were changed.");
     }
   }
 
@@ -1039,9 +1021,8 @@ document.addEventListener("DOMContentLoaded", () => {
     positions = JSON.parse(localStorage.getItem(tradePositionsKey()) || "[]");
     renderBalance();
     renderLists();
-    syncContinuousButtons();
     if (accountMode === "real") {
-      toast("REAL BALANCE selected. Funded sandbox trading is ready when the balance loads.");
+      toast("REAL BALANCE selected. Internal-engine trading and withdrawals use the same account balance.");
       refreshActiveRealBalance();
     } else {
       toast("DEMO account selected.");
@@ -1227,7 +1208,7 @@ document.addEventListener("DOMContentLoaded", () => {
         })
       });
       showWithdrawFeedback(
-        `${data.message || "Withdrawal request submitted for review."} Amount requested: ${formatUsd(amount)}. The amount is reserved from your genuine balance; after admin approval, the payout status is tracked through IntaSend.`
+        `${data.message || "Withdrawal request submitted for review."} Amount requested: ${formatUsd(amount)}. The amount is reserved from your real-money balance; payout is not automatic.`
       );
       await loadWithdrawBalance();
       await loadRealAccountAndDeposits();
@@ -1261,7 +1242,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     depositSubmit.disabled = true;
     depositSubmit.textContent = "Sending prompt…";
-    showDepositFeedback("Contacting IntaSend to send the M-Pesa prompt. Please wait and do not submit the same payment repeatedly.");
+    showDepositFeedback("Contacting M-Pesa. Please wait and do not submit the same payment repeatedly.");
     try {
       const data = await paymentApi("/api/payments/mpesa/deposit", {
         method: "POST",
@@ -1270,7 +1251,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const deposit = data.deposit || {};
       const kes = Number(deposit.amount_kes || Math.round(amount * USD_TO_KES));
       showDepositFeedback(
-        `${data.message || "IntaSend M-Pesa prompt requested."} Amount: ${formatUsd(deposit.amount_usd ?? amount)} (KSh ${kes.toLocaleString("en-KE")}). Status: ${(deposit.status || "pending").toUpperCase()}. Check your phone and approve the prompt if the details are correct. Your genuine-money balance will update only after IntaSend verifies payment.`
+        `${data.message || "M-Pesa prompt requested."} Amount: ${formatUsd(deposit.amount_usd ?? amount)} (KSh ${kes.toLocaleString("en-KE")}). Status: ${(deposit.status || "pending").toUpperCase()}. Check your phone and approve the prompt if the details are correct. Your real balance will update only after M-Pesa confirms payment.`
       );
       await loadRealAccountAndDeposits();
     } catch (error) {
@@ -1461,33 +1442,32 @@ document.addEventListener("DOMContentLoaded", () => {
       if (contractType === "even") {
 
         $("#match").innerHTML =
-          `<strong>EVEN</strong><span>${accountMode === "real" ? "Real" : "Demo"}</span>`;
+          "<strong>EVEN</strong><span>Demo</span>";
 
         $("#differ").innerHTML =
-          `<strong>ODD</strong><span>${accountMode === "real" ? "Real" : "Demo"}</span>`;
+          "<strong>ODD</strong><span>Demo</span>";
 
       }
 
       else if (contractType === "over") {
 
         $("#match").innerHTML =
-          `<strong>OVER</strong><span>${accountMode === "real" ? "Real" : "Demo"}</span>`;
+          "<strong>OVER</strong><span>Demo</span>";
 
         $("#differ").innerHTML =
-          `<strong>UNDER</strong><span>${accountMode === "real" ? "Real" : "Demo"}</span>`;
+          "<strong>UNDER</strong><span>Demo</span>";
 
       }
 
       else {
 
         $("#match").innerHTML =
-          `<strong>MATCH</strong><span>${accountMode === "real" ? "Real" : "Demo"}</span>`;
+          "<strong>MATCH</strong><span>Demo</span>";
 
         $("#differ").innerHTML =
-          `<strong>DIFFER</strong><span>${accountMode === "real" ? "Real" : "Demo"}</span>`;
+          "<strong>DIFFER</strong><span>Demo</span>";
 
       }
-      syncContinuousButtons();
 
     });
 
@@ -1516,7 +1496,6 @@ document.addEventListener("DOMContentLoaded", () => {
   $("#manual").onclick = () => {
 
     mode = "MANUAL";
-    if (accountMode === "real" && sandboxContinuousState.running) stopSandboxContinuous("manual-selected");
 
     if (window.TradeZoraContinuousEngine?.getState().running) {
       window.TradeZoraContinuousEngine.stop();
@@ -1554,8 +1533,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   $("#stakePlus").onclick = () => {
 
-    const availableBalance = accountMode === "real" ? Number(realBalance || 0) : balance;
-    stake = Math.min(1000, Math.max(1, availableBalance), stake + 1);
+    stake = Math.min(
+      1000,
+      balance,
+      stake + 1
+    );
 
     localStorage.setItem(
       "tradezoraDemoStake",
@@ -2451,126 +2433,56 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (_) { return { error: true }; }
   }
 
-  const sandboxSettlementTimers = new Map();
-
-  function recordSandboxAutoSettlement(finalTrade) {
-    if (String(finalTrade.mode || "").toUpperCase() !== "AUTO") return;
-    const amount = Number(finalTrade.stake || 0);
-    const tradePnl = finalTrade.win ? Number(finalTrade.profit || 0) : -amount;
-    const multiplier = Math.min(10, Math.max(1, Number(sandboxContinuousState.multiplier || 1)));
-    const step = Math.max(0, Math.min(multiplier, Number(sandboxContinuousState.recoveryStep || 0)));
-    const nextStep = finalTrade.win ? 0 : (step < multiplier ? step + 1 : 0);
-    const sessionPnl = Number(sandboxContinuousState.sessionPnl || 0) + tradePnl;
-    const sessionWins = Number(sandboxContinuousState.sessionWins || 0) + (finalTrade.win ? 1 : 0);
-    const sessionLosses = Number(sandboxContinuousState.sessionLosses || 0) + (finalTrade.win ? 0 : 1);
-    const sessionTrades = Number(sandboxContinuousState.sessionTrades || 0) + 1;
-    const takeProfit = Number(sandboxContinuousState.takeProfit || 0);
-    const stopLoss = Number(sandboxContinuousState.stopLoss || 0);
-    const stoppedReason = takeProfit > 0 && sessionPnl >= takeProfit ? "take-profit" :
-      (stopLoss > 0 && sessionPnl <= -stopLoss ? "stop-loss" : null);
-    sandboxContinuousState = {
-      ...sandboxContinuousState, recoveryStep:nextStep, recoveryPending:nextStep > 0,
-      sessionPnl, sessionWins, sessionLosses, sessionTrades,
-      running:stoppedReason ? false : Boolean(sandboxContinuousState.running),
-      nextTradeAt:stoppedReason ? null : Date.now() + 1500,
-      stoppedReason:stoppedReason || null, stoppedAt:stoppedReason ? Date.now() : null,
-      lastSessionResult:stoppedReason ? { sessionPnl, sessionWins, sessionLosses, sessionTrades,
-        winRate:sessionTrades ? Math.round(sessionWins / sessionTrades * 100) : 0 } : sandboxContinuousState.lastSessionResult
-    };
-    saveSandboxAutoState();
-  }
-
-  async function settleSandboxPosition(position) {
-    if (!position || !position.serverTradeId || !positions.some(item => item.id === position.id)) return false;
-    const token = localStorage.getItem("tradezoraAuthToken") || localStorage.getItem("session_token") || localStorage.getItem("sessionToken") || "";
-    const closingPrice = Number(localStorage.getItem("tradezoraDemoLastPrice") || price);
-    const naturalDigit = getLastDigit(closingPrice);
-    try {
-      const response = await fetch(`${PAYMENT_API_BASE}/api/sandbox/trades/${position.serverTradeId}/settle`, {
-        method:"POST",
-        headers:{ "Content-Type":"application/json", "Authorization":`Bearer ${token}`, "Accept":"application/json" },
-        body:JSON.stringify({ naturalDigit })
-      });
-      const settled = await response.json().catch(() => ({}));
-      if (!response.ok || !settled.success) throw new Error(settled.error || `Settlement failed (${response.status}).`);
-      const actualIndex = positions.findIndex(item => item.id === position.id);
-      if (actualIndex < 0) return true;
-      positions.splice(actualIndex, 1);
-      const finalTrade = { ...position, finalDigit:Number(settled.finalDigit), win:Boolean(settled.win),
-        profit:Number(settled.profit || 0), settledAt:Date.now(), sandboxOnly:true };
-      history.push(finalTrade);
-      history = history.slice(-100);
-      saveTradeState();
-      realBalance = Number(settled.balance);
-      realBalanceLoadStatus = "loaded";
-      showTradeDigitResult(finalTrade.finalDigit, finalTrade.win);
-      recordSandboxAutoSettlement(finalTrade);
-      try { window.dispatchEvent(new CustomEvent("tradezora-trade-settled", { detail:{
-        digit:finalTrade.finalDigit, win:finalTrade.win, profit:finalTrade.profit,
-        tradePnl:finalTrade.win ? finalTrade.profit : -Number(finalTrade.stake || 0),
-        accountMode:"real", sandboxOnly:true
-      }})); } catch (_) {}
-      renderBalance(); renderLists(); syncContinuousButtons();
-      try { window.dispatchEvent(new CustomEvent("tradezora-state-changed")); } catch (_) {}
-      toast(finalTrade.win ? `Trade won — digit ${finalTrade.finalDigit}` : `Trade lost — digit ${finalTrade.finalDigit}`);
-      return true;
-    } catch (error) {
-      toast(`Settlement retry needed: ${error.message}`);
-      await refreshActiveRealBalance();
-      scheduleSandboxSettlement(position, 2500);
-      return false;
-    }
-  }
-
-  function scheduleSandboxSettlement(position, delayMs = 5000) {
-    if (!position || !position.serverTradeId || sandboxSettlementTimers.has(position.id)) return;
-    const timer = setTimeout(async () => {
-      sandboxSettlementTimers.delete(position.id);
-      await settleSandboxPosition(position);
-    }, Math.max(0, Number(delayMs) || 0));
-    sandboxSettlementTimers.set(position.id, timer);
-  }
-
   async function openSandboxTrade(type, options = {}) {
     const tradeStake = Number(options.stake ?? stake);
     const tradeContract = String(options.contract || contractType).toLowerCase();
     const tradeDigit = Number(options.digit ?? selectedDigit);
-    const tradeMode = String(options.mode || mode).toUpperCase();
+    const tradeMode = options.mode || mode;
     if (!Number.isFinite(tradeStake) || tradeStake < 1) { toast("Enter a valid stake of at least $1.00."); return false; }
-    if (realBalance === null || realBalanceLoadStatus !== "loaded") await refreshActiveRealBalance();
-    if (realBalance === null || realBalanceLoadStatus !== "loaded") { toast("Sandbox trading balance unavailable. No funds were changed."); return false; }
-    if (tradeStake > realBalance) { toast("Not enough REAL BALANCE sandbox funds."); return false; }
+    if (realBalance === null || realBalanceLoadStatus !== "loaded") { await refreshActiveRealBalance(); }
+    if (realBalance === null || realBalanceLoadStatus !== "loaded") { toast("Real-account balance unavailable. No funds were changed."); return false; }
+    if (tradeStake > realBalance) { toast("Not enough funds in the shared REAL BALANCE."); return false; }
     if (tradeContract === "over" && ((type === "OVER" && tradeDigit === 9) || (type === "UNDER" && tradeDigit === 0))) {
       toast(type === "OVER" ? "Over 9 cannot be traded." : "Under 0 cannot be traded."); return false;
     }
     if (tradeMode === "MANUAL" && positions.some(item => String(item.mode).toUpperCase() === "MANUAL")) {
       toast("Finish the current manual trade before placing another."); return false;
     }
-    if (tradeMode === "AUTO" && positions.length) return false;
     const token = localStorage.getItem("tradezoraAuthToken") || localStorage.getItem("session_token") || localStorage.getItem("sessionToken") || "";
+    const api = "https://tradezora-backend-1.onrender.com";
     try {
-      const response = await fetch(`${PAYMENT_API_BASE}/api/sandbox/trades/open`, {
-        method:"POST", headers:{ "Content-Type":"application/json", "Authorization":`Bearer ${token}`, "Accept":"application/json" },
-        body:JSON.stringify({ contract:tradeContract, type, digit:tradeDigit, stake:tradeStake })
-      });
-      const data = await response.json().catch(() => ({}));
+      const response = await fetch(`${api}/api/sandbox/trades/open`, { method:"POST", headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`,"Accept":"application/json"}, body:JSON.stringify({contract:tradeContract,type,digit:tradeDigit,stake:tradeStake}) });
+      const data = await response.json().catch(()=>({}));
       if (!response.ok || !data.success || !data.trade?.id) throw new Error(data.error || `Trade could not open (${response.status}).`);
       realBalance = Number(data.balance); realBalanceLoadStatus = "loaded";
-      const position = { id:`sandbox-${data.trade.id}`, serverTradeId:Number(data.trade.id), accountMode:"real", type,
-        stake:tradeStake, digit:tradeDigit, contract:tradeContract, mode:tradeMode,
-        multiplier:Number(options.multiplier || sandboxContinuousState.multiplier || 1),
-        recoveryStep:Number(sandboxContinuousState.recoveryStep || 0), continuous:tradeMode === "AUTO",
-        openedAt:Date.now(), settleAt:Date.now()+5000 };
-      positions.push(position); saveTradeState(); renderBalance(); renderLists();
-      lastTradeResult = null; localStorage.removeItem("tradezoraLastDigitResult"); renderDigitStatistics();
-      toast(`${type} ${tradeMode === "AUTO" ? "continuous" : "sandbox"} position opened.`);
-      scheduleSandboxSettlement(position, 5000);
+      const position = { id:`sandbox-${data.trade.id}`, serverTradeId:Number(data.trade.id), accountMode:"real", type, stake:tradeStake, digit:tradeDigit, contract:tradeContract, mode:tradeMode, openedAt:Date.now(), settleAt:Date.now()+5000 };
+      positions.push(position); saveTradeState(); renderBalance(); renderLists(); toast(`${type} internal-engine position opened.`);
+      setTimeout(async () => {
+        const index = positions.findIndex(item => item.id === position.id);
+        if (index < 0) return;
+        const closingPrice = Number(localStorage.getItem("tradezoraDemoLastPrice") || price);
+        const naturalDigit = getLastDigit(closingPrice);
+        try {
+          const settleResponse = await fetch(`${api}/api/sandbox/trades/${position.serverTradeId}/settle`, { method:"POST", headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`,"Accept":"application/json"}, body:JSON.stringify({naturalDigit}) });
+          const settled = await settleResponse.json().catch(()=>({}));
+          if (!settleResponse.ok || !settled.success) throw new Error(settled.error || `Settlement failed (${settleResponse.status}).`);
+          const actualIndex = positions.findIndex(item => item.id === position.id);
+          if (actualIndex < 0) return;
+          positions.splice(actualIndex,1);
+          const finalTrade = {...position, finalDigit:Number(settled.finalDigit), win:Boolean(settled.win), profit:Number(settled.profit || 0), settledAt:Date.now(), sandboxOnly:true};
+          history.push(finalTrade); if (history.length>100) history.shift(); saveTradeState();
+          realBalance=Number(settled.balance); realBalanceLoadStatus="loaded";
+          showTradeDigitResult(finalTrade.finalDigit, finalTrade.win);
+          try { window.dispatchEvent(new CustomEvent("tradezora-trade-settled", {detail:{digit:finalTrade.finalDigit,win:finalTrade.win,profit:finalTrade.profit,accountMode:"real",sandboxOnly:true}})); } catch(_) {}
+          renderBalance(); renderLists();
+          toast(finalTrade.win ? `Internal-engine trade won — digit ${finalTrade.finalDigit}` : `Internal-engine trade lost — digit ${finalTrade.finalDigit}`);
+        } catch(error) {
+          toast(`Trade settlement needs attention: ${error.message}`);
+          refreshActiveRealBalance();
+        }
+      }, 5000);
       return true;
-    } catch (error) {
-      toast(error.message || "Sandbox trade could not open.");
-      await refreshActiveRealBalance();
-      return false;
-    }
+    } catch(error) { toast(error.message || "Sandbox trade could not open."); await refreshActiveRealBalance(); return false; }
   }
 
   function trade(type, options = {}) {
@@ -2870,23 +2782,18 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function currentContinuousState() {
-    if (accountMode === "real") return sandboxContinuousState;
     try {
       return window.TradeZoraContinuousEngine?.getState?.() || {
-        running: false, type: null, contract: null, digit: null, stake: null,
-        sessionPnl:0, sessionWins:0, sessionLosses:0, sessionTrades:0
+        running: false,
+        type: null,
+        contract: null,
+        digit: null,
+        stake: null
       };
     } catch (error) {
       console.error("TradeZora continuous state error:", error);
-      return { running:false, sessionPnl:0, sessionWins:0, sessionLosses:0, sessionTrades:0 };
+      return { running: false };
     }
-  }
-
-  function stopSandboxContinuous(reason = "user") {
-    sandboxContinuousState = { ...sandboxContinuousState, running:false, nextTradeAt:null, stoppedReason:reason, stoppedAt:Date.now() };
-    saveSandboxAutoState();
-    syncContinuousButtons();
-    renderBalance();
   }
 
   function syncContinuousButtons() {
@@ -2899,16 +2806,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (mode === "MANUAL") {
       leftButton.classList.remove("continuous-active");
       rightButton.classList.remove("continuous-active");
-      const accountLabel = accountMode === "real" ? "Real" : "Demo";
-      leftButton.innerHTML = `<strong>${pair.left}</strong><span>${accountLabel}</span>`;
-      rightButton.innerHTML = `<strong>${pair.right}</strong><span>${accountLabel}</span>`;
+      leftButton.innerHTML = `<strong>${pair.left}</strong><span>Demo</span>`;
+      rightButton.innerHTML = `<strong>${pair.right}</strong><span>Demo</span>`;
       return;
     }
 
     if (!state.running) {
-      const accountLabel = accountMode === "real" ? "Real" : "Demo";
-      leftButton.innerHTML = `<strong>${pair.left}</strong><span>${accountLabel}</span>`;
-      rightButton.innerHTML = `<strong>${pair.right}</strong><span>${accountLabel}</span>`;
+      leftButton.innerHTML = `<strong>${pair.left}</strong><span>Demo</span>`;
+      rightButton.innerHTML = `<strong>${pair.right}</strong><span>Demo</span>`;
       leftButton.classList.remove("continuous-active");
       rightButton.classList.remove("continuous-active");
       return;
@@ -2917,10 +2822,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const activeType = String(state.type || "").toUpperCase();
     leftButton.innerHTML = activeType === pair.left
       ? `<strong>STOP ${pair.left}</strong><span>Running</span>`
-      : `<strong>${pair.left}</strong><span>${accountMode === "real" ? "Real" : "Demo"}</span>`;
+      : `<strong>${pair.left}</strong><span>Demo</span>`;
     rightButton.innerHTML = activeType === pair.right
       ? `<strong>STOP ${pair.right}</strong><span>Running</span>`
-      : `<strong>${pair.right}</strong><span>${accountMode === "real" ? "Real" : "Demo"}</span>`;
+      : `<strong>${pair.right}</strong><span>Demo</span>`;
     leftButton.classList.toggle("continuous-active", activeType === pair.left);
     rightButton.classList.toggle("continuous-active", activeType === pair.right);
   }
@@ -2950,93 +2855,61 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  async function startOrStopContinuous(type) {
-    if (mode === "MANUAL") return;
+  function startOrStopContinuous(type) {
     if (accountMode === "real") {
-      const state = sandboxContinuousState;
-      if (state.running && String(state.type || "").toUpperCase() === type) {
-        stopSandboxContinuous("user");
-        toast(`Continuous ${buttonContractLabel(type)} trading stopped.`);
-        return;
-      }
-      if (state.running) stopSandboxContinuous("switched-contract");
-      if (contractType === "over" && ((type === "OVER" && selectedDigit === 9) || (type === "UNDER" && selectedDigit === 0))) {
-        toast(type === "OVER" ? "Over 9 cannot be traded." : "Under 0 cannot be traded."); syncContinuousButtons(); return;
-      }
-      const baseStake = Number(stake);
-      const risk = getRiskSettings();
-      const multiplier = Math.min(10, Math.max(1, Number(String($("#multiplier")?.value || "1x").replace("x", "")) || 1));
-      if (!Number.isFinite(baseStake) || baseStake < 1) { toast("Enter a valid stake of at least $1.00."); return; }
-      if (realBalance === null || realBalanceLoadStatus !== "loaded") await refreshActiveRealBalance();
-      if (realBalance === null || realBalanceLoadStatus !== "loaded") { toast("REAL BALANCE could not be loaded. AUTO has not started."); return; }
-      if (baseStake > realBalance) { toast("Not enough REAL BALANCE sandbox funds."); return; }
-      sandboxContinuousState = { ...state, running:true, type, contract:contractType, digit:selectedDigit,
-        stake:baseStake, baseStake, multiplier, recoveryStep:0, recoveryPending:false,
-        takeProfit:risk.takeProfit, stopLoss:risk.stopLoss, nextTradeAt:Date.now(), stoppedReason:null,
-        stoppedAt:null, sessionPnl:0, sessionWins:0, sessionLosses:0, sessionTrades:0, lastSessionResult:null };
-      saveSandboxAutoState();
-      $("#auto")?.classList.add("active"); $("#manual")?.classList.remove("active");
-      syncContinuousButtons(); renderBalance(); sandboxContinuousTick();
-      toast(`Continuous ${buttonContractLabel(type)} sandbox trading started.`);
+      toast("Use MANUAL mode for funded sandbox trades. Continuous trading remains demo-only in this upgrade.");
       return;
     }
+    if (mode === "MANUAL") return;
     const state = currentContinuousState();
+
     if (state.running && String(state.type).toUpperCase() === type) {
-      window.TradeZoraContinuousEngine.stop(); syncContinuousButtons();
-      toast(`Continuous ${buttonContractLabel(type)} trading stopped.`); return;
+      window.TradeZoraContinuousEngine.stop();
+      syncContinuousButtons();
+      toast(`Continuous ${buttonContractLabel(type)} trading stopped.`);
+      return;
     }
+
     if (state.running) window.TradeZoraContinuousEngine.stop();
+
     if (contractType === "over" && ((type === "OVER" && selectedDigit === 9) || (type === "UNDER" && selectedDigit === 0))) {
-      toast(type === "OVER" ? "Over 9 cannot be traded." : "Under 0 cannot be traded."); syncContinuousButtons(); return;
+      toast(type === "OVER" ? "Over 9 cannot be traded." : "Under 0 cannot be traded.");
+      syncContinuousButtons();
+      return;
     }
+
     const streamStake = Number(stake);
     if (streamStake <= 0 || streamStake > Number(localStorage.getItem("tradezoraDemoBalance") || balance)) {
-      toast("Not enough demo balance for continuous trading."); syncContinuousButtons(); return;
+      toast("Not enough demo balance for continuous trading.");
+      syncContinuousButtons();
+      return;
     }
+
     const risk = getRiskSettings();
     const multiplierEl = $("#multiplier");
     const selectedMultiplier = Number(String(multiplierEl?.value || "1x").replace("x", ""));
     const multiplier = Number.isFinite(selectedMultiplier) && selectedMultiplier > 0 ? selectedMultiplier : 1;
-    window.TradeZoraContinuousEngine.start({ type, contract:contractType, digit:selectedDigit, stake:streamStake, baseStake:streamStake, multiplier, maxConsecutiveLosses:6, mode:"AUTO", market:activeMarket, takeProfit:risk.takeProfit, stopLoss:risk.stopLoss });
-    window.TradeZoraContinuousEngine.tick?.(); syncContinuousButtons();
+
+    window.TradeZoraContinuousEngine.start({
+      type,
+      contract: contractType,
+      digit: selectedDigit,
+      stake: streamStake,
+      baseStake: streamStake,
+      multiplier,
+      maxConsecutiveLosses: 6,
+      mode: "AUTO",
+      market: activeMarket,
+      takeProfit: risk.takeProfit,
+      stopLoss: risk.stopLoss
+    });
+
+    // Force the first AUTO contract immediately rather than waiting for the
+    // background timer.
+    window.TradeZoraContinuousEngine.tick?.();
+    syncContinuousButtons();
     toast(`Continuous ${buttonContractLabel(type)} trading started.`);
   }
-
-  async function sandboxContinuousTick() {
-    if (accountMode !== "real" || sandboxAutoBusy || !sandboxContinuousState.running) return;
-    if (positions.some(position => position.serverTradeId)) return;
-    const state = sandboxContinuousState;
-    if (state.nextTradeAt && Date.now() < Number(state.nextTradeAt)) return;
-    sandboxAutoBusy = true;
-    try {
-      const baseStake = Number(state.baseStake || state.stake || stake);
-      const multiplier = Math.min(10, Math.max(1, Number(state.multiplier || 1)));
-      const step = Math.max(0, Math.min(multiplier, Number(state.recoveryStep || 0)));
-      const tradeStake = Number((baseStake * Math.pow(multiplier, step)).toFixed(2));
-      if (!Number.isFinite(tradeStake) || tradeStake < 1) { stopSandboxContinuous("invalid-stake"); toast("AUTO stopped: calculated stake is invalid."); return; }
-      if (realBalance === null || realBalanceLoadStatus !== "loaded") await refreshActiveRealBalance();
-      if (realBalance === null || realBalanceLoadStatus !== "loaded") {
-        sandboxContinuousState = { ...sandboxContinuousState, nextTradeAt:Date.now()+3000 }; saveSandboxAutoState(); return;
-      }
-      if (tradeStake > realBalance) {
-        sandboxContinuousState = { ...sandboxContinuousState, running:false, nextTradeAt:null, stoppedReason:"balance", stoppedAt:Date.now() };
-        saveSandboxAutoState(); syncContinuousButtons(); renderBalance(); toast("AUTO stopped: not enough REAL BALANCE for the next stake."); return;
-      }
-      const opened = await openSandboxTrade(String(state.type || "").toUpperCase(), {
-        mode:"AUTO", contract:state.contract, digit:Number(state.digit), stake:tradeStake, multiplier
-      });
-      if (opened && sandboxContinuousState.running) {
-        sandboxContinuousState = { ...sandboxContinuousState, nextTradeAt:Date.now()+6500 };
-        saveSandboxAutoState(); renderBalance(); syncContinuousButtons();
-      } else if (sandboxContinuousState.running) {
-        sandboxContinuousState = { ...sandboxContinuousState, nextTradeAt:Date.now()+3500 }; saveSandboxAutoState();
-      }
-    } finally { sandboxAutoBusy = false; }
-  }
-
-  window.setInterval(() => {
-    if (accountMode === "real" && sandboxContinuousState.running) sandboxContinuousTick();
-  }, 500);
 
   $("#match").onclick = () => {
     const pair = getContractPair();
@@ -3065,9 +2938,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.addEventListener("tradezora-state-changed", () => {
     try {
-      positions = JSON.parse(localStorage.getItem(tradePositionsKey()) || "[]");
-      history = JSON.parse(localStorage.getItem(tradeHistoryKey()) || "[]");
-      if (accountMode === "real") sandboxContinuousState = readSandboxAutoState();
+      positions = JSON.parse(localStorage.getItem("tradezoraDemoPositions") || "[]");
+      history = JSON.parse(localStorage.getItem("tradezoraDemoHistory") || "[]");
     } catch (error) {}
     renderBalance();
     renderLists();
@@ -3131,10 +3003,7 @@ document.addEventListener("DOMContentLoaded", () => {
     modal.classList.remove("open");
     modal.setAttribute("aria-hidden", "true");
     document.body.classList.remove("modal-open");
-    if (resetSession && accountMode === "real") {
-      sandboxContinuousState = { ...sandboxContinuousState, sessionPnl:0, sessionWins:0, sessionLosses:0, sessionTrades:0, stoppedReason:null, stoppedAt:null, lastSessionResult:null };
-      saveSandboxAutoState(); renderBalance();
-    } else if (resetSession && window.TradeZoraContinuousEngine?.resetSession) {
+    if (resetSession && window.TradeZoraContinuousEngine?.resetSession) {
       window.TradeZoraContinuousEngine.resetSession();
     }
   }
@@ -3145,9 +3014,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.addEventListener("tradezora-state-changed", () => {
     balance = Number(localStorage.getItem("tradezoraDemoBalance") || balance);
-    history = JSON.parse(localStorage.getItem(tradeHistoryKey()) || "[]");
-    positions = JSON.parse(localStorage.getItem(tradePositionsKey()) || "[]");
-    if (accountMode === "real") sandboxContinuousState = readSandboxAutoState();
+    if (accountMode !== "real") {
+      history = JSON.parse(localStorage.getItem("tradezoraDemoHistory") || "[]");
+      positions = JSON.parse(localStorage.getItem("tradezoraDemoPositions") || "[]");
+    }
     wins = history.filter(t => t.win).length;
     losses = history.filter(t => !t.win).length;
     pnl = history.reduce(
@@ -3170,10 +3040,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Restore an already-running AUTO stream when returning to the Trade page.
   // The shared engine is persisted in localStorage, so navigating to History
   // or Positions must NOT stop it. Returning here only restores the UI.
-  if (accountMode === "real" && window.TradeZoraContinuousEngine?.getState?.().running) {
-    window.TradeZoraContinuousEngine.stop();
-  }
-  const restoredState = accountMode === "real" ? sandboxContinuousState : (window.TradeZoraContinuousEngine?.getState?.() || { running: false });
+  const restoredState = window.TradeZoraContinuousEngine?.getState?.() || { running: false };
   if (restoredState.running) {
     mode = "AUTO";
     selectedDigit = Number.isFinite(Number(restoredState.digit)) ? Number(restoredState.digit) : selectedDigit;
@@ -3196,18 +3063,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const pair = getContractPair();
     $("#auto")?.classList.add("active");
     $("#manual")?.classList.remove("active");
-    $("#match").innerHTML = `<strong>${pair.left}</strong><span>${accountMode === "real" ? "Real" : "Demo"}</span>`;
-    $("#differ").innerHTML = `<strong>${pair.right}</strong><span>${accountMode === "real" ? "Real" : "Demo"}</span>`;
+    $("#match").innerHTML = `<strong>${pair.left}</strong><span>Demo</span>`;
+    $("#differ").innerHTML = `<strong>${pair.right}</strong><span>Demo</span>`;
     renderBalance();
     renderDigitStatistics();
-    if (accountMode === "real") sandboxContinuousTick();
-  }
-
-  // Resume settlement timers when the dashboard is refreshed mid-position.
-  if (accountMode === "real") {
-    positions.filter(position => position && position.serverTradeId).forEach(position => {
-      scheduleSandboxSettlement(position, Math.max(0, Number(position.settleAt || Date.now()) - Date.now()));
-    });
   }
 
   // Persist the risk controls for the active AUTO stream. Changing them while
@@ -3216,18 +3075,9 @@ document.addEventListener("DOMContentLoaded", () => {
     input?.addEventListener("change", () => {
       const state = currentContinuousState();
       const risk = getRiskSettings();
-      if (accountMode !== "real" && state.running && window.TradeZoraContinuousEngine?.updateRisk) {
+      if (state.running && window.TradeZoraContinuousEngine?.updateRisk) {
         window.TradeZoraContinuousEngine.updateRisk(risk.takeProfit, risk.stopLoss);
       }
-    });
-  });
-
-  [$("#takeProfit"), $("#stopLoss")].forEach((input) => {
-    input?.addEventListener("change", () => {
-      if (accountMode !== "real") return;
-      const risk = getRiskSettings();
-      sandboxContinuousState = { ...sandboxContinuousState, takeProfit:risk.takeProfit, stopLoss:risk.stopLoss };
-      saveSandboxAutoState();
     });
   });
 
@@ -3267,10 +3117,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const clearPositionsButton = $("#clearPositions");
   if (clearPositionsButton) {
     clearPositionsButton.onclick = () => {
-      if (accountMode === "real" && positions.some(position => position.serverTradeId)) {
-        toast("A funded sandbox trade is still settling. It cannot be cleared before settlement.");
-        return;
-      }
       positions = [];
       saveTradeState();
       renderLists();
