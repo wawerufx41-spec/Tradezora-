@@ -486,11 +486,14 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  // REAL mode displays the separate sandbox test wallet in the familiar REAL BALANCE slot.
-  // Sandbox executions settle server-side; actual real-money balance and withdrawal routes stay separate.
+  // The single REAL BALANCE display shows the actual withdrawable real-money account.
+  // Sandbox trading uses a separate, hidden-from-display wallet and server-side settlement.
+  // Never use realBalance for sandbox stake checks or sandbox settlement updates.
   let accountMode = localStorage.getItem("tradezoraAccountMode") === "real" ? "real" : "demo";
   let realBalance = null;
   let realBalanceLoadStatus = "loading";
+  let sandboxBalance = null;
+  let sandboxBalanceLoadStatus = "loading";
 
   // Show the Admin Dashboard shortcut only after the active backend confirms
   // this session belongs to the owner admin. The admin page still verifies access.
@@ -825,7 +828,7 @@ document.addEventListener("DOMContentLoaded", () => {
     realModeButton?.setAttribute("aria-pressed", String(accountMode === "real"));
     const modeNotice = $("#accountModeNotice");
     if (modeNotice) modeNotice.textContent = accountMode === "real"
-      ? "REAL BALANCE interface is connected to the funded sandbox trading wallet. Test trades settle on the server; test funds are not withdrawable and genuine deposits/withdrawals remain separate."
+      ? "The displayed REAL BALANCE is your actual real-money account, matching Deposit and Withdrawals. Sandbox trades use a separate non-withdrawable test wallet that is not shown here; actual funds are never used for sandbox trades or settlement."
       : "Demo trading is simulated and uses your separate demo balance. Real-money deposits and withdrawals use a separate ledger.";
     if (stakeEl) stakeEl.textContent = money(stake);
     if (pnlElement) {
@@ -980,7 +983,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function refreshActiveRealBalance() {
-    if (!localStorage.getItem("tradezoraAuthToken") && !localStorage.getItem("session_token") && !localStorage.getItem("sessionToken")) {
+    const token = localStorage.getItem("tradezoraAuthToken") || localStorage.getItem("session_token") || localStorage.getItem("sessionToken");
+    if (!token) {
       realBalance = null;
       realBalanceLoadStatus = "error";
       renderBalance();
@@ -990,9 +994,12 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       realBalanceLoadStatus = "loading";
       renderBalance();
-      const data = await paymentApi("/api/real-test-funds");
-      const parsed = Number(data.balance);
-      if (data.account_type !== "shared_real_account" || !Number.isFinite(parsed) || parsed < 0) throw new Error("The server returned an invalid shared real-account balance.");
+      const data = await paymentApi("/api/real-account");
+      const account = data.account || data;
+      const parsed = Number(account.balance);
+      if (account.account_type !== "real" || !Number.isFinite(parsed) || parsed < 0) {
+        throw new Error("The server returned an invalid real-money account balance.");
+      }
       realBalance = parsed;
       realBalanceLoadStatus = "loaded";
       renderBalance();
@@ -1000,8 +1007,31 @@ document.addEventListener("DOMContentLoaded", () => {
       realBalance = null;
       realBalanceLoadStatus = "error";
       renderBalance();
-      console.warn("Active real-account balance could not be loaded:", error.message);
-      if (accountMode === "real") toast("Real-account balance unavailable. No funds were changed.");
+      console.warn("Actual real-money balance could not be loaded:", error.message);
+      if (accountMode === "real") toast("Actual real-money balance unavailable. No funds were changed.");
+    }
+  }
+
+  // This wallet is only for sandbox stake checks. It is never rendered as the account balance.
+  async function refreshSandboxBalance() {
+    const token = localStorage.getItem("tradezoraAuthToken") || localStorage.getItem("session_token") || localStorage.getItem("sessionToken");
+    if (!token) {
+      sandboxBalance = null;
+      sandboxBalanceLoadStatus = "error";
+      return;
+    }
+    try {
+      const data = await paymentApi("/api/real-test-funds");
+      const parsed = Number(data.balance);
+      if (data.sandbox_only !== true || !Number.isFinite(parsed) || parsed < 0) {
+        throw new Error("The server returned an invalid sandbox trading balance.");
+      }
+      sandboxBalance = parsed;
+      sandboxBalanceLoadStatus = "loaded";
+    } catch (error) {
+      sandboxBalance = null;
+      sandboxBalanceLoadStatus = "error";
+      console.warn("Sandbox trading wallet could not be loaded:", error.message);
     }
   }
 
@@ -1022,8 +1052,9 @@ document.addEventListener("DOMContentLoaded", () => {
     renderBalance();
     renderLists();
     if (accountMode === "real") {
-      toast("REAL BALANCE selected. Internal-engine trading and withdrawals use the same account balance.");
+      toast("REAL BALANCE selected. The display shows actual funds; sandbox trades use a separate test wallet.");
       refreshActiveRealBalance();
+      refreshSandboxBalance();
     } else {
       toast("DEMO account selected.");
     }
@@ -1100,7 +1131,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (event.key === "Escape" && depositModal?.classList.contains("open")) closeDepositModal();
   });
   depositAmountInput?.addEventListener("input", updateDepositConversion);
-  if (accountMode === "real") refreshActiveRealBalance();
+  if (accountMode === "real") {
+    refreshActiveRealBalance();
+    refreshSandboxBalance();
+  }
 
   /* =========================
      REAL-MONEY M-PESA WITHDRAWAL
@@ -2439,9 +2473,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const tradeDigit = Number(options.digit ?? selectedDigit);
     const tradeMode = options.mode || mode;
     if (!Number.isFinite(tradeStake) || tradeStake < 1) { toast("Enter a valid stake of at least $1.00."); return false; }
-    if (realBalance === null || realBalanceLoadStatus !== "loaded") { await refreshActiveRealBalance(); }
-    if (realBalance === null || realBalanceLoadStatus !== "loaded") { toast("Real-account balance unavailable. No funds were changed."); return false; }
-    if (tradeStake > realBalance) { toast("Not enough funds in the shared REAL BALANCE."); return false; }
+    if (sandboxBalance === null || sandboxBalanceLoadStatus !== "loaded") { await refreshSandboxBalance(); }
+    if (sandboxBalance === null || sandboxBalanceLoadStatus !== "loaded") { toast("Sandbox trading wallet unavailable. No funds were changed."); return false; }
+    if (tradeStake > sandboxBalance) { toast("Not enough funds in the sandbox trading wallet."); return false; }
     if (tradeContract === "over" && ((type === "OVER" && tradeDigit === 9) || (type === "UNDER" && tradeDigit === 0))) {
       toast(type === "OVER" ? "Over 9 cannot be traded." : "Under 0 cannot be traded."); return false;
     }
@@ -2454,7 +2488,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const response = await fetch(`${api}/api/sandbox/trades/open`, { method:"POST", headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`,"Accept":"application/json"}, body:JSON.stringify({contract:tradeContract,type,digit:tradeDigit,stake:tradeStake}) });
       const data = await response.json().catch(()=>({}));
       if (!response.ok || !data.success || !data.trade?.id) throw new Error(data.error || `Trade could not open (${response.status}).`);
-      realBalance = Number(data.balance); realBalanceLoadStatus = "loaded";
+      sandboxBalance = Number(data.balance); sandboxBalanceLoadStatus = "loaded";
       const position = { id:`sandbox-${data.trade.id}`, serverTradeId:Number(data.trade.id), accountMode:"real", type, stake:tradeStake, digit:tradeDigit, contract:tradeContract, mode:tradeMode, openedAt:Date.now(), settleAt:Date.now()+5000 };
       positions.push(position); saveTradeState(); renderBalance(); renderLists(); toast(`${type} internal-engine position opened.`);
       setTimeout(async () => {
@@ -2471,18 +2505,18 @@ document.addEventListener("DOMContentLoaded", () => {
           positions.splice(actualIndex,1);
           const finalTrade = {...position, finalDigit:Number(settled.finalDigit), win:Boolean(settled.win), profit:Number(settled.profit || 0), settledAt:Date.now(), sandboxOnly:true};
           history.push(finalTrade); if (history.length>100) history.shift(); saveTradeState();
-          realBalance=Number(settled.balance); realBalanceLoadStatus="loaded";
+          sandboxBalance=Number(settled.balance); sandboxBalanceLoadStatus="loaded";
           showTradeDigitResult(finalTrade.finalDigit, finalTrade.win);
           try { window.dispatchEvent(new CustomEvent("tradezora-trade-settled", {detail:{digit:finalTrade.finalDigit,win:finalTrade.win,profit:finalTrade.profit,accountMode:"real",sandboxOnly:true}})); } catch(_) {}
           renderBalance(); renderLists();
           toast(finalTrade.win ? `Internal-engine trade won — digit ${finalTrade.finalDigit}` : `Internal-engine trade lost — digit ${finalTrade.finalDigit}`);
         } catch(error) {
           toast(`Trade settlement needs attention: ${error.message}`);
-          refreshActiveRealBalance();
+          refreshSandboxBalance();
         }
       }, 5000);
       return true;
-    } catch(error) { toast(error.message || "Sandbox trade could not open."); await refreshActiveRealBalance(); return false; }
+    } catch(error) { toast(error.message || "Sandbox trade could not open."); await refreshSandboxBalance(); return false; }
   }
 
   function trade(type, options = {}) {
