@@ -576,6 +576,21 @@ document.addEventListener("DOMContentLoaded", () => {
     timer: null
   };
 
+  // AUTO stream for the internal Real Test Mode engine. Kept separate from the
+  // demo engine so demo balances, history and session P/L cannot be mixed.
+  let realSandboxAuto = {
+    running:false, type:null, contract:null, digit:null, stake:null, currentStake:null, multiplier:1,
+    takeProfit:0, stopLoss:0, sessionPnl:0, sessionWins:0, sessionLosses:0,
+    sessionTrades:0, consecutiveLosses:0, maxConsecutiveLosses:6, sessionId:null, timer:null, stoppedReason:null
+  };
+  try {
+    const savedRealAuto = JSON.parse(localStorage.getItem("tradezoraRealSandboxAutoState") || "null");
+    if (savedRealAuto && savedRealAuto.running) {
+      // Never silently resume sandbox AUTO after a reload; leave a clean idle state.
+      localStorage.setItem("tradezoraRealSandboxAutoState", JSON.stringify({...savedRealAuto,running:false,timer:null,stoppedReason:"page-reloaded"}));
+    }
+  } catch (_) {}
+
 
   /* =========================
      PROFILE
@@ -1045,6 +1060,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (nextMode === "real" && window.TradeZoraContinuousEngine?.getState?.().running) {
       window.TradeZoraContinuousEngine.stop();
     }
+    if (nextMode !== "real" && realSandboxAuto.running) stopRealSandboxAuto("account-switch", false);
     accountMode = nextMode;
     localStorage.setItem("tradezoraAccountMode", accountMode);
     history = JSON.parse(localStorage.getItem(tradeHistoryKey()) || "[]");
@@ -1531,6 +1547,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     mode = "MANUAL";
 
+    if (realSandboxAuto.running) stopRealSandboxAuto("user", false);
     if (window.TradeZoraContinuousEngine?.getState().running) {
       window.TradeZoraContinuousEngine.stop();
     }
@@ -2517,7 +2534,7 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         sandboxBalance = Number(data.balance); sandboxBalanceLoadStatus = "loaded";
       }
-      const position = { id:`sandbox-${data.trade.id}`, serverTradeId:Number(data.trade.id), accountMode:"real", fundingSource, type, stake:tradeStake, digit:tradeDigit, contract:tradeContract, mode:tradeMode, openedAt:Date.now(), settleAt:Date.now()+5000 };
+      const position = { id:`sandbox-${data.trade.id}`, serverTradeId:Number(data.trade.id), accountMode:"real", fundingSource, type, stake:tradeStake, digit:tradeDigit, contract:tradeContract, mode:tradeMode, autoSessionId:options.sessionId || null, openedAt:Date.now(), settleAt:Date.now()+5000 };
       positions.push(position); saveTradeState(); renderBalance(); renderLists();
       toast(`${type} internal-engine position opened using ${fundingSource === "real" ? "real balance" : "test funds"}.`);
       setTimeout(async () => {
@@ -2541,7 +2558,7 @@ document.addEventListener("DOMContentLoaded", () => {
             sandboxBalance=Number(settled.balance); sandboxBalanceLoadStatus="loaded";
           }
           showTradeDigitResult(finalTrade.finalDigit, finalTrade.win);
-          try { window.dispatchEvent(new CustomEvent("tradezora-trade-settled", {detail:{digit:finalTrade.finalDigit,win:finalTrade.win,profit:finalTrade.profit,accountMode:"real",sandboxOnly:settled.sandbox_only === true,fundingSource:settledSource}})); } catch(_) {}
+          try { window.dispatchEvent(new CustomEvent("tradezora-trade-settled", {detail:{digit:finalTrade.finalDigit,win:finalTrade.win,profit:finalTrade.profit,stake:finalTrade.stake,mode:finalTrade.mode,autoSessionId:finalTrade.autoSessionId,accountMode:"real",sandboxOnly:settled.sandbox_only === true,fundingSource:settledSource}})); } catch(_) {}
           renderBalance(); renderLists();
           toast(finalTrade.win ? `Internal-engine trade won — digit ${finalTrade.finalDigit}` : `Internal-engine trade lost — digit ${finalTrade.finalDigit}`);
         } catch(error) {
@@ -2560,8 +2577,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function trade(type, options = {}) {
 
     if (accountMode === "real") {
-      openSandboxTrade(type, options);
-      return true;
+      return openSandboxTrade(type, options);
     }
 
     const tradeStake = Number(
@@ -2855,6 +2871,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function currentContinuousState() {
     try {
+      if (accountMode === "real") return realSandboxAuto;
       return window.TradeZoraContinuousEngine?.getState?.() || {
         running: false,
         type: null,
@@ -2875,17 +2892,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const pair = getContractPair();
 
     // Manual mode always shows ordinary one-trade buttons.
+    const buttonSubLabel = accountMode === "real" ? "Sandbox" : "Demo";
     if (mode === "MANUAL") {
       leftButton.classList.remove("continuous-active");
       rightButton.classList.remove("continuous-active");
-      leftButton.innerHTML = `<strong>${pair.left}</strong><span>Demo</span>`;
-      rightButton.innerHTML = `<strong>${pair.right}</strong><span>Demo</span>`;
+      leftButton.innerHTML = `<strong>${pair.left}</strong><span>${buttonSubLabel}</span>`;
+      rightButton.innerHTML = `<strong>${pair.right}</strong><span>${buttonSubLabel}</span>`;
       return;
     }
 
     if (!state.running) {
-      leftButton.innerHTML = `<strong>${pair.left}</strong><span>Demo</span>`;
-      rightButton.innerHTML = `<strong>${pair.right}</strong><span>Demo</span>`;
+      leftButton.innerHTML = `<strong>${pair.left}</strong><span>${buttonSubLabel}</span>`;
+      rightButton.innerHTML = `<strong>${pair.right}</strong><span>${buttonSubLabel}</span>`;
       leftButton.classList.remove("continuous-active");
       rightButton.classList.remove("continuous-active");
       return;
@@ -2894,10 +2912,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const activeType = String(state.type || "").toUpperCase();
     leftButton.innerHTML = activeType === pair.left
       ? `<strong>STOP ${pair.left}</strong><span>Running</span>`
-      : `<strong>${pair.left}</strong><span>Demo</span>`;
+      : `<strong>${pair.left}</strong><span>${buttonSubLabel}</span>`;
     rightButton.innerHTML = activeType === pair.right
       ? `<strong>STOP ${pair.right}</strong><span>Running</span>`
-      : `<strong>${pair.right}</strong><span>Demo</span>`;
+      : `<strong>${pair.right}</strong><span>${buttonSubLabel}</span>`;
     leftButton.classList.toggle("continuous-active", activeType === pair.left);
     rightButton.classList.toggle("continuous-active", activeType === pair.right);
   }
@@ -2927,9 +2945,79 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function saveRealSandboxAutoState() {
+    const {timer, ...safeState} = realSandboxAuto;
+    try { localStorage.setItem("tradezoraRealSandboxAutoState", JSON.stringify(safeState)); } catch (_) {}
+  }
+
+  function stopRealSandboxAuto(reason = "user", notify = true) {
+    if (realSandboxAuto.timer) clearTimeout(realSandboxAuto.timer);
+    realSandboxAuto.timer = null;
+    realSandboxAuto.running = false;
+    realSandboxAuto.stoppedReason = reason;
+    saveRealSandboxAutoState();
+    syncContinuousButtons();
+    if (notify) {
+      const message = reason === "take-profit" ? "Real Test Mode AUTO stopped: take-profit reached." :
+        reason === "stop-loss" ? "Real Test Mode AUTO stopped: stop-loss reached." :
+        reason === "balance" ? "Real Test Mode AUTO stopped: trade could not be opened. Check sandbox funds and backend status." :
+        reason === "consecutive-losses" ? "Real Test Mode AUTO stopped after 6 consecutive losses." :
+        "Real Test Mode AUTO trading stopped.";
+      toast(message);
+    }
+    if (reason === "take-profit" || reason === "stop-loss") showRiskResultModal(realSandboxAuto);
+  }
+
+  async function tickRealSandboxAuto(sessionId) {
+    if (!realSandboxAuto.running || realSandboxAuto.sessionId !== sessionId || accountMode !== "real" || mode !== "AUTO") return;
+    const type = realSandboxAuto.type;
+    const opened = await openSandboxTrade(type, {
+      mode:"AUTO", contract:realSandboxAuto.contract, digit:realSandboxAuto.digit,
+      stake:Number(realSandboxAuto.currentStake || realSandboxAuto.stake), sessionId
+    });
+    if (!realSandboxAuto.running || realSandboxAuto.sessionId !== sessionId) return;
+    if (!opened) {
+      stopRealSandboxAuto("balance", true);
+      return;
+    }
+    // Leave enough time for the current 5-second sandbox contract to settle.
+    realSandboxAuto.timer = setTimeout(() => tickRealSandboxAuto(sessionId), 6500);
+    saveRealSandboxAutoState();
+  }
+
   function startOrStopContinuous(type) {
     if (accountMode === "real") {
-      toast("Use MANUAL mode for funded sandbox trades. Continuous trading remains demo-only in this upgrade.");
+      if (mode === "MANUAL") return;
+      if (realSandboxAuto.running && String(realSandboxAuto.type).toUpperCase() === type) {
+        stopRealSandboxAuto("user", true);
+        return;
+      }
+      if (realSandboxAuto.running) stopRealSandboxAuto("switch-contract", false);
+      if (contractType === "over" && ((type === "OVER" && selectedDigit === 9) || (type === "UNDER" && selectedDigit === 0))) {
+        toast(type === "OVER" ? "Over 9 cannot be traded." : "Under 0 cannot be traded.");
+        syncContinuousButtons();
+        return;
+      }
+      const streamStake = Number(stake);
+      if (!Number.isFinite(streamStake) || streamStake < 1) {
+        toast("Enter a valid sandbox stake of at least $1.00.");
+        return;
+      }
+      const risk = getRiskSettings();
+      const multiplierEl = $("#multiplier");
+      const selectedMultiplier = Number(String(multiplierEl?.value || "1x").replace("x", ""));
+      realSandboxAuto = {
+        running:true, type, contract:contractType, digit:selectedDigit, stake:streamStake,
+        multiplier:Number.isFinite(selectedMultiplier) && selectedMultiplier > 0 ? selectedMultiplier : 1,
+        takeProfit:risk.takeProfit, stopLoss:risk.stopLoss,
+        currentStake:streamStake, sessionPnl:0, sessionWins:0, sessionLosses:0, sessionTrades:0,
+        consecutiveLosses:0, maxConsecutiveLosses:6,
+        sessionId:`real-sandbox-${Date.now()}`, timer:null, stoppedReason:null
+      };
+      saveRealSandboxAutoState();
+      syncContinuousButtons();
+      toast(`Real Test Mode AUTO ${buttonContractLabel(type)} started.`);
+      tickRealSandboxAuto(realSandboxAuto.sessionId);
       return;
     }
     if (mode === "MANUAL") return;
@@ -3020,13 +3108,34 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("tradezora-trade-settled", (event) => {
     const result = event.detail || {};
     if (Number.isFinite(Number(result.digit))) {
-      lastTradeResult = {
-        digit: Number(result.digit),
-        win: Boolean(result.win),
-        at: Date.now()
-      };
+      lastTradeResult = { digit:Number(result.digit), win:Boolean(result.win), at:Date.now() };
       localStorage.setItem("tradezoraLastDigitResult", JSON.stringify(lastTradeResult));
       renderDigitStatistics();
+    }
+    if (result.accountMode === "real" && result.mode === "AUTO" && result.autoSessionId && result.autoSessionId === realSandboxAuto.sessionId) {
+      const tradePnl = result.win ? Number(result.profit || 0) : -Number(result.stake || 0);
+      realSandboxAuto.sessionPnl = Number((Number(realSandboxAuto.sessionPnl || 0) + tradePnl).toFixed(2));
+      realSandboxAuto.sessionTrades = Number(realSandboxAuto.sessionTrades || 0) + 1;
+      if (result.win) {
+        realSandboxAuto.sessionWins = Number(realSandboxAuto.sessionWins || 0) + 1;
+        realSandboxAuto.consecutiveLosses = 0;
+        realSandboxAuto.currentStake = Number(realSandboxAuto.stake || 0);
+      } else {
+        realSandboxAuto.sessionLosses = Number(realSandboxAuto.sessionLosses || 0) + 1;
+        realSandboxAuto.consecutiveLosses = Number(realSandboxAuto.consecutiveLosses || 0) + 1;
+        if (realSandboxAuto.consecutiveLosses >= Number(realSandboxAuto.maxConsecutiveLosses || 6)) {
+          realSandboxAuto.stoppedReason = "consecutive-losses";
+        } else {
+          const multipliedStake = Number(realSandboxAuto.stake || 0) * Math.pow(Number(realSandboxAuto.multiplier || 1), realSandboxAuto.consecutiveLosses);
+          realSandboxAuto.currentStake = Number(Math.min(multipliedStake, 1000).toFixed(2));
+        }
+      }
+      saveRealSandboxAutoState();
+      const tp = Number(realSandboxAuto.takeProfit || 0), sl = Number(realSandboxAuto.stopLoss || 0);
+      renderBalance();
+      if (realSandboxAuto.running && tp > 0 && realSandboxAuto.sessionPnl >= tp) stopRealSandboxAuto("take-profit", true);
+      else if (realSandboxAuto.running && sl > 0 && realSandboxAuto.sessionPnl <= -sl) stopRealSandboxAuto("stop-loss", true);
+      else if (realSandboxAuto.running && realSandboxAuto.consecutiveLosses >= Number(realSandboxAuto.maxConsecutiveLosses || 6)) stopRealSandboxAuto("consecutive-losses", true);
     }
   });
 
@@ -3147,7 +3256,11 @@ document.addEventListener("DOMContentLoaded", () => {
     input?.addEventListener("change", () => {
       const state = currentContinuousState();
       const risk = getRiskSettings();
-      if (state.running && window.TradeZoraContinuousEngine?.updateRisk) {
+      if (accountMode === "real" && realSandboxAuto.running) {
+        realSandboxAuto.takeProfit = risk.takeProfit;
+        realSandboxAuto.stopLoss = risk.stopLoss;
+        saveRealSandboxAutoState();
+      } else if (state.running && window.TradeZoraContinuousEngine?.updateRisk) {
         window.TradeZoraContinuousEngine.updateRisk(risk.takeProfit, risk.stopLoss);
       }
     });
