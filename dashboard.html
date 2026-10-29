@@ -2091,16 +2091,16 @@ document.addEventListener("DOMContentLoaded", () => {
         ctx.save();ctx.strokeStyle="rgba(255,255,255,.34)";ctx.setLineDash([3,4]);ctx.beginPath();ctx.moveTo(priorPoints[priorPoints.length-1].x,top+3);ctx.lineTo(priorPoints[priorPoints.length-1].x,top+plotHeight);ctx.stroke();ctx.restore();
       }
       const livePoints = points.slice(Math.max(0, fakeCount - 1));
-      // LumiBinary live-price trace: neon turquoise, softly glowing, with a live dot
-      // attached to the latest plotted price point. Data and feed are unchanged.
+      // LumiBinary live-price trace: clean white line; turquoise live dot stays attached
+      // to the latest plotted price point. Data and feed are unchanged.
       ctx.save();
       ctx.beginPath();livePoints.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
-      ctx.strokeStyle="rgba(0,245,212,.30)";ctx.lineWidth=9;ctx.lineJoin="round";ctx.lineCap="round";
-      ctx.shadowColor="#00F5D4";ctx.shadowBlur=13;ctx.stroke();ctx.restore();
+      ctx.strokeStyle="rgba(255,255,255,.28)";ctx.lineWidth=8;ctx.lineJoin="round";ctx.lineCap="round";
+      ctx.shadowColor="#FFFFFF";ctx.shadowBlur=11;ctx.stroke();ctx.restore();
       ctx.save();
       ctx.beginPath();livePoints.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
-      ctx.strokeStyle="#00F5D4";ctx.lineWidth=2.1;ctx.lineJoin="round";ctx.lineCap="round";
-      ctx.shadowColor="#00F5D4";ctx.shadowBlur=6;ctx.stroke();ctx.restore();
+      ctx.strokeStyle="#FFFFFF";ctx.lineWidth=2.1;ctx.lineJoin="round";ctx.lineCap="round";
+      ctx.shadowColor="#FFFFFF";ctx.shadowBlur=4;ctx.stroke();ctx.restore();
       if (livePoints.length) {
         const head = livePoints[livePoints.length - 1];
         ctx.save();
