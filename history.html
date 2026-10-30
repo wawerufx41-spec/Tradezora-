@@ -52,7 +52,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (badge) badge.textContent = modeLabel;
     if (subtitle) subtitle.textContent = `Showing ${isReal ? 'real-test' : 'demo'} trades from the last 48 hours.`;
-    if (heading) heading.textContent = 'Completed Trades — Last 2 Days';
+    if (heading) heading.textContent = '';
+    const pageHead = document.querySelector('.page-head');
+    if (pageHead) pageHead.style.display = 'none';
     list.replaceChildren();
 
     if (!recent.length) {
