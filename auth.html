@@ -49,7 +49,7 @@
         <button class="primary" type="submit">Create account</button>
       </form>
       <form id="forgotForm" class="hidden" novalidate>
-        <h2>Reset your password</h2><p class="sub">Enter your account email. If password reset is enabled, the server will send instructions.</p>
+        <h2>Reset your password</h2><p class="sub">Enter your account email and we’ll send a secure reset link if it matches an account.</p>
         <div class="field"><label for="forgotEmail">Email address</label><input id="forgotEmail" name="email" type="email" autocomplete="email" placeholder="you@example.com" required></div>
         <button class="primary" type="submit">Send reset instructions</button>
         <div class="links"><button class="link" id="backToLogin" type="button">Back to log in</button></div>
@@ -192,8 +192,10 @@
 
       forms.forgot.addEventListener('submit', async (event) => {
         event.preventDefault(); clearMessage();
-        const email = $('forgotEmail').value.trim();
+        const forgotInput = $('forgotEmail');
+        const email = forgotInput.value.trim();
         if (!email) return showMessage('Enter your account email address.');
+        if (!forgotInput.checkValidity()) return showMessage('Enter a valid email address.');
         setBusy(forms.forgot, true, 'Sending…');
         try {
           const data = await request('/api/auth/forgot-password', { email });
