@@ -455,7 +455,7 @@
   };
 })();
 </script>
-<script src="tradezora-engine.js?v=8"></script>
+<script src="tradezora-engine.js?v=9"></script>
   <script>
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -2511,38 +2511,12 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         sandboxBalance = Number(data.balance); sandboxBalanceLoadStatus = "loaded";
       }
-      const position = { id:`sandbox-${data.trade.id}`, serverTradeId:Number(data.trade.id), accountMode:"real", fundingSource, type, stake:tradeStake, digit:tradeDigit, contract:tradeContract, mode:tradeMode, autoSessionId:options.sessionId || null, openedAt:Date.now(), settleAt:Date.now()+5000 };
+      const position = { id:`sandbox-${data.trade.id}`, serverTradeId:Number(data.trade.id), accountMode:"real", fundingSource, type, stake:tradeStake, digit:tradeDigit, contract:tradeContract, mode:tradeMode, autoSessionId:options.sessionId || null, settlementOwner:true, openedAt:Date.now(), settleAt:Date.now()+5000 };
       positions.push(position); saveTradeState(); renderBalance(); renderLists();
       toast(`${type} internal-engine position opened using ${fundingSource === "real" ? "real balance" : "test funds"}.`);
-      setTimeout(async () => {
-        const index = positions.findIndex(item => item.id === position.id);
-        if (index < 0) return;
-        const closingPrice = Number(localStorage.getItem("tradezoraDemoLastPrice") || price);
-        const naturalDigit = getLastDigit(closingPrice);
-        try {
-          const settleResponse = await fetch(`${api}/api/sandbox/trades/${position.serverTradeId}/settle`, { method:"POST", headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`,"Accept":"application/json"}, body:JSON.stringify({naturalDigit}) });
-          const settled = await settleResponse.json().catch(()=>({}));
-          if (!settleResponse.ok || !settled.success) throw new Error(settled.error || `Settlement failed (${settleResponse.status}).`);
-          const actualIndex = positions.findIndex(item => item.id === position.id);
-          if (actualIndex < 0) return;
-          positions.splice(actualIndex,1);
-          const settledSource = settled.fundingSource || position.fundingSource || "test";
-          const finalTrade = {...position, fundingSource:settledSource, finalDigit:Number(settled.finalDigit), win:Boolean(settled.win), profit:Number(settled.profit || 0), settledAt:Date.now(), sandboxOnly:settled.sandbox_only === true};
-          history.push(finalTrade); if (history.length>100) history.shift(); saveTradeState();
-          if (settledSource === "real") {
-            realBalance=Number(settled.balance); realBalanceLoadStatus="loaded";
-          } else {
-            sandboxBalance=Number(settled.balance); sandboxBalanceLoadStatus="loaded";
-          }
-          showTradeDigitResult(finalTrade.finalDigit, finalTrade.win);
-          try { window.dispatchEvent(new CustomEvent("tradezora-trade-settled", {detail:{digit:finalTrade.finalDigit,win:finalTrade.win,profit:finalTrade.profit,stake:finalTrade.stake,mode:finalTrade.mode,autoSessionId:finalTrade.autoSessionId,accountMode:"real",sandboxOnly:settled.sandbox_only === true,fundingSource:settledSource}})); } catch(_) {}
-          renderBalance(); renderLists();
-          toast(finalTrade.win ? `Internal-engine trade won — digit ${finalTrade.finalDigit}` : `Internal-engine trade lost — digit ${finalTrade.finalDigit}`);
-        } catch(error) {
-          toast(`Trade settlement needs attention: ${error.message}`);
-          if (position.fundingSource === "real") refreshActiveRealBalance(); else refreshSandboxBalance();
-        }
-      }, 5000);
+      // The shared Real Test engine now owns settlement and the null/refund fallback
+      // for both MANUAL and AUTO positions, including after page navigation.
+
       return true;
     } catch(error) {
       toast(error.message || "Sandbox trade could not open.");
@@ -3001,8 +2975,17 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 
-  window.addEventListener("tradezora-engine-error", (event) => {
+  window.addEventListener("tradezora-trade-unsettled", (event) => {
     const detail = event.detail || {};
+    if (detail.accountMode === "real" && accountMode === "real") {
+      // A confirmed refund changes the wallet, but is not a win/loss and must
+      // never update session P/L or W-L counters.
+      refreshActiveRealBalance();
+      refreshSandboxBalance();
+    }
+  });
+
+  window.addEventListener("tradezora-engine-error", (event) => {    const detail = event.detail || {};
     if (!detail.accountMode || detail.accountMode === accountMode) {
       toast(detail.message || "AUTO trading encountered an error.");
       syncContinuousButtons();
