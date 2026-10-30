@@ -620,6 +620,7 @@
 
   const api = {
     getState,
+    syncRealTrades: () => syncRealTradesFromServer(Date.now(), true),
     start(config = {}) {
       const mode = getMode(config.accountMode);
       const keys = keysFor(mode);
