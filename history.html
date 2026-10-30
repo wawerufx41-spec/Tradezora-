@@ -8,7 +8,7 @@
 <nav class="bottom-nav"><a href="dashboard.html"><span class="nav-icon">▣</span><span>Trade</span></a><a href="positions.html"><span class="nav-icon">▥</span><span>Positions</span></a><a class="active" href="history.html" aria-current="page"><span class="nav-icon">◷</span><span>History</span></a></nav><script src="tradezora-engine.js?v=1"></script><script src="account-pages.js?v=2"></script><script>
 /* LumiBinary history view: show the selected account's latest 48 hours only.
    Old records remain stored; this page only filters what is displayed. */
-(function () {
+document.addEventListener('DOMContentLoaded', function () {
   const WINDOW_MS = 48 * 60 * 60 * 1000;
   const list = document.getElementById('historyList');
   const badge = document.querySelector('.demo-badge');
@@ -94,11 +94,13 @@
     });
   }
 
+  // account-pages.js registers its DOMContentLoaded renderer before this one.
+  // Running here ensures our selected-account renderer is the final initial render.
   render();
   window.addEventListener('tradezora-state-changed', render);
   window.addEventListener('storage', render);
   window.addEventListener('focus', render);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
   window.setInterval(render, 60000);
-})();
+});
 </script></body></html>
