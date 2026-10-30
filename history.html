@@ -1,8 +1,104 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#050807"><title>TradeZora — History</title><link rel="stylesheet" href="dashboard.css?v=8"><style>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#050807"><title>LumiBinary — History</title><link rel="stylesheet" href="dashboard.css?v=8"><style>
 .page-main{max-width:980px;margin:0 auto;padding:24px 16px 110px}.page-title{font-size:28px;margin:10px 0 6px}.page-sub{color:#8c9993;margin:0 0 22px}.history-page-item{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 16px;border-bottom:1px solid rgba(255,255,255,.06)}.history-page-item:last-child{border-bottom:0}.history-page-item div{display:flex;flex-direction:column;gap:6px}.history-page-item span,.history-page-item small{color:#8c9993;font-size:13px}.win{color:#00e38a}.loss{color:#ff5266}.empty{padding:40px 16px;text-align:center;color:#89958f}.page-panel{padding:0;overflow:hidden}.page-head{padding:18px 16px;border-bottom:1px solid rgba(255,255,255,.07)}.page-head h2{margin:0}.bottom-nav a{text-decoration:none}
 </style></head><body>
-<div id="overlay" class="overlay"></div><aside id="sideMenu" class="side-menu"><div class="side-head"><div class="side-brand"><span class="brand-mark">TZ</span><span>TradeZora</span></div><button id="closeMenu" class="icon-btn close-btn">×</button></div><div class="profile"><div id="avatar" class="avatar">T</div><div class="profile-info"><strong id="profileName">Demo Trader</strong><span id="profileEmail">demo@tradezora.local</span></div></div><nav class="side-nav"><a href="dashboard.html" class="side-link"><span>▣</span> Trade</a><a href="positions.html" class="side-link"><span>▥</span> Positions</a><a href="history.html" class="side-link active"><span>◷</span> History</a></nav><button id="logout" class="logout-btn">Log out</button></aside>
-<header class="topbar"><button id="menuBtn" class="menu-btn"><span></span><span></span><span></span></button><a href="dashboard.html" class="mobile-logo">TradeZora</a><div class="top-spacer"></div><div class="demo-badge">DEMO</div><div class="balance-box"><small>BALANCE</small><strong id="balance">$10,000.00</strong></div><div class="notification-dot">•</div></header>
+<div id="overlay" class="overlay"></div><aside id="sideMenu" class="side-menu"><div class="side-head"><div class="side-brand"><span class="brand-mark">TZ</span><span>LumiBinary</span></div><button id="closeMenu" class="icon-btn close-btn">×</button></div><div class="profile"><div id="avatar" class="avatar">T</div><div class="profile-info"><strong id="profileName">Demo Trader</strong><span id="profileEmail">demo@tradezora.local</span></div></div><nav class="side-nav"><a href="dashboard.html" class="side-link"><span>▣</span> Trade</a><a href="positions.html" class="side-link"><span>▥</span> Positions</a><a href="history.html" class="side-link active"><span>◷</span> History</a></nav><button id="logout" class="logout-btn">Log out</button></aside>
+<header class="topbar"><button id="menuBtn" class="menu-btn"><span></span><span></span><span></span></button><a href="dashboard.html" class="mobile-logo">LumiBinary</a><div class="top-spacer"></div><div class="demo-badge">DEMO</div><div class="balance-box"><small>BALANCE</small><strong id="balance">$10,000.00</strong></div><div class="notification-dot">•</div></header>
 <main class="page-main"><h1 class="page-title">Trade History</h1><p class="page-sub">Review your completed demo contracts.</p><section class="panel page-panel"><div class="page-head"><h2>Completed Trades</h2></div><div id="historyList"></div></section></main>
-<nav class="bottom-nav"><a href="dashboard.html"><span class="nav-icon">▣</span><span>Trade</span></a><a href="positions.html"><span class="nav-icon">▥</span><span>Positions</span></a><a class="active" href="history.html" aria-current="page"><span class="nav-icon">◷</span><span>History</span></a></nav><script src="tradezora-engine.js?v=1"></script><script src="account-pages.js?v=2"></script></body></html>
+<nav class="bottom-nav"><a href="dashboard.html"><span class="nav-icon">▣</span><span>Trade</span></a><a href="positions.html"><span class="nav-icon">▥</span><span>Positions</span></a><a class="active" href="history.html" aria-current="page"><span class="nav-icon">◷</span><span>History</span></a></nav><script src="tradezora-engine.js?v=1"></script><script src="account-pages.js?v=2"></script><script>
+/* LumiBinary history view: show the selected account's latest 48 hours only.
+   Old records remain stored; this page only filters what is displayed. */
+(function () {
+  const WINDOW_MS = 48 * 60 * 60 * 1000;
+  const list = document.getElementById('historyList');
+  const badge = document.querySelector('.demo-badge');
+  const subtitle = document.querySelector('.page-sub');
+  const heading = document.querySelector('.page-head h2');
+  if (!list) return;
+
+  function readHistory(key) {
+    try {
+      const value = JSON.parse(localStorage.getItem(key) || '[]');
+      return Array.isArray(value) ? value : [];
+    } catch (_) { return []; }
+  }
+
+  function getTimestamp(trade) {
+    const raw = trade.settledAt ?? trade.timestamp ?? trade.closedAt ?? trade.createdAt;
+    if (raw === undefined || raw === null || raw === '') return NaN;
+    if (typeof raw === 'number' || (typeof raw === 'string' && /^\d+(\.\d+)?$/.test(raw))) {
+      let n = Number(raw);
+      if (!Number.isFinite(n)) return NaN;
+      if (n < 1e12) n *= 1000;
+      return n;
+    }
+    const parsed = Date.parse(raw);
+    return Number.isFinite(parsed) ? parsed : NaN;
+  }
+
+  function safeText(value, fallback) {
+    return value === undefined || value === null || value === '' ? fallback : String(value);
+  }
+
+  function render() {
+    const isReal = localStorage.getItem('tradezoraAccountMode') === 'real';
+    const modeLabel = isReal ? 'REAL TEST' : 'DEMO';
+    const historyKey = isReal ? 'tradezoraSandboxHistory' : 'tradezoraDemoHistory';
+    const now = Date.now();
+    const recent = readHistory(historyKey)
+      .map(trade => ({ trade, time: getTimestamp(trade) }))
+      .filter(item => Number.isFinite(item.time) && item.time <= now && now - item.time <= WINDOW_MS)
+      .sort((a, b) => b.time - a.time);
+
+    if (badge) badge.textContent = modeLabel;
+    if (subtitle) subtitle.textContent = `Showing ${isReal ? 'real-test' : 'demo'} trades from the last 48 hours.`;
+    if (heading) heading.textContent = 'Completed Trades — Last 2 Days';
+    list.replaceChildren();
+
+    if (!recent.length) {
+      const empty = document.createElement('div');
+      empty.className = 'empty';
+      empty.textContent = 'No completed trades in the last 48 hours.';
+      list.appendChild(empty);
+      return;
+    }
+
+    recent.forEach(({ trade, time }) => {
+      const item = document.createElement('div');
+      item.className = 'history-page-item';
+      const details = document.createElement('div');
+      const title = document.createElement('strong');
+      const contract = safeText(trade.type, safeText(trade.contract, 'Trade')).toUpperCase();
+      title.textContent = `${contract}${trade.digit !== undefined ? ` · ${trade.digit}` : ''}`;
+      const meta = document.createElement('span');
+      const market = safeText(trade.market, safeText(trade.symbol, ''));
+      const finalDigit = trade.finalDigit !== undefined ? ` · Final digit: ${trade.finalDigit}` : '';
+      meta.textContent = `${market ? market + ' · ' : ''}${new Date(time).toLocaleString()}${finalDigit}`;
+      details.append(title, meta);
+
+      const result = document.createElement('div');
+      result.style.textAlign = 'right';
+      const won = trade.win === true || trade.win === 1 || trade.result === 'win';
+      const status = document.createElement('strong');
+      status.className = won ? 'win' : 'loss';
+      status.textContent = won ? 'WON' : 'LOST';
+      const amount = document.createElement('small');
+      const profit = Number(trade.profit);
+      const stake = Number(trade.stake);
+      const pnl = won ? (Number.isFinite(profit) ? profit : 0) : (Number.isFinite(stake) ? -stake : 0);
+      amount.textContent = `${pnl >= 0 ? '+' : '−'}$${Math.abs(pnl).toFixed(2)}`;
+      amount.className = won ? 'win' : 'loss';
+      result.append(status, amount);
+      item.append(details, result);
+      list.appendChild(item);
+    });
+  }
+
+  render();
+  window.addEventListener('tradezora-state-changed', render);
+  window.addEventListener('storage', render);
+  window.addEventListener('focus', render);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
+  window.setInterval(render, 60000);
+})();
+</script></body></html>
