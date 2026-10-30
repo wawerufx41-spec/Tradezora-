@@ -24,7 +24,7 @@
   }
 
   function getTimestamp(trade) {
-    const raw = trade.settledAt ?? trade.timestamp ?? trade.closedAt ?? trade.createdAt;
+    const raw = trade.settledAt ?? trade.timestamp ?? trade.closedAt ?? trade.createdAt ?? trade.openedAt;
     if (raw === undefined || raw === null || raw === '') return NaN;
     if (typeof raw === 'number' || (typeof raw === 'string' && /^\d+(\.\d+)?$/.test(raw))) {
       let n = Number(raw);
@@ -58,7 +58,7 @@
     if (!recent.length) {
       const empty = document.createElement('div');
       empty.className = 'empty';
-      empty.textContent = 'No completed trades in the last 48 hours.';
+      empty.textContent = 'No completed trades in the last 48 hours. Trades appear here after they settle.';
       list.appendChild(empty);
       return;
     }
