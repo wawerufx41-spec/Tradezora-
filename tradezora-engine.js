@@ -77,6 +77,177 @@
     if (existing && existing.owner === OWNER) localStorage.removeItem(LOCK_KEY);
   }
 
+  let lastRealSyncAt = 0;
+  let realSyncInFlight = false;
+
+  async function apiGet(path) {
+    const token = getAuthToken();
+    if (!token) return null;
+    const response = await fetch(`${API_BASE}${path}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json'
+      }
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || data.message || `Trading service returned ${response.status}.`);
+    }
+    return data;
+  }
+
+  function timestampMs(value, fallback) {
+    if (value === null || value === undefined || value === '') return fallback;
+    const numeric = Number(value);
+    if (Number.isFinite(numeric) && numeric > 0) return numeric;
+    const parsed = new Date(value).getTime();
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+
+  function serverTradeId(value) {
+    const id = Number(value);
+    return Number.isSafeInteger(id) && id > 0 ? id : null;
+  }
+
+  // Read-only cross-device reconciliation for Real Test trades. The backend
+  // decides whether a trade is open or settled; this function never settles a
+  // trade, changes a wallet, or updates session P/L / W-L counters.
+  async function syncRealTradesFromServer(now = Date.now(), force = false) {
+    if (realSyncInFlight || !getAuthToken()) return false;
+    if (!force && now - lastRealSyncAt < 3000) return false;
+    realSyncInFlight = true;
+    lastRealSyncAt = now;
+
+    try {
+      const data = await apiGet('/api/sandbox/trades');
+      if (!data || !Array.isArray(data.trades)) return false;
+
+      const localPositions = read(KEYS.real.positions, []);
+      const localHistory = read(KEYS.real.history, []);
+      const positionById = new Map();
+      const historyById = new Map();
+
+      for (const item of localPositions) {
+        const id = serverTradeId(item.serverTradeId);
+        if (id !== null && !positionById.has(id)) positionById.set(id, item);
+      }
+      for (const item of localHistory) {
+        const id = serverTradeId(item.serverTradeId);
+        if (id !== null && !historyById.has(id)) historyById.set(id, item);
+      }
+
+      const openIds = new Set();
+      const settledIds = new Set();
+      const cancelledIds = new Set();
+      const pendingLocalSettlementIds = new Set();
+      const serverOpenPositions = [];
+      const deferredLocalPositions = [];
+      const serverSettledHistory = [];
+
+      for (const row of data.trades) {
+        const id = serverTradeId(row && row.id);
+        if (id === null) continue;
+
+        const status = String(row.status || '').toLowerCase();
+        const existingPosition = positionById.get(id);
+        const existingHistory = historyById.get(id);
+        const existing = existingPosition || existingHistory || {};
+        const openedAt = timestampMs(row.opened_at, now);
+        const base = {
+          ...existing,
+          id: `sandbox-${id}`,
+          serverTradeId: id,
+          accountMode: 'real',
+          fundingSource: row.funding_source || existing.fundingSource || 'test',
+          type: String(row.trade_type || existing.type || 'TRADE').toUpperCase(),
+          stake: Number(row.stake ?? existing.stake ?? 0),
+          digit: Number(row.barrier_digit ?? existing.digit ?? 0),
+          contract: String(row.contract_type || existing.contract || 'match').toLowerCase(),
+          mode: existing.mode || 'MANUAL',
+          openedAt,
+          market: existing.market || null
+        };
+
+        if (status === 'open') {
+          openIds.add(id);
+          serverOpenPositions.push({
+            ...base,
+            settleAt: timestampMs(existingPosition?.settleAt, openedAt + DEMO_SETTLEMENT_MS),
+            // Only retain AUTO settlement ownership on the device that already
+            // held the local position. Other devices mirror it without settling.
+            continuous: Boolean(existingPosition?.continuous),
+            autoSessionId: existingPosition?.autoSessionId || null
+          });
+        } else if (status === 'settled') {
+          const finalDigit = Number(row.final_digit);
+          const resultIsValid = Number.isInteger(finalDigit) && finalDigit >= 0 && finalDigit <= 9 &&
+            (row.won === true || row.won === false) && Number.isFinite(Number(row.profit));
+          if (!resultIsValid) continue;
+
+          // If this browser originally owned the AUTO position, leave it for
+          // the normal settle path. The backend endpoint is idempotent and will
+          // return this already-stored outcome so local session counters update
+          // once, without settling or crediting the trade again.
+          if (existingPosition && existingPosition.continuous) {
+            pendingLocalSettlementIds.add(id);
+            deferredLocalPositions.push(existingPosition);
+            continue;
+          }
+
+          settledIds.add(id);
+          serverSettledHistory.push({
+            ...base,
+            finalDigit,
+            win: row.won,
+            profit: Number(row.profit),
+            settledAt: timestampMs(row.settled_at, now),
+            sandboxOnly: true
+          });
+        } else if (status === 'cancelled') {
+          cancelledIds.add(id);
+        }
+      }
+
+      // Keep old local-only rows and any server-backed row absent from this
+      // response. Only a confirmed server status may remove/replace a position.
+      const nextPositions = localPositions.filter(item => {
+        const id = serverTradeId(item.serverTradeId);
+        if (id === null) return true;
+        return !openIds.has(id) && !settledIds.has(id) && !cancelledIds.has(id) && !pendingLocalSettlementIds.has(id);
+      }).concat(serverOpenPositions, deferredLocalPositions);
+
+      // Server-settled results replace any local copy once, without dispatching
+      // trade-settled events or applying settlement accounting a second time.
+      const nextHistory = localHistory.filter(item => {
+        const id = serverTradeId(item.serverTradeId);
+        if (id === null) return true;
+        return !openIds.has(id) && !settledIds.has(id) && !cancelledIds.has(id) && !pendingLocalSettlementIds.has(id);
+      }).concat(serverSettledHistory)
+        .sort((a, b) => timestampMs(a.settledAt, 0) - timestampMs(b.settledAt, 0))
+        .slice(-100);
+
+      let changed = false;
+      if (JSON.stringify(localPositions) !== JSON.stringify(nextPositions)) {
+        write(KEYS.real.positions, nextPositions);
+        changed = true;
+      }
+      if (JSON.stringify(localHistory) !== JSON.stringify(nextHistory)) {
+        write(KEYS.real.history, nextHistory);
+        changed = true;
+      }
+
+      if (changed) emit();
+      return changed;
+    } catch (error) {
+      // Sync failure must not interrupt existing AUTO operation or erase cache.
+      console.warn('Real Test cross-device sync unavailable:', error.message);
+      return false;
+    } finally {
+      realSyncInFlight = false;
+    }
+  }
+
   async function apiPost(path, body) {
     const token = getAuthToken();
     if (!token) throw new Error('Your session has expired. Sign in again to continue AUTO trading.');
@@ -387,6 +558,7 @@
     try {
       const keys = keysFor(mode);
       const now = Date.now();
+      await syncRealTradesFromServer(now);
       if (mode === 'demo') {
         const positions = read(keys.positions, []);
         const remaining = [];
