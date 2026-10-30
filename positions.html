@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#050807"><title>TradeZora — Positions</title><link rel="stylesheet" href="dashboard.css?v=8"><style>
-.page-main{max-width:980px;margin:0 auto;padding:24px 16px 110px}.page-title{font-size:28px;margin:10px 0 6px}.page-sub{color:#8c9993;margin:0 0 22px}.position-page-item,.history-page-item{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 16px;border-bottom:1px solid rgba(255,255,255,.06)}.position-page-item:last-child,.history-page-item:last-child{border-bottom:0}.position-page-item div,.history-page-item div{display:flex;flex-direction:column;gap:6px}.position-page-item span,.history-page-item span,.history-page-item small,.position-page-item small{color:#8c9993;font-size:13px}.open-status{color:#00e38a}.empty{padding:40px 16px;text-align:center;color:#89958f}.page-panel{padding:0;overflow:hidden}.page-head{display:flex;align-items:center;justify-content:space-between;padding:18px 16px;border-bottom:1px solid rgba(255,255,255,.07)}.page-head h2{margin:0}.clear-btn{background:#555b59;border:0;color:#fff;padding:10px 16px;border-radius:10px}.clear-btn:disabled{opacity:.6;cursor:not-allowed}.bottom-nav a{text-decoration:none}
+.page-main{max-width:980px;margin:0 auto;padding:24px 16px 110px}.page-title{font-size:28px;margin:10px 0 6px}.page-sub{color:#8c9993;margin:0 0 22px}.position-page-item,.history-page-item{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 16px;border-bottom:1px solid rgba(255,255,255,.06)}.position-page-item:last-child,.history-page-item:last-child{border-bottom:0}.position-page-item div,.history-page-item div{display:flex;flex-direction:column;gap:6px}.position-page-item span,.history-page-item span,.history-page-item small,.position-page-item small{color:#8c9993;font-size:13px}.open-status{color:#00e38a}.empty{padding:40px 16px;text-align:center;color:#89958f}.page-panel{padding:0;overflow:hidden}.page-head{display:flex;align-items:center;justify-content:space-between;padding:18px 16px;border-bottom:1px solid rgba(255,255,255,.07)}.page-head h2{margin:0}.clear-btn{background:#555b59;border:0;color:#fff;padding:10px 16px;border-radius:10px}.clear-btn:disabled{opacity:.6;cursor:not-allowed}.clear-btn{cursor:pointer}.clear-btn.safe-clear{background:#315b4b}.clear-feedback{padding:0 16px 14px;color:#9eaaa4;font-size:12px;min-height:16px}.bottom-nav a{text-decoration:none}
 </style></head><body>
 <div id="overlay" class="overlay"></div><aside id="sideMenu" class="side-menu"><div class="side-head"><div class="side-brand"><span class="brand-mark">TZ</span><span>TradeZora</span></div><button id="closeMenu" class="icon-btn close-btn">×</button></div><div class="profile"><div id="avatar" class="avatar">T</div><div class="profile-info"><strong id="profileName">Demo Trader</strong><span id="profileEmail">demo@tradezora.local</span></div></div><nav class="side-nav"><a href="dashboard.html" class="side-link"><span>▣</span> Trade</a><a href="positions.html" class="side-link active"><span>▥</span> Positions</a><a href="history.html" class="side-link"><span>◷</span> History</a></nav><button id="logout" class="logout-btn">Log out</button></aside>
 <header class="topbar"><button id="menuBtn" class="menu-btn"><span></span><span></span><span></span></button><a href="dashboard.html" class="mobile-logo">TradeZora</a><div class="top-spacer"></div><div class="demo-badge">DEMO</div><div class="balance-box"><small>BALANCE</small><strong id="balance">$10,000.00</strong></div><div class="notification-dot">•</div></header>
-<main class="page-main"><h1 class="page-title">Open Positions</h1><p class="page-sub">Monitor your active contracts.</p><section class="panel page-panel"><div class="page-head"><h2>Active Trades</h2><button id="clearPositions" class="clear-btn" type="button">Auto-settles</button></div><div id="positionsList"></div></section></main>
+<main class="page-main"><h1 class="page-title">Open Positions</h1><p class="page-sub">Monitor your active contracts.</p><section class="panel page-panel"><div class="page-head"><h2>Active Trades</h2><button id="clearPositions" class="clear-btn safe-clear" type="button">Clear Awaiting Settlement</button></div><div id="positionsList"></div><div id="clearFeedback" class="clear-feedback" role="status" aria-live="polite"></div></section></main>
 <nav class="bottom-nav"><a href="dashboard.html"><span class="nav-icon">▣</span><span>Trade</span></a><a class="active" href="positions.html" aria-current="page"><span class="nav-icon">▥</span><span>Positions</span></a><a href="history.html"><span class="nav-icon">◷</span><span>History</span></a></nav>
-<script src="tradezora-engine.js?v=8"></script><script src="account-pages.js?v=2"></script><script>
+<script src="tradezora-engine.js?v=9"></script><script src="account-pages.js?v=2"></script><script>
 /* LumiBinary account-aware Positions page renderer.
    The shared engine and dashboard use separate Demo and Real position stores.
    Never clear an open position from this page: the engine must settle it. */
@@ -175,13 +175,51 @@
     });
   }
 
-  function protectOpenPositions() {
+  function configureSafeClearButton() {
     const clearButton = $('#clearPositions');
-    if (!clearButton) return;
-    clearButton.disabled = true;
-    clearButton.textContent = 'Auto-settles';
-    clearButton.title = 'Open positions are managed by the trading engine and cannot be cleared from this page.';
-    clearButton.setAttribute('aria-label', 'Open positions settle automatically');
+    const feedback = $('#clearFeedback');
+    if (!clearButton || clearButton.dataset.bound === '1') return;
+    clearButton.dataset.bound = '1';
+
+    clearButton.addEventListener('click', async () => {
+      if (modeNow() !== 'real') {
+        if (feedback) feedback.textContent = 'This cleanup checks Real Test trades only. Demo positions are unchanged.';
+        return;
+      }
+      const engine = window.TradeZoraContinuousEngine;
+      if (!engine || typeof engine.syncRealTrades !== 'function') {
+        if (feedback) feedback.textContent = 'Trade sync is unavailable. Refresh this page and try again.';
+        return;
+      }
+
+      const before = safeArray(stores.real.positions);
+      const awaitingIds = new Set(before
+        .filter(item => Number(item.settleAt) <= Date.now() && Number(item.serverTradeId) > 0)
+        .map(item => Number(item.serverTradeId)));
+      clearButton.disabled = true;
+      clearButton.textContent = 'Checking server…';
+      if (feedback) feedback.textContent = 'Checking each awaiting trade against the server. Open trades will not be deleted.';
+
+      try {
+        await engine.syncRealTrades();
+        const after = safeArray(stores.real.positions);
+        const remainingIds = new Set(after.map(item => Number(item.serverTradeId)).filter(Number.isFinite));
+        let removed = 0;
+        for (const id of awaitingIds) if (!remainingIds.has(id)) removed++;
+        const stillOpen = [...awaitingIds].filter(id => remainingIds.has(id)).length;
+        if (feedback) {
+          feedback.textContent = removed
+            ? `Done: ${removed} confirmed settled/cancelled ${removed === 1 ? 'trade was' : 'trades were'} cleared. ${stillOpen} remain open or need checking.`
+            : `No confirmed stale trades were cleared. ${stillOpen} are still open or awaiting a server result.`;
+        }
+      } catch (error) {
+        if (feedback) feedback.textContent = 'Could not verify trades with the server. Nothing was deleted.';
+      } finally {
+        clearButton.disabled = false;
+        clearButton.textContent = 'Clear Awaiting Settlement';
+        renderPositions();
+      }
+    });
   }
 
   function refreshIfNeeded() {
@@ -197,7 +235,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    protectOpenPositions();
+    configureSafeClearButton();
     renderPositions();
     window.addEventListener('tradezora-state-changed', renderPositions);
     window.addEventListener('storage', (event) => {
