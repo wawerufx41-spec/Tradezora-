@@ -171,9 +171,6 @@
       <button id="withdrawBtn" class="side-link" type="button">
         <span>⇩</span> Withdraw
       </button>
-      <button id="themeSwitch" class="side-link" type="button">
-        <span>☼</span> Dark Theme
-      </button>
       <button id="openLiveChat" class="side-link" type="button">
         <span>●</span> Help Centre <span id="liveChatUnread" hidden style="margin-left:auto;background:#16e58a;color:#031009;border-radius:999px;padding:2px 7px;font-size:10px;font-weight:900">NEW</span>
       </button>
@@ -1302,17 +1299,6 @@ document.addEventListener("DOMContentLoaded", () => {
       depositSubmit.textContent = "Send M-Pesa prompt";
     }
   });
-
-
-  /* =========================
-     THEME
-  ========================= */
-
-  $("#themeSwitch").onclick = () => {
-
-    toast("Dark theme is active.");
-
-  };
 
 
   /* =========================
