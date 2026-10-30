@@ -12,6 +12,7 @@
   const TICK_MS = 500;
   const DEMO_SETTLEMENT_MS = 5000;
   const AUTO_REOPEN_DELAY_MS = 6500;
+  const REMOTE_UNSETTLED_GRACE_MS = 30000;
   const LOCK_KEY = 'lumiBinaryAutoEngineLeader';
   const OWNER = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const LOCK_TTL_MS = 4000;
@@ -110,9 +111,9 @@
     return Number.isSafeInteger(id) && id > 0 ? id : null;
   }
 
-  // Read-only cross-device reconciliation for Real Test trades. The backend
-  // decides whether a trade is open or settled; this function never settles a
-  // trade, changes a wallet, or updates session P/L / W-L counters.
+  // Backend-authoritative cross-device reconciliation. Remote mirrors never
+  // choose a closing digit; after a 30-second grace period they may request the
+  // backend's null-result cancellation/refund failsafe for a stale open trade.
   async function syncRealTradesFromServer(now = Date.now(), force = false) {
     if (realSyncInFlight || !getAuthToken()) return false;
     if (!force && now - lastRealSyncAt < 3000) return false;
@@ -144,6 +145,7 @@
       const serverOpenPositions = [];
       const deferredLocalPositions = [];
       const serverSettledHistory = [];
+      const serverCancelledHistory = [];
 
       for (const row of data.trades) {
         const id = serverTradeId(row && row.id);
@@ -177,6 +179,7 @@
             // Only retain AUTO settlement ownership on the device that already
             // held the local position. Other devices mirror it without settling.
             continuous: Boolean(existingPosition?.continuous),
+            settlementOwner: existingPosition ? existingPosition.settlementOwner !== false : false,
             autoSessionId: existingPosition?.autoSessionId || null
           });
         } else if (status === 'settled') {
@@ -206,6 +209,18 @@
           });
         } else if (status === 'cancelled') {
           cancelledIds.add(id);
+          serverCancelledHistory.push({
+            ...base,
+            finalDigit: null,
+            win: null,
+            profit: null,
+            status: 'cancelled',
+            settlementStatus: 'unsettled',
+            stakeRefunded: true,
+            refundAmount: Number(row.stake ?? existing.stake ?? 0),
+            settledAt: timestampMs(row.settled_at, now),
+            sandboxOnly: row.funding_source !== 'real'
+          });
         }
       }
 
@@ -223,7 +238,7 @@
         const id = serverTradeId(item.serverTradeId);
         if (id === null) return true;
         return !openIds.has(id) && !settledIds.has(id) && !cancelledIds.has(id) && !pendingLocalSettlementIds.has(id);
-      }).concat(serverSettledHistory)
+      }).concat(serverSettledHistory, serverCancelledHistory)
         .sort((a, b) => timestampMs(a.settledAt, 0) - timestampMs(b.settledAt, 0))
         .slice(-100);
 
@@ -237,7 +252,20 @@
         changed = true;
       }
 
-      if (changed) emit();
+      if (changed) {
+        if (data.balances && Number.isFinite(Number(data.balances.real))) {
+          localStorage.setItem('tradezoraRealLastBalance', String(Number(data.balances.real)));
+        }
+        if (data.balances && Number.isFinite(Number(data.balances.test))) {
+          localStorage.setItem('tradezoraSandboxLastBalance', String(Number(data.balances.test)));
+        }
+        if (serverCancelledHistory.length) {
+          window.dispatchEvent(new CustomEvent('tradezora-trade-unsettled', {
+            detail: { accountMode: 'real', count: serverCancelledHistory.length, stakeRefunded: true }
+          }));
+        }
+        emit();
+      }
       return changed;
     } catch (error) {
       // Sync failure must not interrupt existing AUTO operation or erase cache.
@@ -469,7 +497,7 @@
       accountMode: 'real', fundingSource, type, stake, digit, contract,
       mode: 'AUTO', autoSessionId: state.sessionId || null,
       openedAt: now, settleAt: now + DEMO_SETTLEMENT_MS,
-      continuous: true, market: state.market || null
+      continuous: true, settlementOwner: true, market: state.market || null
     };
     const positions = read(KEYS.real.positions, []);
     if (!positions.some(item => item.id === position.id)) positions.push(position);
@@ -480,9 +508,88 @@
   }
 
   async function settleRealPosition(position, now) {
-    const naturalDigit = getNaturalDigit();
-    if (!Number.isInteger(naturalDigit)) throw new Error('Waiting for the latest market quote before settling this Real Test position.');
-    const settled = await apiPost(`/api/sandbox/trades/${Number(position.serverTradeId)}/settle`, { naturalDigit });
+    let settled;
+    try {
+      const naturalDigit = getNaturalDigit();
+      if (!Number.isInteger(naturalDigit)) throw new Error('Latest market quote is unavailable for settlement.');
+      settled = await apiPost(`/api/sandbox/trades/${Number(position.serverTradeId)}/settle`, { naturalDigit });
+    } catch (settlementError) {
+      // A failed or ambiguously acknowledged settlement is never converted to a loss.
+      // Ask the backend to cancel only if it is still open and refund the reserved stake.
+      const cancelled = await apiPost(`/api/sandbox/trades/${Number(position.serverTradeId)}/cancel-unsettled`, {
+        reason: 'settlement_failed'
+      });
+
+      if (cancelled.status === 'cancelled' && cancelled.refunded === true) {
+        const positions = read(KEYS.real.positions, []);
+        const idx = positions.findIndex(item => item.id === position.id);
+        if (idx >= 0) positions.splice(idx, 1);
+
+        const fundingSource = cancelled.fundingSource || position.fundingSource || 'test';
+        const unresolvedTrade = {
+          ...position,
+          fundingSource,
+          finalDigit: null,
+          win: null,
+          profit: null,
+          status: 'cancelled',
+          settlementStatus: 'unsettled',
+          stakeRefunded: true,
+          refundAmount: Number(cancelled.refundedAmount ?? position.stake),
+          settledAt: now,
+          sandboxOnly: cancelled.sandbox_only === true
+        };
+        const history = read(KEYS.real.history, []);
+        if (!history.some(item => Number(item.serverTradeId) === Number(position.serverTradeId))) {
+          history.push(unresolvedTrade);
+        }
+        write(KEYS.real.history, history.slice(-100));
+        write(KEYS.real.positions, positions);
+
+        if (Number.isFinite(Number(cancelled.balance))) {
+          const cacheKey = fundingSource === 'real' ? 'tradezoraRealLastBalance' : 'tradezoraSandboxLastBalance';
+          localStorage.setItem(cacheKey, String(Number(cancelled.balance)));
+        }
+        // Deliberately do not dispatch trade-settled or touch session P/L/W-L.
+        window.dispatchEvent(new CustomEvent('tradezora-trade-unsettled', {
+          detail: { tradeId: Number(position.serverTradeId), stakeRefunded: true, refundAmount: unresolvedTrade.refundAmount, accountMode: 'real' }
+        }));
+        emit();
+        return true;
+      }
+
+      if (cancelled.status === 'settled') {
+        // Settlement committed but its response was lost. Use the stored result.
+        settled = cancelled;
+      } else {
+        throw new Error(`Settlement failed (${settlementError.message}); backend did not confirm a refund or final result.`);
+      }
+    }
+
+    if (settled.status === 'cancelled' && settled.refunded === true) {
+      // Idempotent retry of a cancellation already recorded by the backend.
+      const positions = read(KEYS.real.positions, []);
+      const idx = positions.findIndex(item => item.id === position.id);
+      if (idx >= 0) positions.splice(idx, 1);
+      const fundingSource = settled.fundingSource || position.fundingSource || 'test';
+      const unresolvedTrade = {
+        ...position, fundingSource, finalDigit: null, win: null, profit: null,
+        status: 'cancelled', settlementStatus: 'unsettled', stakeRefunded: true,
+        refundAmount: Number(settled.refundedAmount ?? position.stake), settledAt: now,
+        sandboxOnly: settled.sandbox_only === true
+      };
+      const history = read(KEYS.real.history, []);
+      if (!history.some(item => Number(item.serverTradeId) === Number(position.serverTradeId))) history.push(unresolvedTrade);
+      write(KEYS.real.history, history.slice(-100));
+      write(KEYS.real.positions, positions);
+      if (Number.isFinite(Number(settled.balance))) {
+        const cacheKey = fundingSource === 'real' ? 'tradezoraRealLastBalance' : 'tradezoraSandboxLastBalance';
+        localStorage.setItem(cacheKey, String(Number(settled.balance)));
+      }
+      emit();
+      return true;
+    }
+
     const positions = read(KEYS.real.positions, []);
     const idx = positions.findIndex(item => item.id === position.id);
     if (idx < 0) return true;
@@ -494,6 +601,7 @@
       finalDigit: Number(settled.finalDigit),
       win: Boolean(settled.win),
       profit: Number(settled.profit || 0),
+      status: 'settled',
       settledAt: now,
       sandboxOnly: settled.sandbox_only === true
     };
@@ -509,7 +617,7 @@
 
     const state = getState('real');
     let sessionState = state;
-    let tradePnl = finalTrade.win ? finalTrade.profit : -Number(finalTrade.stake || 0);
+    const tradePnl = finalTrade.win ? finalTrade.profit : -Number(finalTrade.stake || 0);
     if (finalTrade.mode === 'AUTO' && finalTrade.autoSessionId && finalTrade.autoSessionId === state.sessionId) {
       sessionState = updateSessionAfterSettlement('real', state, finalTrade, finalTrade.win, finalTrade.profit, now).state;
       write(KEYS.real.state, sessionState);
@@ -584,8 +692,40 @@
         }
         if (changed) emit();
       } else {
-        const positions = read(keys.positions, []);
-        const due = positions.find(position => position.continuous && Number(position.settleAt || 0) <= now);
+        let positions = read(keys.positions, []);
+        const remoteUnsettled = positions.find(position =>
+          position.settlementOwner === false &&
+          serverTradeId(position.serverTradeId) !== null &&
+          Number(position.openedAt || 0) > 0 &&
+          now - Number(position.openedAt) >= REMOTE_UNSETTLED_GRACE_MS &&
+          now >= Number(position.unsettledFallbackRetryAt || 0)
+        );
+        if (remoteUnsettled) {
+          try {
+            // The original device normally settles first. If it has not done so
+            // after the grace period, ask the server to refund only if still open.
+            // A prior successful settlement is returned unchanged by this endpoint.
+            await apiPost(`/api/sandbox/trades/${Number(remoteUnsettled.serverTradeId)}/cancel-unsettled`, {
+              reason: 'remote_unsettled_timeout'
+            });
+            await syncRealTradesFromServer(Date.now(), true);
+          } catch (error) {
+            const latest = read(keys.positions, []);
+            const idx = latest.findIndex(item => Number(item.serverTradeId) === Number(remoteUnsettled.serverTradeId));
+            if (idx >= 0) {
+              latest[idx] = { ...latest[idx], unsettledFallbackRetryAt: now + 5000 };
+              write(keys.positions, latest);
+            }
+            console.warn('Remote unsettled-trade fallback could not be confirmed:', error.message);
+          }
+          positions = read(keys.positions, []);
+        }
+
+        const due = positions.find(position =>
+          position.settlementOwner !== false &&
+          Number(position.serverTradeId) > 0 &&
+          Number(position.settleAt || 0) <= now
+        );
         if (due) {
           try {
             await settleRealPosition(due, now);
@@ -620,7 +760,6 @@
 
   const api = {
     getState,
-    syncRealTrades: () => syncRealTradesFromServer(Date.now(), true),
     start(config = {}) {
       const mode = getMode(config.accountMode);
       const keys = keysFor(mode);
