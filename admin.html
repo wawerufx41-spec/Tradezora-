@@ -34,6 +34,7 @@
 .wallet-table caption{text-align:left;padding:10px 12px;color:var(--muted);font-size:10px}
 .wallet-table-toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:8px 0}
 .wallet-table-count{font-size:10px;color:var(--muted)}
+.wallet-trade-note{font-size:10px;color:var(--muted);line-height:1.45;margin:-3px 0 10px}
 
 </style>
 </head>
@@ -89,12 +90,28 @@
   <div class="wallet-table-wrap" id="realLedgerTableWrap" hidden>
     <table class="wallet-table"><thead><tr><th>Date</th><th>Transaction ID</th><th>User / account</th><th>Type</th><th>Recorded amount</th><th>Balance change</th><th>Balance before</th><th>Balance after</th><th>Reference</th><th>Description</th></tr></thead><tbody id="realLedgerTable"></tbody></table>
   </div>
+  <h3 style="font-size:13px;margin:18px 0 9px">Real-balance-funded trade outcomes</h3>
+  <p class="wallet-trade-note">Internal TradeZora engine records funded from users' real_balance wallet. These are sandbox-engine outcomes, not broker-confirmed executions.</p>
+  <input id="realTradesSearch" class="search" placeholder="Filter trades by user, ID, contract or result…">
+  <div class="wallet-table-toolbar"><span class="wallet-table-count" id="realTradesCount">No trade outcomes loaded.</span></div>
+  <div id="realTradesMessage" class="empty"><strong>Real-balance-funded trade outcomes not loaded.</strong></div>
+  <div class="wallet-table-wrap" id="realTradesTableWrap" hidden>
+    <table class="wallet-table"><thead><tr><th>Opened</th><th>Trade ID</th><th>User / account</th><th>Contract</th><th>Barrier</th><th>Final digit</th><th>Stake</th><th>Outcome</th><th>Net P/L</th><th>Settled</th></tr></thead><tbody id="realTradesTable"></tbody></table>
+  </div>
   <h3 style="font-size:13px;margin:18px 0 9px">Sandbox / Real Test ledger (not real-money)</h3>
   <input id="sandboxLedgerSearch" class="search" placeholder="Filter sandbox entries by user, type, ID or reference…">
   <div class="wallet-table-toolbar"><span class="wallet-table-count" id="sandboxLedgerCount">No sandbox statement loaded.</span></div>
   <div id="sandboxLedgerMessage" class="empty"><strong>Sandbox ledger not loaded.</strong></div>
   <div class="wallet-table-wrap" id="sandboxLedgerTableWrap" hidden>
     <table class="wallet-table"><thead><tr><th>Date</th><th>Transaction ID</th><th>User / account</th><th>Type</th><th>Recorded amount</th><th>Balance change</th><th>Balance before</th><th>Balance after</th><th>Reference</th><th>Description</th></tr></thead><tbody id="sandboxLedgerTable"></tbody></table>
+  </div>
+  <h3 style="font-size:13px;margin:18px 0 9px">Real Test-funded trade outcomes</h3>
+  <p class="wallet-trade-note">These results use the separate non-withdrawable Real Test wallet and are excluded from real-money wallet totals.</p>
+  <input id="sandboxTradesSearch" class="search" placeholder="Filter Real Test trades by user, ID, contract or result…">
+  <div class="wallet-table-toolbar"><span class="wallet-table-count" id="sandboxTradesCount">No test trade outcomes loaded.</span></div>
+  <div id="sandboxTradesMessage" class="empty"><strong>Real Test trade outcomes not loaded.</strong></div>
+  <div class="wallet-table-wrap" id="sandboxTradesTableWrap" hidden>
+    <table class="wallet-table"><thead><tr><th>Opened</th><th>Trade ID</th><th>User / account</th><th>Contract</th><th>Barrier</th><th>Final digit</th><th>Stake</th><th>Outcome</th><th>Net P/L</th><th>Settled</th></tr></thead><tbody id="sandboxTradesTable"></tbody></table>
   </div>
   <p style="font-size:10px;color:var(--muted);line-height:1.5;margin:12px 0 0">Reconciliation compares each account's current real_balance with its latest real-ledger balance_after and checks the sequence between ledger entries. Accounts with no ledger entries are reported as unverified, not automatically treated as mismatches. This is an operational check, not an independent financial audit.</p>
 </section>
@@ -223,7 +240,7 @@ $("#grantRealTestFundsAll").addEventListener("click",()=>operateAllRealTestFunds
 $("#reverseRealTestFundsAll").addEventListener("click",()=>operateAllRealTestFunds("reverse-all"));
 
 const walletMoney=value=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(Number(value||0));
-let walletAuditData={accounts:[],ledger:[],sandbox_ledger:[]};
+let walletAuditData={accounts:[],ledger:[],sandbox_ledger:[],real_balance_trades:[],sandbox_trades:[]};
 function walletAuditStatus(message,ok=false){const el=$("#walletAuditStatus");el.textContent=message;el.className="status "+(ok?"ok":"error");}
 function walletEntryDelta(row){if(row.balance_before===null||row.balance_before===undefined||row.balance_after===null||row.balance_after===undefined)return null;return Number(row.balance_after)-Number(row.balance_before);}
 function walletStatusBadge(state){
@@ -268,6 +285,44 @@ function renderWalletEntries(which){
   return `<tr><td>${escapeHtml(formatKycDate(row.created_at))}</td><td class="muted-cell">#${escapeHtml(row.id??"—")}</td><td class="account-cell">${who}</td><td><span class="table-badge ${isSandbox?"warn":"approved"}">${escapeHtml(type)}</span></td><td class="money-cell">${row.amount==null?"—":escapeHtml(walletMoney(row.amount))}</td><td class="money-cell ${deltaClass}">${escapeHtml(deltaText)}</td><td class="money-cell">${row.balance_before==null?"—":escapeHtml(walletMoney(row.balance_before))}</td><td class="money-cell">${row.balance_after==null?"—":escapeHtml(walletMoney(row.balance_after))}</td><td class="reference-cell">${escapeHtml(ref)}</td><td class="description-cell">${escapeHtml(row.description||"—")}</td></tr>`;
  }).join("");
 }
+function renderWalletTrades(which){
+ const isSandbox=which==="sandbox";
+ const rows=isSandbox?walletAuditData.sandbox_trades:walletAuditData.real_balance_trades;
+ const search=$(isSandbox?"#sandboxTradesSearch":"#realTradesSearch").value.trim().toLowerCase();
+ const message=$(isSandbox?"#sandboxTradesMessage":"#realTradesMessage");
+ const wrap=$(isSandbox?"#sandboxTradesTableWrap":"#realTradesTableWrap");
+ const body=$(isSandbox?"#sandboxTradesTable":"#realTradesTable");
+ const count=$(isSandbox?"#sandboxTradesCount":"#realTradesCount");
+ const outcomeOf=t=>{
+  const status=String(t.status||"").toLowerCase();
+  if(status==="settled"&&t.won===true)return {label:"WON",cls:"approved",pnl:Number(t.profit??0)};
+  if(status==="settled"&&t.won===false)return {label:"LOST",cls:"rejected",pnl:-Number(t.stake||0)};
+  if(status==="cancelled")return {label:"UNSETTLED / REFUNDED",cls:"warn",pnl:null};
+  if(status==="open")return {label:"OPEN",cls:"warn",pnl:null};
+  return {label:status?status.toUpperCase():"UNKNOWN",cls:"warn",pnl:null};
+ };
+ const filtered=rows.filter(t=>{
+  const outcome=outcomeOf(t).label;
+  return `${t.id??""} ${t.user_name||""} ${t.user_email||""} ${t.user_id??""} ${t.trade_type||""} ${t.contract_type||""} ${t.barrier_digit??""} ${t.final_digit??""} ${outcome} ${t.status||""}`.toLowerCase().includes(search);
+ });
+ const wins=filtered.filter(t=>outcomeOf(t).label==="WON").length;
+ const losses=filtered.filter(t=>outcomeOf(t).label==="LOST").length;
+ const open=filtered.filter(t=>outcomeOf(t).label==="OPEN").length;
+ const unsettled=filtered.filter(t=>outcomeOf(t).label==="UNSETTLED / REFUNDED").length;
+ count.textContent=`Showing ${filtered.length.toLocaleString()} of ${rows.length.toLocaleString()} · ${wins} won · ${losses} lost · ${open} open · ${unsettled} unsettled`;
+ body.innerHTML="";
+ if(!filtered.length){wrap.hidden=true;message.style.display="block";message.innerHTML=isSandbox?"<strong>No Real Test trade outcomes match this filter.</strong>":"<strong>No real-balance-funded trade outcomes match this filter.</strong>";return;}
+ message.style.display="none";wrap.hidden=false;
+ body.innerHTML=filtered.map(t=>{
+  const outcome=outcomeOf(t);
+  const account=`<strong>${escapeHtml(t.user_name||"User")}</strong><br><span class="muted-cell">${escapeHtml(t.user_email||"")}</span><br><span class="muted-cell">#${escapeHtml(t.user_id??"—")}</span>`;
+  const contract=`${String(t.trade_type||"Trade").toUpperCase()} <span class="muted-cell">(${escapeHtml(t.contract_type||"—")})</span>`;
+  const pnlText=outcome.pnl===null?"—":(outcome.pnl>0?"+":"")+walletMoney(outcome.pnl);
+  const pnlClass=outcome.pnl===null?"muted-cell":outcome.pnl>0?"positive":outcome.pnl<0?"negative":"muted-cell";
+  return `<tr><td>${escapeHtml(formatKycDate(t.opened_at))}</td><td class="muted-cell">#${escapeHtml(t.id??"—")}</td><td class="account-cell">${account}</td><td>${contract}</td><td>${t.barrier_digit==null?"—":escapeHtml(t.barrier_digit)}</td><td>${t.final_digit==null?"—":escapeHtml(t.final_digit)}</td><td class="money-cell">${t.stake==null?"—":escapeHtml(walletMoney(t.stake))}</td><td><span class="table-badge ${outcome.cls}">${outcome.label}</span></td><td class="money-cell ${pnlClass}">${escapeHtml(pnlText)}</td><td>${escapeHtml(formatKycDate(t.settled_at))}</td></tr>`;
+ }).join("");
+}
+
 async function loadLedger(){
  const button=$("#refreshLedger");if(button){button.disabled=true;button.textContent="Checking…";}
  walletAuditStatus("Loading real wallet balances and ledger reconciliation…");
@@ -275,7 +330,7 @@ async function loadLedger(){
   const token=localStorage.getItem("tradezoraAuthToken");if(!token)throw new Error("Admin login is required.");
   const response=await fetch(`${API_BASE}/api/admin/ledger?limit=200`,{headers:{Authorization:`Bearer ${token}`,Accept:"application/json"},cache:"no-store"});
   const data=await response.json().catch(()=>({}));if(!response.ok||!data.success)throw new Error(data.error||`Wallet audit failed (HTTP ${response.status}).`);
-  walletAuditData={accounts:Array.isArray(data.wallet_accounts)?data.wallet_accounts:[],ledger:Array.isArray(data.ledger)?data.ledger:[],sandbox_ledger:Array.isArray(data.sandbox_ledger)?data.sandbox_ledger:[]};
+  walletAuditData={accounts:Array.isArray(data.wallet_accounts)?data.wallet_accounts:[],ledger:Array.isArray(data.ledger)?data.ledger:[],sandbox_ledger:Array.isArray(data.sandbox_ledger)?data.sandbox_ledger:[],real_balance_trades:Array.isArray(data.real_balance_trades)?data.real_balance_trades:[],sandbox_trades:Array.isArray(data.sandbox_trades)?data.sandbox_trades:[]};
   const summary=data.wallet_summary||{},activity=data.activity_totals||{};
   $("#walletTotalBalance").textContent=walletMoney(summary.total_real_balance_usd);
   $("#walletFundedAccounts").textContent=Number(summary.funded_accounts||0).toLocaleString();
@@ -289,7 +344,7 @@ async function loadLedger(){
   const issues=Number(summary.current_balance_mismatches||0)+Number(summary.ledger_chain_breaks||0);
   const noLedger=Number(summary.accounts_without_ledger||0);
   walletAuditStatus(issues?`ATTENTION: ${Number(summary.current_balance_mismatches||0)} current-balance mismatch(es) and ${Number(summary.ledger_chain_breaks||0)} ledger chain break(s) found. Pause balance-changing operations for affected accounts until reviewed.`:`Reconciliation passed for recorded ledger activity. ${noLedger} account(s) have no ledger entries and are shown as unverified, not as mismatches.`,!issues);
-  renderWalletAccounts();renderWalletEntries("real");renderWalletEntries("sandbox");
+  renderWalletAccounts();renderWalletEntries("real");renderWalletEntries("sandbox");renderWalletTrades("real");renderWalletTrades("sandbox");
  }catch(error){walletAuditStatus(error.message||"Could not load wallet audit.");$("#walletAccountsMessage").innerHTML=`<strong>${escapeHtml(error.message||"Wallet audit unavailable.")}</strong>`;$("#realLedgerMessage").innerHTML="<strong>Real-money ledger unavailable.</strong>";$("#sandboxLedgerMessage").innerHTML="<strong>Sandbox ledger unavailable.</strong>";}
  finally{if(button){button.disabled=false;button.textContent="Refresh audit";}}
 }
@@ -297,6 +352,8 @@ $("#refreshLedger").addEventListener("click",loadLedger);
 $("#walletAccountSearch").addEventListener("input",renderWalletAccounts);
 $("#realLedgerSearch").addEventListener("input",()=>renderWalletEntries("real"));
 $("#sandboxLedgerSearch").addEventListener("input",()=>renderWalletEntries("sandbox"));
+$("#realTradesSearch").addEventListener("input",()=>renderWalletTrades("real"));
+$("#sandboxTradesSearch").addEventListener("input",()=>renderWalletTrades("sandbox"));
 
 async function verifyAdmin(){
  const token=localStorage.getItem("tradezoraAuthToken");
