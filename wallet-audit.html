@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LumiBinary · Real Wallet Check</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1220;--panel:#111c2e;--line:#24334a;--text:#edf3fb;--muted:#9fb0c6;--green:#36c98f;--red:#ff7373;--amber:#f4c46b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:24px}
+main{max-width:760px;margin:5vh auto}.brand{color:var(--green);font-weight:750;letter-spacing:.04em}h1{font-size:clamp(25px,5vw,34px);margin:8px 0}.muted{color:var(--muted)}.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;margin:16px 0}.balance{font-size:38px;font-weight:800;letter-spacing:-.03em;margin:8px 0}.status{display:inline-block;padding:5px 10px;border-radius:999px;border:1px solid var(--line);font-weight:700}.ok{color:var(--green)}.bad{color:var(--red)}.warn{color:var(--amber)}button{border:0;border-radius:10px;background:var(--green);color:#06150f;font-weight:800;padding:12px 18px;font-size:15px;cursor:pointer}button:disabled{opacity:.6;cursor:wait}.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.small{font-size:13px}.entry{padding:12px 0;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr auto;gap:8px}.entry:first-child{border-top:0}.amount{font-weight:750;text-align:right}.error{color:var(--red);white-space:pre-wrap}.foot{font-size:12px;color:var(--muted);margin-top:22px}a{color:var(--green)}
+</style>
+</head>
+<body>
+<main>
+  <div class="brand">LUMIBINARY · WALLET TOOLS</div>
+  <h1>Real Balance Check</h1>
+  <p class="muted">Read-only check of your server-side real-money balance and latest ledger entries. This page cannot deposit, withdraw, trade, or change your balance.</p>
+  <section class="panel">
+    <div class="row" style="justify-content:space-between"><strong>Real-money wallet</strong><span id="status" class="status">Not checked</span></div>
+    <div id="balance" class="balance">—</div>
+    <div id="updated" class="muted small">Press Check wallet to read the backend.</div>
+    <div class="row" style="margin-top:18px"><button id="check" type="button">Check wallet</button><button id="back" type="button" style="background:#24334a;color:var(--text)">Back to dashboard</button></div>
+    <p id="message" class="small muted" aria-live="polite"></p>
+  </section>
+  <section class="panel">
+    <strong>Recent ledger consistency</strong>
+    <p id="consistency" class="muted">Not checked yet.</p>
+    <p id="scope" class="muted small"></p>
+  </section>
+  <section class="panel">
+    <strong>Recent real-wallet movements</strong>
+    <div id="entries" class="muted small" style="margin-top:10px">No statement loaded yet.</div>
+  </section>
+  <p class="foot">This check is read-only. The ledger consistency result covers only the recent entries returned by the backend; it is not a full independent audit of every historical transaction.</p>
+</main>
+<script>
+(() => {
+  'use strict';
+  const API = 'https://tradezora-backend-1.onrender.com';
+  const $ = id => document.getElementById(id);
+  const token = () => localStorage.getItem('tradezoraAuthToken') || localStorage.getItem('session_token') || localStorage.getItem('sessionToken') || '';
+  const money = n => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(n));
+  const safe = v => v === null || v === undefined || v === '' ? '—' : String(v);
+  function setStatus(text,kind){$('status').textContent=text;$('status').className='status '+(kind||'');}
+  $('back').addEventListener('click',()=>location.href='dashboard.html');
+  $('check').addEventListener('click', async () => {
+    const authToken = token();
+    if (!authToken) {
+      setStatus('Login required','warn');
+      $('message').textContent='Please open your LumiBinary dashboard, log in, then open this page in the same browser.';
+      return;
+    }
+    $('check').disabled=true; $('message').textContent='Reading your wallet statement…';
+    setStatus('Checking…','warn');
+    try {
+      const response = await fetch(API+'/api/real-account/ledger?limit=20', {
+        method:'GET',headers:{Authorization:'Bearer '+authToken,Accept:'application/json'},cache:'no-store'
+      });
+      const data = await response.json().catch(()=>({}));
+      if (!response.ok || data.success !== true) throw new Error(data.error || ('Backend returned HTTP '+response.status));
+      $('balance').textContent=money(data.balance);
+      $('updated').textContent='Server balance · Updated '+(data.updated_at ? new Date(data.updated_at).toLocaleString() : 'time unavailable');
+      const consistent = data.ledger_consistent === true;
+      $('consistency').innerHTML = consistent ? '<span class="ok">✓ Recent ledger entries line up with the current balance.</span>' : '<span class="bad">! Ledger mismatch reported. Do not make balance-changing test transactions until reviewed.</span>';
+      $('scope').textContent=data.ledger_check_scope || '';
+      const entries=Array.isArray(data.entries)?data.entries:[];
+      const list=$('entries'); list.replaceChildren();
+      if(!entries.length){list.textContent='No ledger entries were returned for this account.';}
+      else entries.forEach(entry=>{
+        const item=document.createElement('div');item.className='entry';
+        const left=document.createElement('div');
+        const title=document.createElement('strong');title.textContent=safe(entry.type).replaceAll('_',' ').toUpperCase();
+        const meta=document.createElement('div');meta.className='muted small';meta.textContent=(entry.created_at?new Date(entry.created_at).toLocaleString():'')+(entry.description?' · '+entry.description:'');
+        const amounts=document.createElement('div');amounts.className='amount';amounts.textContent=money(entry.amount);
+        const before=document.createElement('div');before.className='muted small';before.textContent=safe(entry.balance_before)+' → '+safe(entry.balance_after);
+        left.append(title,meta);item.append(left,document.createElement('div'));item.lastChild.append(amounts,before);list.appendChild(item);
+      });
+      setStatus(consistent?'Statement check passed':'Review required',consistent?'ok':'bad');
+      $('message').textContent='Read-only request completed successfully (HTTP '+response.status+').';
+    } catch(error) {
+      setStatus('Could not verify','bad');$('message').className='small error';$('message').textContent=error.message+'\nNo balance changes were made.';
+    } finally {$('check').disabled=false;}
+  });
+})();
+</script>
+</body>
+</html>
