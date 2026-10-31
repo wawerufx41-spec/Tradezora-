@@ -459,7 +459,7 @@
   };
 })();
 </script>
-<script src="tradezora-engine.js?v=6"></script>
+<script src="tradezora-engine.js?v=10"></script>
   <script>
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -953,6 +953,33 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function makeClientRequestId() {
+    if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+    const bytes = new Uint8Array(16);
+    window.crypto.getRandomValues(bytes);
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    const hex = Array.from(bytes, value => value.toString(16).padStart(2, "0"));
+    return `${hex.slice(0,4).join("")}-${hex.slice(4,6).join("")}-${hex.slice(6,8).join("")}-${hex.slice(8,10).join("")}-${hex.slice(10).join("")}`;
+  }
+
+  function getPendingClientRequestId(storageKey) {
+    let id = localStorage.getItem(storageKey);
+    if (!id) {
+      id = makeClientRequestId();
+      localStorage.setItem(storageKey, id);
+    }
+    return id;
+  }
+
+  function clearPendingClientRequestId(storageKey) {
+    try { localStorage.removeItem(storageKey); } catch (_) {}
+  }
+
+  const DEPOSIT_REQUEST_KEY = "tradezoraPendingDepositRequestId";
+  const WITHDRAWAL_REQUEST_KEY = "tradezoraPendingWithdrawalRequestId";
+  const REAL_TRADE_REQUEST_KEY = "tradezoraPendingRealTradeOpen";
+
   async function paymentApi(path, options = {}) {
     const token = localStorage.getItem("tradezoraAuthToken") ||
       localStorage.getItem("session_token") || localStorage.getItem("sessionToken");
@@ -969,7 +996,10 @@ document.addEventListener("DOMContentLoaded", () => {
     let data = {};
     try { data = await response.json(); } catch (_) {}
     if (!response.ok || data.success === false) {
-      throw new Error(data.error || `Request failed (${response.status}).`);
+      const error = new Error(data.error || `Request failed (${response.status}).`);
+      error.status = response.status;
+      error.data = data;
+      throw error;
     }
     return data;
   }
@@ -1003,6 +1033,30 @@ document.addEventListener("DOMContentLoaded", () => {
       if (accountMode === "real") toast("Actual real-money balance unavailable. No funds were changed.");
     }
   }
+
+  window.addEventListener("tradezora-wallet-balance-updated", (event) => {
+    const detail = event.detail || {};
+    const value = Number(detail.balance);
+    if (detail.accountMode !== "real" || !Number.isFinite(value) || value < 0) return;
+    if (detail.fundingSource === "real") {
+      realBalance = value;
+      realBalanceLoadStatus = "loaded";
+    } else if (detail.fundingSource === "test") {
+      sandboxBalance = value;
+      sandboxBalanceLoadStatus = "loaded";
+    }
+    renderBalance();
+  });
+
+  // Provider-confirmed deposits, admin-reviewed withdrawals and activity on
+  // another device are reflected without requiring the user to reload.
+  window.setInterval(() => {
+    if (accountMode !== "real" || document.visibilityState !== "visible") return;
+    refreshActiveRealBalance();
+    refreshSandboxBalance();
+    if (depositModal?.classList.contains("open")) loadRealAccountAndDeposits();
+    if (withdrawModal?.classList.contains("open")) loadWithdrawBalance();
+  }, 15000);
 
   // This wallet is only for sandbox stake checks. It is never rendered as the account balance.
   async function refreshSandboxBalance() {
@@ -1099,6 +1153,12 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const data = await paymentApi("/api/real-account");
       const account = data.account || data;
+      const currentBalance = Number(account.balance);
+      if (Number.isFinite(currentBalance) && currentBalance >= 0) {
+        realBalance = currentBalance;
+        realBalanceLoadStatus = "loaded";
+        renderBalance();
+      }
       if (realAccountBalance) realAccountBalance.textContent = formatUsd(account.balance);
     } catch (error) {
       if (realAccountBalance) realAccountBalance.textContent = "Unavailable";
@@ -1205,6 +1265,12 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const data = await paymentApi("/api/real-account");
       const account = data.account || data;
+      const currentBalance = Number(account.balance);
+      if (Number.isFinite(currentBalance) && currentBalance >= 0) {
+        realBalance = currentBalance;
+        realBalanceLoadStatus = "loaded";
+        renderBalance();
+      }
       withdrawRealBalance.textContent = formatUsd(account.balance);
     } catch (error) {
       withdrawRealBalance.textContent = "Unavailable";
@@ -1260,13 +1326,22 @@ document.addEventListener("DOMContentLoaded", () => {
     withdrawSubmit.textContent = "Submitting request…";
     showWithdrawFeedback("Submitting your withdrawal request. Please wait and do not submit it again.");
     try {
+      const clientRequestId = getPendingClientRequestId(WITHDRAWAL_REQUEST_KEY);
       const data = await paymentApi("/api/payments/mpesa/withdrawal", {
         method: "POST",
         body: JSON.stringify({
           amount_usd: amount.toFixed(2),
-          phone_number: phone
+          phone_number: phone,
+          client_request_id: clientRequestId
         })
       });
+      clearPendingClientRequestId(WITHDRAWAL_REQUEST_KEY);
+      const returnedBalance = Number(data.balance);
+      if (Number.isFinite(returnedBalance) && returnedBalance >= 0) {
+        realBalance = returnedBalance;
+        realBalanceLoadStatus = "loaded";
+        renderBalance();
+      }
       showWithdrawFeedback(
         `${data.message || "Withdrawal request submitted for review."} Amount requested: ${formatUsd(amount)}. The amount is reserved from your real-money balance; payout is not automatic.`
       );
@@ -1275,6 +1350,9 @@ document.addEventListener("DOMContentLoaded", () => {
       withdrawForm.reset();
       updateWithdrawConversion();
     } catch (error) {
+      if (error.status && error.status < 500 && error.data?.code !== "IDEMPOTENCY_CONFLICT") {
+        clearPendingClientRequestId(WITHDRAWAL_REQUEST_KEY);
+      }
       showWithdrawFeedback(error.message || "Could not submit the withdrawal request. Please check your details and try again.", true);
       await loadWithdrawBalance();
     } finally {
@@ -1304,10 +1382,12 @@ document.addEventListener("DOMContentLoaded", () => {
     depositSubmit.textContent = "Sending prompt…";
     showDepositFeedback("Contacting M-Pesa. Please wait and do not submit the same payment repeatedly.");
     try {
+      const clientRequestId = getPendingClientRequestId(DEPOSIT_REQUEST_KEY);
       const data = await paymentApi("/api/payments/mpesa/deposit", {
         method: "POST",
-        body: JSON.stringify({ amount_usd: amount.toFixed(2), phone_number: phone })
+        body: JSON.stringify({ amount_usd: amount.toFixed(2), phone_number: phone, client_request_id: clientRequestId })
       });
+      clearPendingClientRequestId(DEPOSIT_REQUEST_KEY);
       const deposit = data.deposit || {};
       const kes = Number(deposit.amount_kes || Math.round(amount * USD_TO_KES));
       showDepositFeedback(
@@ -1315,7 +1395,13 @@ document.addEventListener("DOMContentLoaded", () => {
       );
       await loadRealAccountAndDeposits();
     } catch (error) {
+      if (error.status && error.status < 500 && error.data?.code !== "IDEMPOTENCY_CONFLICT") {
+        clearPendingClientRequestId(DEPOSIT_REQUEST_KEY);
+      }
       showDepositFeedback(error.message || "Could not start the M-Pesa payment. Please try again.", true);
+      if (error.data?.requiresReview) {
+        showDepositFeedback(`${error.message} Do not submit again until the request is reconciled.`, true);
+      }
     } finally {
       depositSubmit.disabled = false;
       depositSubmit.textContent = "Send M-Pesa prompt";
@@ -2512,6 +2598,114 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (_) { return { error: true }; }
   }
 
+  function getPendingRealTradeOpenRequestId(signature) {
+    let pending = null;
+    try { pending = JSON.parse(localStorage.getItem(REAL_TRADE_REQUEST_KEY) || "null"); } catch (_) {}
+    if (pending?.id) {
+      if (pending.signature !== signature) {
+        throw new Error("A previous real-account trade request is still awaiting confirmation. Retry the same trade settings or refresh Positions before changing the stake or contract.");
+      }
+      return pending.id;
+    }
+    const id = makeClientRequestId();
+    localStorage.setItem(REAL_TRADE_REQUEST_KEY, JSON.stringify({ id, signature, createdAt: Date.now() }));
+    return id;
+  }
+
+  function clearPendingRealTradeOpenRequestId(id) {
+    try {
+      const pending = JSON.parse(localStorage.getItem(REAL_TRADE_REQUEST_KEY) || "null");
+      if (pending?.id === id) localStorage.removeItem(REAL_TRADE_REQUEST_KEY);
+    } catch (_) {}
+  }
+
+  function applyManualRealWalletBalance(fundingSource, value, tradeId) {
+    const balance = Number(value);
+    if (!Number.isFinite(balance) || balance < 0) return;
+    if (fundingSource === "real") {
+      realBalance = balance;
+      realBalanceLoadStatus = "loaded";
+    } else {
+      sandboxBalance = balance;
+      sandboxBalanceLoadStatus = "loaded";
+    }
+    window.dispatchEvent(new CustomEvent("tradezora-wallet-balance-updated", {
+      detail: { accountMode: "real", fundingSource, balance, tradeId }
+    }));
+  }
+
+  function recordManualRealSettlement(position, settled) {
+    const index = positions.findIndex(item => item.id === position.id);
+    if (index < 0) return;
+    positions.splice(index, 1);
+    const settledSource = settled.fundingSource || position.fundingSource || "test";
+    const finalTrade = {
+      ...position,
+      fundingSource: settledSource,
+      finalDigit: Number(settled.finalDigit),
+      win: Boolean(settled.win),
+      profit: Number(settled.profit || 0),
+      status: "settled",
+      settledAt: Date.now(),
+      sandboxOnly: settled.sandbox_only === true
+    };
+    history.push(finalTrade);
+    if (history.length > 100) history.shift();
+    saveTradeState();
+    applyManualRealWalletBalance(settledSource, settled.balance, position.serverTradeId);
+    showTradeDigitResult(finalTrade.finalDigit, finalTrade.win);
+    try {
+      window.dispatchEvent(new CustomEvent("tradezora-trade-settled", {
+        detail: {
+          digit: finalTrade.finalDigit, win: finalTrade.win, profit: finalTrade.profit,
+          stake: finalTrade.stake, mode: finalTrade.mode, autoSessionId: finalTrade.autoSessionId,
+          accountMode: "real", sandboxOnly: settled.sandbox_only === true, fundingSource: settledSource
+        }
+      }));
+    } catch (_) {}
+    renderBalance();
+    renderLists();
+    toast(finalTrade.win
+      ? `Internal-engine trade won — digit ${finalTrade.finalDigit}`
+      : `Internal-engine trade lost — digit ${finalTrade.finalDigit}`);
+  }
+
+  function recordManualRealUnsettled(position, cancelled) {
+    if (cancelled.status !== "cancelled" || cancelled.refunded !== true) return false;
+    const index = positions.findIndex(item => item.id === position.id);
+    if (index >= 0) positions.splice(index, 1);
+    const fundingSource = cancelled.fundingSource || position.fundingSource || "test";
+    const unresolved = {
+      ...position,
+      fundingSource,
+      finalDigit: null,
+      win: null,
+      profit: null,
+      status: "cancelled",
+      settlementStatus: "unsettled",
+      stakeRefunded: true,
+      refundAmount: Number(cancelled.refundedAmount ?? position.stake),
+      settledAt: Date.now(),
+      sandboxOnly: cancelled.sandbox_only === true
+    };
+    if (!history.some(item => Number(item.serverTradeId) === Number(position.serverTradeId))) {
+      history.push(unresolved);
+      if (history.length > 100) history.shift();
+    }
+    saveTradeState();
+    applyManualRealWalletBalance(fundingSource, cancelled.balance, position.serverTradeId);
+    window.dispatchEvent(new CustomEvent("tradezora-trade-unsettled", {
+      detail: {
+        tradeId: Number(position.serverTradeId), accountMode: "real", fundingSource,
+        stakeRefunded: true, refundAmount: unresolved.refundAmount
+      }
+    }));
+    renderBalance();
+    renderLists();
+    toast(`Trade marked UNSETTLED. ${formatUsd(unresolved.refundAmount)} stake refunded.`);
+    return true;
+  }
+
   async function openSandboxTrade(type, options = {}) {
     const tradeStake = Number(options.stake ?? stake);
     const tradeContract = String(options.contract || contractType).toLowerCase();
@@ -2538,10 +2732,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const token = localStorage.getItem("tradezoraAuthToken") || localStorage.getItem("session_token") || localStorage.getItem("sessionToken") || "";
     const api = "https://tradezora-backend-1.onrender.com";
+    const requestSignature = JSON.stringify([tradeContract, String(type).toUpperCase(), tradeDigit, tradeStake.toFixed(2)]);
+    let clientRequestId;
     try {
-      const response = await fetch(`${api}/api/sandbox/trades/open`, { method:"POST", headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`,"Accept":"application/json"}, body:JSON.stringify({contract:tradeContract,type,digit:tradeDigit,stake:tradeStake}) });
+      clientRequestId = getPendingRealTradeOpenRequestId(requestSignature);
+      const response = await fetch(`${api}/api/sandbox/trades/open`, { method:"POST", headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`,"Accept":"application/json"}, body:JSON.stringify({contract:tradeContract,type,digit:tradeDigit,stake:tradeStake,client_request_id:clientRequestId}) });
       const data = await response.json().catch(()=>({}));
-      if (!response.ok || !data.success || !data.trade?.id) throw new Error(data.error || `Trade could not open (${response.status}).`);
+      if (!response.ok || !data.success || !data.trade?.id) {
+        if (data.alreadyProcessed) {
+          clearPendingRealTradeOpenRequestId(clientRequestId);
+          await Promise.all([refreshSandboxBalance(), refreshActiveRealBalance()]);
+          toast("This trade request was already processed. No new stake was deducted; check Positions and History.");
+          return false;
+        }
+        throw new Error(data.error || `Trade could not open (${response.status}).`);
+      }
       const fundingSource = data.fundingSource || data.trade.funding_source || "test";
       if (fundingSource === "real") {
         realBalance = Number(data.balance); realBalanceLoadStatus = "loaded";
@@ -2549,7 +2754,11 @@ document.addEventListener("DOMContentLoaded", () => {
         sandboxBalance = Number(data.balance); sandboxBalanceLoadStatus = "loaded";
       }
       const position = { id:`sandbox-${data.trade.id}`, serverTradeId:Number(data.trade.id), accountMode:"real", fundingSource, type, stake:tradeStake, digit:tradeDigit, contract:tradeContract, mode:tradeMode, autoSessionId:options.sessionId || null, openedAt:Date.now(), settleAt:Date.now()+5000 };
-      positions.push(position); saveTradeState(); renderBalance(); renderLists();
+      if (!positions.some(item => item.id === position.id)) positions.push(position);
+      saveTradeState();
+      clearPendingRealTradeOpenRequestId(clientRequestId);
+      window.dispatchEvent(new CustomEvent("tradezora-wallet-balance-updated", { detail: { accountMode: "real", fundingSource, balance: data.balance } }));
+      renderBalance(); renderLists();
       toast(`${type} internal-engine position opened using ${fundingSource === "real" ? "real balance" : "test funds"}.`);
       setTimeout(async () => {
         const index = positions.findIndex(item => item.id === position.id);
@@ -2560,24 +2769,42 @@ document.addEventListener("DOMContentLoaded", () => {
           const settleResponse = await fetch(`${api}/api/sandbox/trades/${position.serverTradeId}/settle`, { method:"POST", headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`,"Accept":"application/json"}, body:JSON.stringify({naturalDigit}) });
           const settled = await settleResponse.json().catch(()=>({}));
           if (!settleResponse.ok || !settled.success) throw new Error(settled.error || `Settlement failed (${settleResponse.status}).`);
-          const actualIndex = positions.findIndex(item => item.id === position.id);
-          if (actualIndex < 0) return;
-          positions.splice(actualIndex,1);
-          const settledSource = settled.fundingSource || position.fundingSource || "test";
-          const finalTrade = {...position, fundingSource:settledSource, finalDigit:Number(settled.finalDigit), win:Boolean(settled.win), profit:Number(settled.profit || 0), settledAt:Date.now(), sandboxOnly:settled.sandbox_only === true};
-          history.push(finalTrade); if (history.length>100) history.shift(); saveTradeState();
-          if (settledSource === "real") {
-            realBalance=Number(settled.balance); realBalanceLoadStatus="loaded";
-          } else {
-            sandboxBalance=Number(settled.balance); sandboxBalanceLoadStatus="loaded";
-          }
-          showTradeDigitResult(finalTrade.finalDigit, finalTrade.win);
-          try { window.dispatchEvent(new CustomEvent("tradezora-trade-settled", {detail:{digit:finalTrade.finalDigit,win:finalTrade.win,profit:finalTrade.profit,stake:finalTrade.stake,mode:finalTrade.mode,autoSessionId:finalTrade.autoSessionId,accountMode:"real",sandboxOnly:settled.sandbox_only === true,fundingSource:settledSource}})); } catch(_) {}
-          renderBalance(); renderLists();
-          toast(finalTrade.win ? `Internal-engine trade won — digit ${finalTrade.finalDigit}` : `Internal-engine trade lost — digit ${finalTrade.finalDigit}`);
+          recordManualRealSettlement(position, settled);
         } catch(error) {
-          toast(`Trade settlement needs attention: ${error.message}`);
-          if (position.fundingSource === "real") refreshActiveRealBalance(); else refreshSandboxBalance();
+          // Settlement may have failed or its response may have been lost.
+          // Ask the server to resolve it atomically; only remove it after the
+          // server confirms either a settled result or a refunded null result.
+          try {
+            const cancelResponse = await fetch(`${api}/api/sandbox/trades/${position.serverTradeId}/cancel-unsettled`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}`, "Accept": "application/json" },
+              body: JSON.stringify({ reason: "manual_settlement_failed" })
+            });
+            const cancelled = await cancelResponse.json().catch(() => ({}));
+            if (!cancelResponse.ok || !cancelled.success) {
+              throw new Error(cancelled.error || `Refund confirmation failed (${cancelResponse.status}).`);
+            }
+            if (recordManualRealUnsettled(position, cancelled)) return;
+            if (cancelled.status === "settled") {
+              // The first settlement committed but its response was lost.
+              // Fetch the saved result through the idempotent settle endpoint.
+              const retryResponse = await fetch(`${api}/api/sandbox/trades/${position.serverTradeId}/settle`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}`, "Accept": "application/json" },
+                body: JSON.stringify({ naturalDigit })
+              });
+              const retrySettled = await retryResponse.json().catch(() => ({}));
+              if (!retryResponse.ok || !retrySettled.success) {
+                throw new Error(retrySettled.error || `Could not retrieve the saved settlement (${retryResponse.status}).`);
+              }
+              recordManualRealSettlement(position, retrySettled);
+              return;
+            }
+            throw new Error("The server did not confirm a refund or final settlement.");
+          } catch (fallbackError) {
+            toast(`Trade remains open pending server confirmation: ${fallbackError.message}`);
+            if (position.fundingSource === "real") refreshActiveRealBalance(); else refreshSandboxBalance();
+          }
         }
       }, 5000);
       return true;
