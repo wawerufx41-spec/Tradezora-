@@ -252,6 +252,16 @@
         changed = true;
       }
 
+      if (data.balances && Number.isFinite(Number(data.balances.real))) {
+        window.dispatchEvent(new CustomEvent('tradezora-wallet-balance-updated', {
+          detail: { accountMode: 'real', fundingSource: 'real', balance: Number(data.balances.real) }
+        }));
+      }
+      if (data.balances && Number.isFinite(Number(data.balances.test))) {
+        window.dispatchEvent(new CustomEvent('tradezora-wallet-balance-updated', {
+          detail: { accountMode: 'real', fundingSource: 'test', balance: Number(data.balances.test) }
+        }));
+      }
       if (changed) {
         if (data.balances && Number.isFinite(Number(data.balances.real))) {
           localStorage.setItem('tradezoraRealLastBalance', String(Number(data.balances.real)));
@@ -290,7 +300,10 @@
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || !data.success) {
-      throw new Error(data.error || data.message || `Trading service returned ${response.status}.`);
+      const error = new Error(data.error || data.message || `Trading service returned ${response.status}.`);
+      error.status = response.status;
+      error.data = data;
+      throw error;
     }
     return data;
   }
@@ -473,6 +486,39 @@
     return true;
   }
 
+  const PENDING_REAL_OPEN_REQUEST_KEY = 'tradezoraPendingRealTradeOpen';
+
+  function newClientRequestId() {
+    if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+    const bytes = new Uint8Array(16);
+    window.crypto.getRandomValues(bytes);
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    const hex = Array.from(bytes, value => value.toString(16).padStart(2, '0'));
+    return `${hex.slice(0,4).join('')}-${hex.slice(4,6).join('')}-${hex.slice(6,8).join('')}-${hex.slice(8,10).join('')}-${hex.slice(10).join('')}`;
+  }
+
+  function getPendingRealOpenRequestId(signature) {
+    let pending = null;
+    try { pending = JSON.parse(localStorage.getItem(PENDING_REAL_OPEN_REQUEST_KEY) || 'null'); } catch (_) {}
+    if (pending?.id) {
+      if (pending.signature !== signature) {
+        throw new Error('A previous real-account trade request is awaiting confirmation. Retry the same contract, digit and stake before changing settings.');
+      }
+      return pending.id;
+    }
+    const id = newClientRequestId();
+    localStorage.setItem(PENDING_REAL_OPEN_REQUEST_KEY, JSON.stringify({ id, signature, createdAt: Date.now() }));
+    return id;
+  }
+
+  function clearPendingRealOpenRequestId(id) {
+    try {
+      const pending = JSON.parse(localStorage.getItem(PENDING_REAL_OPEN_REQUEST_KEY) || 'null');
+      if (pending?.id === id) localStorage.removeItem(PENDING_REAL_OPEN_REQUEST_KEY);
+    } catch (_) {}
+  }
+
   async function openRealTrade(state, now) {
     const stake = Number(state.currentStake || state.stake);
     const contract = String(state.contract || 'match').toLowerCase();
@@ -487,7 +533,19 @@
     window.dispatchEvent(new CustomEvent('tradezora-trade-opened', {
       detail: { mode: 'AUTO', accountMode: 'real', contract, digit, type }
     }));
-    const data = await apiPost('/api/sandbox/trades/open', { contract, type, digit, stake });
+    const signature = JSON.stringify([contract, type, digit, stake.toFixed(2)]);
+    const clientRequestId = getPendingRealOpenRequestId(signature);
+    let data;
+    try {
+      data = await apiPost('/api/sandbox/trades/open', { contract, type, digit, stake, client_request_id: clientRequestId });
+    } catch (error) {
+      if (error.data?.alreadyProcessed) {
+        clearPendingRealOpenRequestId(clientRequestId);
+        await syncRealTradesFromServer(Date.now(), true);
+        throw new Error('This trade request was already processed. No new stake was deducted; check Positions and History.');
+      }
+      throw error;
+    }
     if (!data.trade || !data.trade.id) throw new Error('Trading service did not return a valid trade ID.');
 
     const fundingSource = data.fundingSource || data.trade.funding_source || 'test';
@@ -503,15 +561,25 @@
     if (!positions.some(item => item.id === position.id)) positions.push(position);
     write(KEYS.real.positions, positions);
     write(KEYS.real.state, { ...state, running: true, nextTradeAt: now + AUTO_REOPEN_DELAY_MS });
+    clearPendingRealOpenRequestId(clientRequestId);
+    if (Number.isFinite(Number(data.balance))) {
+      const eventFundingSource = fundingSource === 'real' ? 'real' : 'test';
+      window.dispatchEvent(new CustomEvent('tradezora-wallet-balance-updated', {
+        detail: { accountMode: 'real', fundingSource: eventFundingSource, balance: Number(data.balance), tradeId: Number(data.trade.id) }
+      }));
+    }
     emit();
     return true;
   }
 
   async function settleRealPosition(position, now) {
+    // No quote is not a settlement failure. Keep the position open and let the
+    // normal tick retry instead of refunding while market data is unavailable.
+    const naturalDigit = getNaturalDigit();
+    if (!Number.isInteger(naturalDigit)) throw new Error('Latest market quote is unavailable for settlement.');
+
     let settled;
     try {
-      const naturalDigit = getNaturalDigit();
-      if (!Number.isInteger(naturalDigit)) throw new Error('Latest market quote is unavailable for settlement.');
       settled = await apiPost(`/api/sandbox/trades/${Number(position.serverTradeId)}/settle`, { naturalDigit });
     } catch (settlementError) {
       // A failed or ambiguously acknowledged settlement is never converted to a loss.
@@ -549,6 +617,9 @@
         if (Number.isFinite(Number(cancelled.balance))) {
           const cacheKey = fundingSource === 'real' ? 'tradezoraRealLastBalance' : 'tradezoraSandboxLastBalance';
           localStorage.setItem(cacheKey, String(Number(cancelled.balance)));
+          window.dispatchEvent(new CustomEvent('tradezora-wallet-balance-updated', {
+            detail: { accountMode: 'real', fundingSource: fundingSource === 'real' ? 'real' : 'test', balance: Number(cancelled.balance), tradeId: Number(position.serverTradeId) }
+          }));
         }
         // Deliberately do not dispatch trade-settled or touch session P/L/W-L.
         window.dispatchEvent(new CustomEvent('tradezora-trade-unsettled', {
@@ -585,6 +656,9 @@
       if (Number.isFinite(Number(settled.balance))) {
         const cacheKey = fundingSource === 'real' ? 'tradezoraRealLastBalance' : 'tradezoraSandboxLastBalance';
         localStorage.setItem(cacheKey, String(Number(settled.balance)));
+        window.dispatchEvent(new CustomEvent('tradezora-wallet-balance-updated', {
+          detail: { accountMode: 'real', fundingSource: fundingSource === 'real' ? 'real' : 'test', balance: Number(settled.balance), tradeId: Number(position.serverTradeId) }
+        }));
       }
       emit();
       return true;
@@ -613,6 +687,11 @@
     if (Number.isFinite(Number(settled.balance))) {
       const cacheKey = fundingSource === 'real' ? 'tradezoraRealLastBalance' : 'tradezoraSandboxLastBalance';
       localStorage.setItem(cacheKey, String(Number(settled.balance)));
+    }
+    if (Number.isFinite(Number(settled.balance))) {
+      window.dispatchEvent(new CustomEvent('tradezora-wallet-balance-updated', {
+        detail: { accountMode: 'real', fundingSource: fundingSource === 'real' ? 'real' : 'test', balance: Number(settled.balance), tradeId: Number(position.serverTradeId) }
+      }));
     }
 
     const state = getState('real');
